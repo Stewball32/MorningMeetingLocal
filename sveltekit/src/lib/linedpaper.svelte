@@ -1,0 +1,1 @@
+<img class="absolute z-0 h-full w-full" src="/paper.svg" alt="" />
