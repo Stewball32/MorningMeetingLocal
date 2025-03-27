@@ -1,13 +1,50 @@
 /* fonts */
-@import '@fontsource/atkinson-hyperlegible';
-@import '@fontsource/monaspace-neon';
+@import '@fontsource/abeezee';
 
 /* presentation */
-@import '@animotion/core/theme';
+/* @import '@animotion/core/theme'; */
 
 /* tailwind */
 @import 'tailwindcss/theme';
 @import 'tailwindcss/utilities';
+
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/optional/presets';
+@import '@skeletonlabs/skeleton/themes/cerberus';
+
+/* @source '../node_modules/@skeletonlabs/skeleton-svelte/dist'; */
+
+/* this disables the dark mode variant */
+/* don't you dare fucking delete this */
+@custom-variant dark (&:where(.dark, .dark *));
+/* for the love of god, don't delete this */
+
+
+:root {
+	--r-main-font: 'ABeeZee';
+	--ease: linear(
+		0 0%,
+		0.0036 9.62%,
+		0.0185 16.66%,
+		0.0489 23.03%,
+		0.0962 28.86%,
+		0.1705 34.93%,
+		0.269 40.66%,
+		0.3867 45.89%,
+		0.5833 52.95%,
+		0.683 57.05%,
+		0.7829 62.14%,
+		0.8621 67.46%,
+		0.8991 70.68%,
+		0.9299 74.03%,
+		0.9545 77.52%,
+		0.9735 81.21%,
+		0.9865 85%,
+		0.9949 89.15%,
+		1 100%
+	);
+}
+
 
 /* reset */
 *,
@@ -19,7 +56,7 @@
 }
 
 /* defaults */
-:root {
+/* :root {
 	--r-background-color: oklch(20% 0.01 272);
 	--r-main-font: 'Atkinson Hyperlegible';
 	--r-main-font-size: 42px;
@@ -48,15 +85,15 @@
 		0.9949 89.15%,
 		1 100%
 	);
-}
+} */
 
 /* code block */
-div:has(> pre) {
+/* div:has(> pre) {
 	padding: --spacing(4) --spacing(8);
 	background-color: oklch(24% 0.02 272);
 	border-top: 1px solid oklch(34% 0.02 272);
 	border-radius: var(--radius-lg);
-}
+} */
 
 /* view transitions */
 html {
