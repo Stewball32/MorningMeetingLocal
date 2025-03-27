@@ -27,5 +27,3 @@ const slideStyleArray = [
 
 export const slideStyle = " " + slideStyleArray.join(" ") + " "
 
-// Blue-500 but in hex
-export let bgHexColor = "3B82F6"
