@@ -1,64 +1,24 @@
 <script lang="ts">
-	import type { PageData } from './$types'
 	import { Presentation, Slide, Code, Transition, Action } from '@animotion/core'
 	import { tween } from '@animotion/motion'
-	import { bgHexColor } from '$lib'
-	import Reveal from 'reveal.js'
-	import Attendance from '$lib/slides/Attendance.svelte'
-	import { pb } from '$lib/pb'
-	import type { Student, Teacher } from '$lib/pb'
-	import { onMount } from 'svelte'
+	import type { PageData } from './$types';
 
-	let { data }: { data: PageData } = $props()
-
-	// From presentation.svelte.d.ts
-	type Options = {
-		reload?: boolean
-	}
-	const presentationOptions: Reveal.Options & Options = {
-		history: true,
-		transition: 'slide'
-		// disableLayout: true,
-		// controls: false,
-		// progress: false,
-		// embedded: true,
-	}
+	
+	let { data }: { data: PageData } = $props();
 
 	let text: HTMLParagraphElement
 	let code: ReturnType<typeof Code>
 	let circle = tween({ x: 0, y: 80, r: 80, fill: '#00ffff' })
 	let items = $state([1, 2, 3, 4])
 	let layout = $state('flex gap-4')
-
-	let students: Student[] = $state([])
-	let teachers: Teacher[] = $state([])
-
-	onMount(async () => {
-		try {
-			const studentData = (await pb.collection('students').getFullList()) as Student[]
-			console.log(studentData)
-			students = studentData
-			console.log(students)
-		} catch (error) {
-			console.error(error)
-		}
-
-		try {
-			const teacherData = (await pb.collection('teachers').getFullList()) as Teacher[]
-			teachers = teacherData
-		} catch (error) {
-			console.error(error)
-		}
-	})
-	Reveal
-	let bgColor = $derived("bg-[#" + bgHexColor + "]")
 </script>
 
-<Presentation class={bgColor} options={presentationOptions}>
-	<Attendance {students} {teachers} />
+<Presentation options={{ history: true, transition: 'slide', controls: true, progress: true }}>
+	<Slide class="h-full place-content-center place-items-center">
+		<p class="text-4xl font-bold drop-shadow-sm">🪄 Use arrow keys to navigate</p>
+	</Slide>
 
-	<Slide animate class="h-full place-content-center place-items-center">
-		<img src="/favicon.png" class="absolute m-0 aspect-[1821/1000] sm:m-2 md:m-8" alt="" />
+	<Slide class="h-full place-content-center place-items-center">
 		<Transition
 			do={async () => {
 				text.classList.replace('text-6xl', 'text-8xl')
@@ -72,10 +32,10 @@
 			do={async () => {
 				text.classList.replace('text-8xl', 'text-6xl')
 				await code.update`
-								async function animate() {
-									// ...
-								}
-							`
+					async function animate() {
+						// ...
+					}
+				`
 				await circle.to({ x: 0, fill: '#00ffff' })
 			}}
 			class="mt-16"
@@ -92,10 +52,10 @@
 		<Transition
 			do={async () => {
 				await code.update`
-								async function animate() {
-									// ...
-								}
-							`
+					async function animate() {
+						// ...
+					}
+				`
 				await circle.to({ x: 0, fill: '#00ffff' })
 			}}
 			class="mt-16"
@@ -118,10 +78,10 @@
 		<Action
 			do={async () => {
 				await code.update`
-								async function animate() {
-									await circle.to({ x: 400, fill: '#ffff00' })
-								}
-							`
+					async function animate() {
+						await circle.to({ x: 400, fill: '#ffff00' })
+					}
+				`
 				await code.selectLines`2`
 				await circle.to({ x: 400, fill: '#ffff00' })
 			}}
@@ -130,11 +90,11 @@
 		<Action
 			do={async () => {
 				await code.update`
-								async function animate() {
-									await circle.to({ x: 400, fill: '#ffff00' })
-									await circle.to({ x: 0, fill: '#00ffff' })
-								}
-							`
+					async function animate() {
+						await circle.to({ x: 400, fill: '#ffff00' })
+						await circle.to({ x: 0, fill: '#00ffff' })
+					}
+				`
 				await code.selectLines`3`
 				await circle.to({ x: 0, fill: '#00ffff' })
 			}}
@@ -144,23 +104,17 @@
 			do={async () => {
 				await code.selectLines`*`
 				await code.update`
-							async function animate() {
-								await circle.to({ x: 400, fill: '#ffff00' })
-								await circle.to({ x: 0, fill: '#00ffff' })
-							}
-						`
+				async function animate() {
+					await circle.to({ x: 400, fill: '#ffff00' })
+					await circle.to({ x: 0, fill: '#00ffff' })
+				}
+			`
 				await circle.to({ x: 0, fill: '#00ffff' })
 			}}
 		/>
 	</Slide>
 
 	<Slide class="h-full place-content-center place-items-center">
-		<img
-			data-id={Math.random().toString(36).substring(7)}
-			src="/paper.svg"
-			class="absolute m-0 aspect-[1821/1000] sm:m-2 md:m-8"
-			alt=""
-		/>
 		<Transition>
 			<p class="text-6xl font-bold drop-shadow-sm">🪄 Layout Animations</p>
 		</Transition>
