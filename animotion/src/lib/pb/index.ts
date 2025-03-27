@@ -18,15 +18,22 @@ interface Person extends RecordModel {
 	avatar?: string;
 }
 
-interface DailyLog {
+interface DailyLog extends RecordModel {
 	date: string;
-	present: boolean;
+	here?: "present" | "absent";
 	feelings: string[];
 	weather: string[];
 }
 
-export interface Student extends Person, DailyLog {}
+export interface Student extends Person {}
+export interface StudentLog extends DailyLog {
+	student: string;
+}
 
-export interface Teacher extends Person, DailyLog {
+
+export interface Teacher extends Person {
 	title?: string;
+}
+export interface TeacherLog extends DailyLog {
+	teacher: string;
 }
