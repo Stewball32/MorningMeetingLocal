@@ -7,55 +7,55 @@
 
 /**
  * Fires after a record is successfully created.
- * @param {core.RecordEvent} e
+ * @param {core.record.idEvent} e
  */
 onRecordAfterCreateSuccess((e) => {
-	console.log("✅ Record Created:", e.record);
+	console.log("✅ Record Created:", e.record.id);
 	e.next();
 });
 
 /**
  * Fires after a record update succeeds.
- * @param {core.RecordEvent} e
+ * @param {core.record.idEvent} e
  */
 onRecordAfterUpdateSuccess((e) => {
-	console.log("✅ Record Updated:", e.record);
+	console.log("✅ Record Updated:", e.record.id);
 	e.next();
 });
 
 /**
  * Fires after a record deletion succeeds.
- * @param {core.RecordEvent} e
+ * @param {core.record.idEvent} e
  */
 onRecordAfterDeleteSuccess((e) => {
-	console.log("❌ Record Deleted:", e.record);
+	console.log("❌ Record Deleted:", e.record.id);
 	e.next();
 });
 
 /**
  * Fires after a collection is successfully created.
- * @param {core.CollectionEvent} e
+ * @param {core.collection.idEvent} e
  */
 onCollectionAfterCreateSuccess((e) => {
-	console.log("📂 Collection Created:", e.collection);
+	console.log("📂 Collection Created:", e.collection.id);
 	e.next();
 });
 
 /**
  * Fires after a collection update succeeds.
- * @param {core.CollectionEvent} e
+ * @param {core.collection.idEvent} e
  */
 onCollectionAfterUpdateSuccess((e) => {
-	console.log("📂 Collection Updated:", e.collection);
+	console.log("📂 Collection Updated:", e.collection.id);
 	e.next();
 });
 
 /**
  * Fires after a collection is successfully deleted.
- * @param {core.CollectionEvent} e
+ * @param {core.collection.idEvent} e
  */
 onCollectionAfterDeleteSuccess((e) => {
-	console.log("🗑️ Collection Deleted:", e.collection);
+	console.log("🗑️ Collection Deleted:", e.collection.id);
 	e.next();
 });
 
@@ -97,7 +97,7 @@ onTerminate((e) => {
 
 /**
  * Fires on an authentication request.
- * @param {core.RecordAuthRequestEvent} e
+ * @param {core.record.idAuthRequestEvent} e
  */
 onRecordAuthRequest((e) => {
 	console.log("🔐 Auth Request:", e);
@@ -106,7 +106,7 @@ onRecordAuthRequest((e) => {
 
 /**
  * Fires after an authentication refresh.
- * @param {core.RecordAuthRefreshRequestEvent} e
+ * @param {core.record.idAuthRefreshRequestEvent} e
  */
 onRecordAuthRefreshRequest((e) => {
 	console.log("🔄 Auth Refreshed:", e);
@@ -115,7 +115,7 @@ onRecordAuthRefreshRequest((e) => {
 
 /**
  * Fires before a collection view request.
- * @param {core.CollectionRequestEvent} e
+ * @param {core.collection.idRequestEvent} e
  */
 onCollectionViewRequest((e) => {
 	console.log("👀 Collection View Requested:", e);
@@ -124,7 +124,7 @@ onCollectionViewRequest((e) => {
 
 /**
  * Fires before a record view request.
- * @param {core.RecordRequestEvent} e
+ * @param {core.record.idRequestEvent} e
  */
 onRecordViewRequest((e) => {
 	console.log("👀 Record View Requested:", e);
