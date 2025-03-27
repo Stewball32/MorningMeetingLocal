@@ -2,9 +2,8 @@
 	import type { PageData } from './$types'
 	import { Presentation, Slide, Code, Transition, Action } from '@animotion/core'
 	import { tween } from '@animotion/motion'
-	import { bgHexColor } from '$lib'
 	import Reveal from 'reveal.js'
-	import Attendance from '$lib/slides/Attendance.svelte'
+	import Attendance from '$lib/slides/attendance/Attendance.svelte'
 	import { pb } from '$lib/pb'
 	import type { Student, Teacher } from '$lib/pb'
 	import { onMount } from 'svelte'
@@ -51,8 +50,17 @@
 		}
 	})
 	Reveal
-	let bgColor = $derived("bg-[#" + bgHexColor + "]")
+	let bgColor = $derived("bg-[#3B82F6]")
 </script>
+
+<div class="absolute top-0 right-0 text-xs text-blue-600 z-10">
+	<p class="block sm:hidden">XS</p>
+	<p class="hidden sm:block md:hidden">SM</p>
+	<p class="hidden md:block lg:hidden">MD</p>
+	<p class="hidden lg:block xl:hidden">LG</p>
+	<p class="hidden xl:block 2xl:hidden">XL</p>
+	<p class="hidden 2xl:block">2XL</p>
+</div>
 
 <Presentation class={bgColor} options={presentationOptions}>
 	<Attendance {students} {teachers} />

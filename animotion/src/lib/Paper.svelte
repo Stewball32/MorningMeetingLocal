@@ -7,7 +7,6 @@
 
 </script>
 
-<!--Image is aligned center and has a class of aspect-[1821/1000]-->
 <img
 	data-id={data_id}
 	src="/paper.svg"
