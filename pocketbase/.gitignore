@@ -1,2 +1,6 @@
-# Data files
-/pb_data/
+# Don't track any PocketBase data files
+pb_data/*
+
+# Except the collection (table) schema definitions
+!pb_data/collections/
+!pb_data/collections/*.json
