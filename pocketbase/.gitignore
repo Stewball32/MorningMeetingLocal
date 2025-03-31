@@ -4,3 +4,8 @@ pb_data/*
 # Except the collection (table) schema definitions
 !pb_data/collections/
 !pb_data/collections/*.json
+
+# Other instances of PocketBase
+pocketbase*
+!pocketbase.exe
+!pocketbase-linux
