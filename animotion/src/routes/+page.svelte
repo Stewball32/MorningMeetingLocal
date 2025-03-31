@@ -3,10 +3,11 @@
 	import { Presentation, Slide, Code, Transition, Action } from '@animotion/core'
 	import { tween } from '@animotion/motion'
 	import Reveal from 'reveal.js'
-	import Attendance from '$lib/slides/attendance/Attendance.svelte'
+	import Attendance from '$lib/slides/attendance/_Attendance.svelte'
 	import { pb } from '$lib/pb'
-	import type { Student, Teacher } from '$lib/pb'
+	import type { Student, StudentLog, Teacher, TeacherLog } from '$lib/pb'
 	import { onMount } from 'svelte'
+	import type { RecordSubscription } from 'pocketbase'
 
 	let { data }: { data: PageData } = $props()
 
@@ -31,7 +32,6 @@
 
 	let students: Student[] = $state([])
 	let teachers: Teacher[] = $state([])
-
 	onMount(async () => {
 		try {
 			const studentData = (await pb.collection('students').getFullList()) as Student[]
@@ -49,11 +49,72 @@
 			console.error(error)
 		}
 	})
-	Reveal
-	let bgColor = $derived("bg-[#3B82F6]")
+
+	let studentLogMap = $state(new Map<string, StudentLog>())
+	let teacherLogMap = $state(new Map<string, TeacherLog>())
+	onMount(async () => {
+		const date = new Date()
+		const todayString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+		const filter = `date = "${todayString}"`
+		try {
+			const studentLogData = await pb
+				.collection('student_logs')
+				.getList(undefined, undefined, { filter: filter })
+			const studentLogs = studentLogData.items as StudentLog[]
+			const newStudentMap = new Map(studentLogs.map((studentLog) => [studentLog.student, studentLog]))
+			studentLogMap = newStudentMap
+		} catch (error) {
+			console.error('no student logs found for today')
+		}
+
+		try {
+			const teacherLogData = await pb
+				.collection('teacher_logs')
+				.getList(undefined, undefined, { filter: filter })
+			const teacherLogs = teacherLogData.items as TeacherLog[]
+			const newTeacherMap = new Map(teacherLogs.map((teacherLog) => [teacherLog.teacher, teacherLog]))
+			teacherLogMap = newTeacherMap
+		} catch (error) {
+			console.error('no teacher logs found for today')
+		}
+
+		pb.collection('student_logs').subscribe('*', (e: RecordSubscription<StudentLog>) => {
+			const newStudentMap = new Map(studentLogMap)
+			switch (e.action) {
+				case 'create':
+					newStudentMap.set(e.record.student, e.record)
+					break
+				case 'update':
+					newStudentMap.set(e.record.student, e.record)
+					break
+				case 'delete':
+					newStudentMap.delete(e.record.student)
+					break
+			}
+			studentLogMap = newStudentMap
+		})
+
+		pb.collection('teacher_logs').subscribe('*', (e: RecordSubscription<TeacherLog>) => {
+			const newTeacherMap = new Map(teacherLogMap)
+			switch (e.action) {
+				case 'create':
+					newTeacherMap.set(e.record.teacher, e.record)
+					break
+				case 'update':
+					newTeacherMap.set(e.record.teacher, e.record)
+					break
+				case 'delete':
+					newTeacherMap.delete(e.record.teacher)
+					break
+			}
+			teacherLogMap = newTeacherMap
+		})
+	})
+
+	let bgColor = $derived('bg-[#3B82F6]')
 </script>
 
-<div class="absolute top-0 right-0 text-xs text-blue-600 z-10">
+<div class="absolute right-0 top-0 z-10 text-xl text-blue-600">
 	<p class="block sm:hidden">XS</p>
 	<p class="hidden sm:block md:hidden">SM</p>
 	<p class="hidden md:block lg:hidden">MD</p>
@@ -63,170 +124,6 @@
 </div>
 
 <Presentation class={bgColor} options={presentationOptions}>
-	<Attendance {students} {teachers} />
+	<Attendance {students} {teachers} {studentLogMap} {teacherLogMap} />
 
-	<Slide animate class="h-full place-content-center place-items-center">
-		<img src="/favicon.png" class="absolute m-0 aspect-[1821/1000] sm:m-2 md:m-8" alt="" />
-		<Transition
-			do={async () => {
-				text.classList.replace('text-6xl', 'text-8xl')
-				await code.update``
-			}}
-		>
-			<p bind:this={text} class="text-8xl font-bold drop-shadow-sm">🪄 Animotion</p>
-		</Transition>
-
-		<Transition
-			do={async () => {
-				text.classList.replace('text-8xl', 'text-6xl')
-				await code.update`
-								async function animate() {
-									// ...
-								}
-							`
-				await circle.to({ x: 0, fill: '#00ffff' })
-			}}
-			class="mt-16"
-		>
-			<Code
-				bind:this={code}
-				lang="ts"
-				theme="poimandres"
-				code={``}
-				options={{ duration: 600, stagger: 0.3, containerStyle: false }}
-			/>
-		</Transition>
-
-		<Transition
-			do={async () => {
-				await code.update`
-								async function animate() {
-									// ...
-								}
-							`
-				await circle.to({ x: 0, fill: '#00ffff' })
-			}}
-			class="mt-16"
-		>
-			<svg width="560" height={circle.r * 2} viewBox="-80 0 560 {circle.r * 2}">
-				<circle cx={circle.x} cy={circle.y} r={circle.r} fill={circle.fill} />
-				<text
-					x={circle.x}
-					y={circle.y}
-					font-size={circle.r * 0.4}
-					font-family="Monaspace Neon"
-					text-anchor="middle"
-					dominant-baseline="middle"
-				>
-					{circle.x.toFixed(0)}
-				</text>
-			</svg>
-		</Transition>
-
-		<Action
-			do={async () => {
-				await code.update`
-								async function animate() {
-									await circle.to({ x: 400, fill: '#ffff00' })
-								}
-							`
-				await code.selectLines`2`
-				await circle.to({ x: 400, fill: '#ffff00' })
-			}}
-		/>
-
-		<Action
-			do={async () => {
-				await code.update`
-								async function animate() {
-									await circle.to({ x: 400, fill: '#ffff00' })
-									await circle.to({ x: 0, fill: '#00ffff' })
-								}
-							`
-				await code.selectLines`3`
-				await circle.to({ x: 0, fill: '#00ffff' })
-			}}
-		/>
-
-		<Action
-			do={async () => {
-				await code.selectLines`*`
-				await code.update`
-							async function animate() {
-								await circle.to({ x: 400, fill: '#ffff00' })
-								await circle.to({ x: 0, fill: '#00ffff' })
-							}
-						`
-				await circle.to({ x: 0, fill: '#00ffff' })
-			}}
-		/>
-	</Slide>
-
-	<Slide class="h-full place-content-center place-items-center">
-		<img
-			data-id={Math.random().toString(36).substring(7)}
-			src="/paper.svg"
-			class="absolute m-0 aspect-[1821/1000] sm:m-2 md:m-8"
-			alt=""
-		/>
-		<Transition>
-			<p class="text-6xl font-bold drop-shadow-sm">🪄 Layout Animations</p>
-		</Transition>
-
-		<Transition
-			do={() => {
-				items = [1, 2, 3, 4]
-				layout = 'flex gap-4'
-			}}
-			class="mt-16"
-		>
-			<div class={layout}>
-				{#each items as item (item)}
-					<Transition
-						class="grid h-[180px] w-[180px] place-content-center rounded-2xl border-t-2 border-white bg-gray-200 text-6xl font-semibold text-black shadow-2xl"
-						enter="rotate"
-						visible
-					>
-						{item}
-					</Transition>
-				{/each}
-			</div>
-		</Transition>
-
-		<Transition
-			do={() => {
-				layout = 'grid grid-cols-2 grid-rows-2 gap-4'
-				items = [4, 3, 2, 1]
-			}}
-		/>
-		<Transition
-			do={() => {
-				layout = 'grid grid-cols-2 grid-rows-2 gap-4'
-				items = [2, 1, 4, 3]
-			}}
-		/>
-		<Transition
-			do={() => {
-				layout = 'grid grid-cols-2 grid-rows-2 gap-4'
-				items = [4, 3, 2, 1]
-			}}
-		/>
-		<Transition
-			do={() => {
-				layout = 'grid grid-cols-2 grid-rows-2 gap-4'
-				items = [1, 2, 3, 4]
-			}}
-		/>
-		<Transition do={() => (layout = 'flex gap-4')} />
-	</Slide>
-
-	<Slide class="h-full place-content-center place-items-center">
-		<p class="mt-8 text-6xl font-bold">🪄 Animotion</p>
-		<p class="mt-16 text-3xl">
-			Learn more by reading the
-			<a class="underline" href="https://animotion.pages.dev/docs" target="_blank">
-				Animotion docs
-			</a>.
-		</p>
-	</Slide>
 </Presentation>
