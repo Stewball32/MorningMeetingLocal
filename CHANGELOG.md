@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-03-30
+### Fixed
+- Updated `README.md` to clarify PocketBase usage for Windows vs Linux
+
 ## [0.1.0] - 2025-03-30
 ### Added
 - Initial project setup
