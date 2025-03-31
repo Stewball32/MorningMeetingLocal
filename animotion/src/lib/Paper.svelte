@@ -9,6 +9,7 @@
 
 <img
 	data-id={data_id}
+	data-transition="slide"
 	src="/paper.svg"
 	class="
 		absolute
