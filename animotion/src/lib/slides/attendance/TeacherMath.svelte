@@ -144,7 +144,7 @@
 				</div>
 				<div></div>
 				<div class=" ">
-					<h1 class="text-xl sm:text-2xl lg:text-4xl xl:text-7xl 2xl:text-9xl">-</h1>
+					<h1 class="text-xl sm:text-2xl lg:text-4xl xl:text-7xl 2xl:text-9xl">+</h1>
 				</div>
 				<div data-id="teacher-math-teachers" class="grid auto-cols-fr grid-rows-3 grid-flow-col place-content-center gap-2">
 					{#each teachers as teacherHere}
