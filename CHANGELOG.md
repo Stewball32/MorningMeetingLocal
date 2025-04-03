@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-04-02
+
+### animotion/
+- Added `.ico` file.
+- Added `devhost` and `previewhost` scripts to `package.json` for simple network testing.
+- Updated Reveal.js presentation options (`reload: true`).
+
+### pocketbase/
+- Removed PocketBase binaries.
+- Added `sample_pb_data/` for example/easy setup.
+
+### /
+- Added `setup.bat` and `setup.sh` scripts for easy setup.
+  - Configurable via `setup.env`.
+  - **pocketbase/**
+    - Detects system OS/architecture and downloads the appropriate PocketBase build.
+    - Prompts to copy `sample_pb_data/` to `pb_data/`, backing up existing `pb_data/`.
+  - **animotion/**
+    - Copies `.env.example` to `.env` if it doesn't already exist.
+    - Runs `npm install`.
+
 ## [0.1.1] - 2025-03-30
 ### Fixed
 - Updated `README.md` to clarify PocketBase usage for Windows vs Linux
@@ -27,3 +48,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - N/A
 
 ---
+
+## setup.bat parity update (April 2, 2025)
+
+### Added
+- Full feature parity with `setup.sh`, including:
+  - Environment variable support via `setup.env`
+  - Automatic architecture detection (defaults to `amd64` on Windows)
+  - PocketBase zip download and extraction based on version and platform
+  - `.env` file creation in `animotion/` from `.env.example` if missing
+  - Timestamped backup of existing `pb_data/` directory
+  - Copying `sample_pb_data/` to `pb_data/`
+  - `npm install` run inside `animotion/` if `package.json` exists
+
+### Changed
+- Improved user prompts for clarity and confirmation before data copying
+- Uses PowerShell `Expand-Archive` for reliable unzip handling on Windows
+
+### Known Limitations
+- Does not dynamically detect non-amd64 architectures on Windows (assumes 64-bit)
+- Requires PowerShell for unzipping functionality
+

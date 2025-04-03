@@ -1,12 +1,13 @@
 # Morning Meeting
 
-**Morning Meeting** is a local-first web app for running interactive classroom presentations, tracking attendance, and showcasing student/teacher info. Built with modern tools for easy local hosting and fast iteration.
+**Morning Meeting** is a local-network "web" app for running interactive classroom presentations, tracking attendance, and showcasing student/teacher info. Built with modern tools for easy local hosting and fast iteration.
 
 ## 🧱 Tech Stack
 
 - **Frontend:** [SvelteKit 5](https://kit.svelte.dev/) + [Skeleton UI v3](https://www.skeleton.dev/) + [Reveal.js](https://revealjs.com/) + Tailwind CSS
 - **Backend:** [PocketBase](https://pocketbase.io/)
 - **Local Dev:** Runs on Raspberry Pi or other local hardware
+- **Current Enviroment**: Currently supporting Node/NPM LTS (currently 22.14.0)
 
 ## 📦 Project Structure
 
@@ -22,55 +23,62 @@ git clone https://github.com/Stewball32/MorningMeetingLocal.git
 cd MorningMeetingLocal
 ```
 
-### 2. Setup PocketBase
+### 2. Run Setup Script
 
 #### For Linux/macOS:
-
 ```bash
-cd pocketbase
-./pocketbase-linux serve
+./setup.sh
 ```
 
 #### For Windows:
-
-Rename the binary to `pocketbase.exe` and run:
-
 ```powershell
-cd pocketbase
-./pocketbase serve
+setup.bat
 ```
 
-If you're having trouble, try downloading [a difference v0.26.2 version](https://github.com/pocketbase/pocketbase/releases/tag/v0.26.6) of PocketBase if needed and run it from the `pocketbase/` folder.
+This script will:
+- Download the correct PocketBase binary based on your OS/architecture
+- Optionally restore sample data to `pb_data/`
+- Create `.env` file in `animotion/` if it doesn't exist
+- Run `npm install` in `animotion/`
 
-Then open your browser to the local PocketBase web UI (e.g., `http://127.0.0.1:8090/_/`) and:
+Config options can be modified in `setup.env` before running the script.
 
-- Log in as admin
-- Create collections for `students` and `teachers`
-- Add your data manually or via CSV import
+### 3. Dev Scripts
 
-### 3. Setup the Frontend
+After setup:
+- Start the frontend in dev mode:
+  ```bash
+	cd animotion
+  npm run dev
+  ```
 
-```bash
-cd ../animotion
-cp .env.example .env
-# Make sure the .env file points to your local PocketBase instance
+- Start the frontend in production preview mode:
+  ```bash
+	npm run build
+  npm run preview
+  ```
+- Test/Run on network by adding `host` at the end:
+	```bash
+	npm run devhost
+	npm run previewhost
+	```
 
-npm install
-npm run dev
-```
+- Start PocketBase manually:
+  ```bash
+	cd pocketbase
+  ./pocketbase serve
+  ```
 
-### 4. Build Frontend for Production
+	Test/Run on Network by adding --http or --https (0.0.0.0 will accept all connections)
+	```bash
+	./pocketbase serve --http=0.0.0.0
 
-```bash
-npm install
-npm run build
-```
+### 4. Use the PocketBase UI
 
-#### 4.1 View Production
-
-```bash
-npm run preview
-```
+Visit: [http://127.0.0.1:8090/_/](http://127.0.0.1:8090/_/)
+- Create an admin account
+- Add `students` and `teachers` in their respective tables
+	- setup scripts will add sample teachers and students if you said yes.
 
 ## 🧠 Future Plans
 
@@ -78,10 +86,11 @@ npm run preview
 - More interactivity for slides
 - Remote control / cast view mode
 
-## 📝 License
+## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
 Push the Elevator!
+
