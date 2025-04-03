@@ -48,30 +48,31 @@ Config options can be modified in `setup.env` before running the script.
 After setup:
 - Start the frontend in dev mode:
   ```bash
-	cd animotion
+  cd animotion
   npm run dev
   ```
 
 - Start the frontend in production preview mode:
   ```bash
-	npm run build
+  npm run build
   npm run preview
   ```
-- Test/Run on network by adding `host` at the end:
-	```bash
-	npm run devhost
-	npm run previewhost
-	```
+	- Test/Run on network by adding `host` at the end:
+	  ```bash
+	  npm run devhost
+	  npm run previewhost
+	  ```
 
 - Start PocketBase manually:
   ```bash
-	cd pocketbase
+  cd pocketbase
   ./pocketbase serve
   ```
 
-	Test/Run on Network by adding --http or --https (0.0.0.0 will accept all connections)
-	```bash
-	./pocketbase serve --http=0.0.0.0
+	- Test/Run on Network by adding --http or --https (0.0.0.0 will accept all connections)
+	  ```bash
+	  ./pocketbase serve --http=0.0.0.0:8090
+	  ```
 
 ### 4. Use the PocketBase UI
 
