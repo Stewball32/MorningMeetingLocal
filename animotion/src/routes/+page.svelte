@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types'
-	import { Presentation, Slide, Code, Transition, Action } from '@animotion/core'
+	import { Presentation, Slide, Code, Transition, Action, getPresentation } from '@animotion/core'
 	import { tween } from '@animotion/motion'
 	import Reveal from 'reveal.js'
 	import Attendance from '$lib/slides/attendance/_Attendance.svelte'
@@ -16,6 +16,7 @@
 		reload?: boolean
 	}
 	const presentationOptions: Reveal.Options & Options = {
+		reload: true,
 		history: true,
 		transition: 'slide'
 		// disableLayout: true,
@@ -24,11 +25,7 @@
 		// embedded: true,
 	}
 
-	let text: HTMLParagraphElement
-	let code: ReturnType<typeof Code>
-	let circle = tween({ x: 0, y: 80, r: 80, fill: '#00ffff' })
-	let items = $state([1, 2, 3, 4])
-	let layout = $state('flex gap-4')
+	const presentation = getPresentation()
 
 	let students: Student[] = $state([])
 	let teachers: Teacher[] = $state([])
@@ -74,6 +71,7 @@
 			const teacherLogs = teacherLogData.items as TeacherLog[]
 			const newTeacherMap = new Map(teacherLogs.map((teacherLog) => [teacherLog.teacher, teacherLog]))
 			teacherLogMap = newTeacherMap
+			
 		} catch (error) {
 			console.error('no teacher logs found for today')
 		}
@@ -92,6 +90,7 @@
 					break
 			}
 			studentLogMap = newStudentMap
+			presentation.slides.sync()
 		})
 
 		pb.collection('teacher_logs').subscribe('*', (e: RecordSubscription<TeacherLog>) => {
