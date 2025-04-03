@@ -1,11 +1,12 @@
-# Don't track any PocketBase data files
+# Current PocketBase data files
 pb_data/*
 
-# Except the collection (table) schema definitions
-!pb_data/collections/
-!pb_data/collections/*.json
+# Backup files
+.backups/
 
-# Other instances of PocketBase
+# PocketBase build files, license, and changelog
 pocketbase*
-!pocketbase.exe
-!pocketbase-linux
+pocketbase*.zip
+pocketbase*.tar.gz
+LICENSE.MD
+CHANGELOG.md
