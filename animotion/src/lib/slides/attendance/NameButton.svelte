@@ -34,66 +34,37 @@
 			: undefined
 	)
 
-	let buttonId = $state('')
-	let imageId = $state('')
-	let nameId = $state('')
-	if (data_id) {
-		buttonId = `${data_id}-button`
-		imageId = `${data_id}-image`
-		nameId = `${data_id}-name`
-	}
+	let buttonId = $derived(data_id ? `${data_id}-button` : '')
+	let imageId = $derived(data_id ? `${data_id}-image` : '')
+	let nameId = $derived(data_id ? `${data_id}-name` : '')
 
-	const defaultStyle = `flex btn preset-tonal-surface rounded-full overflow-hidden ${style}`
-	const presentStyle = `flex btn preset-tonal-success rounded-full overflow-hidden ${style}`
-	const absentStyle = `flex btn preset-tonal-error rounded-full overflow-hidden ${style}`
+	const baseStyle = `flex btn overflow-hidden`
+	const defaultStyle = `preset-tonal-surface ${baseStyle} ${style}`
+	const presentStyle = `preset-tonal-success rounded-full ${baseStyle} ${style}`
+	const absentStyle = `preset-tonal-error rounded-full ${baseStyle} ${style}`
+	const styleMap = {
+		default: defaultStyle,
+		present: presentStyle,
+		absent: absentStyle
+	}
+	const buttonStyle = $derived(ourLog && ourLog.here !== "" ? styleMap[ourLog.here] : styleMap.default)
 
 	const fullAvatarStyle = `h-full -ml-1 ${avatarStyle}`
-	const fullNameStyle = ` grow ${nameStyle}`
+	const fullNameStyle = `grow ${nameStyle}`
 </script>
 
-{#if ourLog?.here === 'present'}
-	<button data-id={buttonId} class={presentStyle} onclick={onClick}>
-		{#if person.avatar && showAvatar}
-			<img data-id={imageId} src={avatarUrl} alt={person.name} class={fullAvatarStyle} />
-		{/if}
-		{#if showName}
-			<h4 data-id={nameId} class={fullNameStyle}>
-				{#if person.title}
-					{person.title} {person.name}
-				{:else}
-					{person.name}
-				{/if}
-			</h4>
-		{/if}
-	</button>
-{:else if ourLog?.here === 'absent'}
-	<button data-id={buttonId} class={absentStyle} onclick={onClick}>
-		{#if person.avatar}
-			<img data-id={imageId} src={avatarUrl} alt={person.name} class={fullAvatarStyle} />
-		{/if}
-		{#if showName}
-			<h4 data-id={nameId} class={fullNameStyle}>
-				{#if person.title}
-					{person.title} {person.name}
-				{:else}
-					{person.name}
-				{/if}
-			</h4>
-		{/if}
-	</button>
-{:else}
-	<button data-id={buttonId} class={defaultStyle} onclick={onClick}>
-		{#if person.avatar}
-			<img data-id={imageId} src={avatarUrl} alt={person.name} class={fullAvatarStyle} />
-		{/if}
-		{#if showName}
-			<h4 data-id={nameId} class={fullNameStyle}>
-				{#if person.title}
-					{person.title} {person.name}
-				{:else}
-					{person.name}
-				{/if}
-			</h4>
-		{/if}
-	</button>
-{/if}
+<button data-id={buttonId} class={buttonStyle} onclick={onClick}>
+	{#if person.avatar && showAvatar}
+		<img data-id={imageId} src={avatarUrl} alt={person.name} class={fullAvatarStyle} />
+	{/if}
+	{#if showName}
+		<h4 data-id={nameId} class={fullNameStyle}>
+			{#if person.title}
+				{person.title} {person.name}
+			{:else}
+				{person.name}
+			{/if}
+		</h4>
+	{/if}
+	<p>{ourLog?.here ?? "?"}</p>
+</button>

@@ -20,7 +20,7 @@ interface Person extends RecordModel {
 
 interface DailyLog extends RecordModel {
 	date: string;
-	here?: "present" | "absent";
+	here: "present" | "absent" | "";
 	feelings: string[];
 	weather: string[];
 }

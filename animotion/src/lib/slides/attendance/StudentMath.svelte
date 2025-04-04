@@ -5,16 +5,15 @@
 	import Paper from '$lib/Paper.svelte'
 	import { Slide } from '@animotion/core'
 	import type { Student, StudentLog, Teacher, TeacherLog } from '$lib/pb'
+	import { currentPerson } from '$lib'
 
 	interface Props {
-		currentPerson?: Student | Teacher
 		students?: Student[]
 		studentLogMap?: Map<string, StudentLog>
 		paper_id?: string
 	}
 
 	let {
-		currentPerson = $bindable(undefined),
 		students = [],
 		studentLogMap = new Map<string, StudentLog>(),
 		paper_id
@@ -33,7 +32,7 @@
 
 <Slide class="place-items-center">
 	<Paper data_id={paper_id} />
-	<Slide animate class="place-content-center" in={() => (currentPerson = undefined)}>
+	<Slide animate class="place-content-center" in={() => (currentPerson.set(undefined))}>
 		<div class={slideStyle}>
 			<h1
 				data-id="student-math-question"
@@ -110,7 +109,7 @@
 		</div></Slide
 	>
 
-	<Slide animate class="place-content-center" in={() => (currentPerson = undefined)}>
+	<Slide animate class="place-content-center" in={() => (currentPerson.set(undefined))}>
 		<div class={slideStyle}>
 			<h1
 				data-id="student-math-answer"
