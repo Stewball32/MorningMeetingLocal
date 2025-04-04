@@ -16,7 +16,6 @@
 		reload?: boolean
 	}
 	const presentationOptions: Reveal.Options & Options = {
-		reload: true,
 		history: true,
 		transition: 'slide'
 		// disableLayout: true,
@@ -90,7 +89,6 @@
 					break
 			}
 			studentLogMap = newStudentMap
-			presentation.slides.sync()
 		})
 
 		pb.collection('teacher_logs').subscribe('*', (e: RecordSubscription<TeacherLog>) => {

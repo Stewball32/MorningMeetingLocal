@@ -1,3 +1,8 @@
+import type { Student, Teacher } from "$lib/pb";
+import { writable } from "svelte/store";
+
+export let currentPerson = writable<Student | Teacher | undefined>(undefined);
+
 
 const slideStyleArray = [
 	"relative",

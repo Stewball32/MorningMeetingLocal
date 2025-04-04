@@ -7,6 +7,8 @@
 	import type { Student, StudentLog, Teacher, TeacherLog } from '$lib/pb'
 	import { getPresentation } from '@animotion/core'
 	import { onMount } from 'svelte'
+	import TestButton from './TestButton.svelte'
+	import { currentPerson } from '$lib'
 
 	let presentation = getPresentation()
 
@@ -15,7 +17,7 @@
 	interface Props {
 		header?: string
 		subheader?: string
-		currentPerson?: Person
+		// currentPerson?: Person
 		people?: Person[]
 		peopleLogMap?: Map<string, StudentLog | TeacherLog>
 		paper_id?: string
@@ -24,9 +26,9 @@
 	let {
 		header,
 		subheader,
-		currentPerson = $bindable(undefined),
+		// currentPerson = $bindable(undefined), // Not currently in use, meant for later implementation
 		people = [],
-		peopleLogMap = new Map<string, StudentLog | TeacherLog>(),
+		peopleLogMap = $bindable(new Map<string, StudentLog | TeacherLog>()),
 		paper_id
 	}: Props = $props()
 
@@ -69,7 +71,7 @@
 		}
 	}
 
-	const toggleAttendence = (isHere: 'present' | 'absent' | undefined, clickedHere: boolean) => {
+	const toggleAttendence = (isHere: 'present' | 'absent' | "", clickedHere: boolean) => {
 		switch (isHere) {
 			case 'present':
 				return clickedHere ? null : 'absent'
@@ -117,7 +119,7 @@
 
 <Slide class="place-items-center">
 	<Paper data_id={paper_id} />
-	<Slide animate class="place-content-center" in={() => (currentPerson = undefined)}>
+	<Slide animate class="place-content-center" in={() => currentPerson.set(undefined)}>
 		<div class={slideStyle}>
 			<div data-id="attendance-student-bar" class="flex h-[10%] w-full justify-evenly">
 				{#each people as personBar}
@@ -125,9 +127,9 @@
 						person={personBar}
 						logMap={peopleLogMap}
 						data_id={'student-button-' + personBar.id}
-						style={'h-full truncate rounded-2xl px-2 lg:text-2xl xl:text-3xl 2xl:text-4xl'}
+						style={'h-full'}
 						avatarStyle={''}
-						nameStyle={''}
+						nameStyle={'text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl truncate'}
 						onClick={() => changeSlide(personBar)}
 					/>
 				{/each}
@@ -149,8 +151,8 @@
 		<Slide
 			animate
 			class="place-content-center"
-			in={() => (currentPerson = personSlide)}
-			out={() => (currentPerson = undefined)}
+			in={() => currentPerson.set(personSlide)}
+			out={() => currentPerson.set(undefined)}
 		>
 			<div class={slideStyle}>
 				<div data-id="attendance-student-bar" class="flex h-[10%] w-full justify-evenly">
@@ -162,7 +164,7 @@
 								data_id={'student-button-' + studentBar.id}
 								style="h-full"
 								avatarStyle=""
-								nameStyle="lg:text-2xl xl:text-3xl 2xl:text-4xl truncate"
+								nameStyle="text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl truncate truncate"
 								onClick={() => changeSlide(studentBar)}
 							/>
 						{/if}
@@ -186,9 +188,9 @@
 						person={personSlide}
 						logMap={peopleLogMap}
 						data_id={'student-button-' + personSlide.id}
-						style={'rounded-4xl h-5/6 text-bold truncate px-4 py-1 '}
-						avatarStyle={'h-32px rounded-4xl'}
-						nameStyle={'text-md sm:text-lg md:text-3xl lg:text-4xl xl:text-6xl'}
+						style={'h-5/6   px-4 py-1'}
+						avatarStyle={'h-32px'}
+						nameStyle={'text-bold truncate text-md sm:text-lg md:text-3xl lg:text-4xl xl:text-6xl'}
 						onClick={() => changeSlide(personSlide)}
 					/>
 					<h1 class="text-bold text-md text-md pl-4 sm:text-lg md:text-3xl lg:text-4xl xl:text-6xl">
@@ -217,14 +219,15 @@
 						</h1>
 						<h1 class="text-md sm:text-lg md:text-3xl lg:text-4xl xl:text-6xl">here!</h1>
 					</button>
-					<a
+					<!-- <a
 						href={youtubeUrl(personSlide, false)}
 						target="_blank"
 						rel="noopener noreferrer"
 						class="preset-tonal-surface-500 h-full w-auto rounded-3xl px-2"
 					>
 						<img class="h-full w-auto" src="/youtube.png" alt="" />
-					</a>
+					</a> -->
+					<TestButton answer={undefined} />
 					<button
 						onclick={() => submitPersonAttendance(personSlide, false)}
 						class="btn preset-tonal-error rounded-full"
