@@ -14,3 +14,9 @@
 :root {
 	--r-main-font: 'ABeeZee';
 }
+
+html,
+body {
+	@apply bg-gradient-to-br from-blue-400 to-blue-600;
+	transform: translateZ(0);
+}
