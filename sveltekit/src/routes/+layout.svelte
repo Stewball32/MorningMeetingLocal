@@ -10,4 +10,7 @@
 </svelte:head>
 
 
-{@render children()}
+<div class="relative min-h-screen">
+
+	{@render children()}
+</div>
