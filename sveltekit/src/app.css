@@ -8,11 +8,26 @@
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 
+/* fonts */
+@import '@fontsource/abeezee';
+
 /* this disables the dark mode variant and forces standard or "light" mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-	--r-main-font: 'ABeeZee';
+  --heading-font-family: 'ABeeZee', sans-serif;
+  --base-font-family: 'ABeeZee', sans-serif;
+  --anchor-font-family: 'inherit';
+}
+
+@layer utilities {
+	.text-question {
+		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold;
+	}
+
+	.text-answer {
+		@apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-semibold;
+	}
 }
 
 html,
