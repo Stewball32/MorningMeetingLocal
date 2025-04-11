@@ -6,7 +6,7 @@
 
 <div class="place-items-center">
 	<!-- <h1> Current thing</h1> -->
-	<div class="border-1 relative min-h-screen  place-content-center border-red-500">
+	<div class=" relative min-h-screen  place-content-center">
 		<img
 			src="/paper.svg"
 			class="
@@ -24,7 +24,7 @@
 			alt=""
 		/>
 
-		<div class={slideStyle + '  outline-[.5px]'}>
+		<div class={slideStyle + '  '}>
 			{@render children()}
 		</div>
 	</div>
