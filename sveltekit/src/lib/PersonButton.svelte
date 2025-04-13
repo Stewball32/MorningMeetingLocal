@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { PUBLIC_POCKETBASE_URL } from '$env/static/public'
-	import type { Student, StudentDaily, Teacher } from './pb/types';
+	import type { Student, StudentDaily, Teacher, TeacherDaily } from './pb/types';
 
 	interface Props {
 		person: Student | Teacher
-		daily?: StudentDaily
+		daily?: StudentDaily | TeacherDaily
 		style?: string
 		showAvatar?: boolean
 		avatarStyle?: string

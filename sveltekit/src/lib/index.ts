@@ -41,15 +41,6 @@ export const getCurrentISOString = () => {
 	return `${year}-${month}-${day}`
 }
 
-/**
- * A map for sound effects used in the app.
- */
-export const soundMap = new Map<string, string>([
-	["present", "/sounds/yay.mp3"],
-	["absent", "/sounds/aww.mp3"],
-	["bonk", "/sounds/bonk.mp3"],
-])
-
 
 /**
  * Returns a full set of pronouns based on the input. Undefined input defaults to "they".
