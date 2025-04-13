@@ -2,42 +2,37 @@
 	import type { PageData } from './$types';
 	import { pb, updateDaily } from '$lib/pb';
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import type { RecordSubscription } from 'pocketbase';
-	import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
-	import PersonButton from '$lib/PersonButton.svelte';
-	import { getPronounPresent, getPronounSubject, soundMap } from '$lib';
+	import { updateSound } from '$lib/sounds';
+	import Attendance from './Attendance.svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	const todayDateString = data.todayISOString;
+	const todayISOString = data.todayISOString;
 	let students: Student[] = $state(data.students);
 	let teachers: Teacher[] = $state(data.teachers);
 	let studentDailyMap: Map<string, StudentDaily> = $state(data.studentDailyMap);
 	let teacherDailyMap: Map<string, TeacherDaily> = $state(data.teacherDailyMap);
-	let currentPerson: Student | Teacher | undefined = $state(students[0]);
-
-	// map of the sounds currently playing
-	const activeSoundMap = new Map<string, HTMLAudioElement>();
-	const playSound = (id: string, sound: string) => {
-		if (!soundMap.has(sound)) {
-			console.error(`Sound ${sound} not found in soundMap.`);
-			return;
-		}
-		
-
-	};
+	let currentPerson: Student | Teacher | undefined = $state(undefined);
 
 	onMount(async () => {
 		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
-			if (e.record.date !== todayDateString) return;
+			if (e.record.date !== todayISOString) return;
 			const newStudentDailyMap = new Map(studentDailyMap);
 			switch (e.action) {
 				case 'create':
 					newStudentDailyMap.set(e.record.student, e.record);
+					if (e.record.here) updateSound(e.record.student, e.record.here);
 					break;
 				case 'update':
+					const oldRecord = newStudentDailyMap.get(e.record.student);
 					newStudentDailyMap.set(e.record.student, e.record);
+					if (!e.record.here && oldRecord?.here) {
+						updateSound(e.record.student, e.record.here);
+					} else if (e.record.here && e.record.here !== oldRecord?.here) {
+						updateSound(e.record.student, e.record.here);
+					}
 					break;
 				case 'delete':
 					newStudentDailyMap.delete(e.record.student);
@@ -45,21 +40,11 @@
 			}
 			studentDailyMap = newStudentDailyMap;
 		});
+		onDestroy(() => {
+			// sounds multiply if not removed (mainly in dev mode)
+			pb.collection('student_dailies').unsubscribe('*');
+		});
 	});
-
-	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
-		const videoId = person.video_id;
-		const start = person.video_start ? `&start=${person.video_start}` : '';
-		const end = person.video_end ? `&end=${person.video_end}` : '';
-		const baseUrl = embedded
-			? 'https://www.youtube.com/embed/'
-			: 'https://www.youtube.com/watch?v=';
-		return `${baseUrl}${videoId}?rel=0&enablejsapi=1&autoplay=0${start}${end}`;
-	};
-
-	const updateCurrentPerson = (person?: Student | Teacher) => {
-		currentPerson = person;
-	};
 
 	const updateAttendance = async (person: Student | Teacher | undefined, isHere: boolean) => {
 		if (!person) {
@@ -82,67 +67,72 @@
 		}
 		await updateDaily(person, { ...daily, here });
 	};
+
+	let slide = $state(0);
+	const slideLeft = () => {
+		if (slide > 0) slide--;
+	};
+	const slideRight = () => {
+		if (slide < 4) slide++;
+	};
+
+	function onKeydown(event: KeyboardEvent) {
+		if (event.key === 'ArrowLeft') {
+			slideLeft();
+		} else if (event.key === 'ArrowRight') {
+			slideRight();
+		}
+	}
+
 </script>
 
-<div class="h-2/12 absolute top-0 grid w-full grid-cols-12">
-	<div class="col-span-1 h-full contain-strict"></div>
-	<div class="col-span-10 flex h-full justify-evenly p-1 contain-strict">
-		{#each students as student}
-			<PersonButton
-				person={student}
-				daily={studentDailyMap.get(student.id)}
-				style="h-full aspect-square"
-				showAvatar={true}
-				avatarStyle=""
-				showName={false}
-				nameStyle="text-center text-sm"
-				onClick={() => updateCurrentPerson(student)}
-			/>
-		{/each}
+<svelte:window on:keydown|preventDefault={onKeydown} />
+<!-- <div class="h-2/12 absolute top-0 flex w-full justify-between">
+	<div class="flex h-full w-1/12 items-center justify-center contain-strict">
+		<button
+			onclick={slideLeft}
+			disabled={slide <= 0}
+			class="btn text-question aspect-square w-full overflow-hidden"
+		>
+			⬅️
+		</button>
 	</div>
-	<div class="col-span-1 h-full"></div>
+	<div class="flex h-full w-1/12 items-center justify-center contain-strict">
+		<button
+			onclick={slideRight}
+			disabled={slide >= 4}
+			class="btn text-question aspect-square w-full overflow-hidden"
+		>
+			➡️
+		</button>
+	</div>
+</div> -->
+
+<div
+	class="h-1/12 absolute bottom-2 right-2 z-10 flex w-[8%] items-center justify-center gap-1 sm:gap-4 bg-red-500 "
+>
+	<button class="text-nav-arrows " onclick={() => slide--} disabled={slide <= 0}>❮</button>
+	<button class="text-nav-arrows " onclick={() => slide++} disabled={slide >= 4}>❯</button>
 </div>
 
-{#if currentPerson && currentPerson.collectionName === 'students'}
-	<div class="h-8/12 top-2/12 absolute flex w-full flex-col justify-center py-2">
-		<div class="h-9/12 flex w-full items-center justify-center pb-2">
-			<!--iFrame of youtube video with 16/9 ratio-->
-			<iframe
-				class="rounded-4xl aspect-video h-full"
-				src={youtubeUrl(currentPerson)}
-				title="YouTube video player"
-				frameborder="0"
-				allowfullscreen
-			></iframe>
-		</div>
-		<div class="h-3/12 flex w-full items-center justify-center gap-2">
-			<h1 class="text-question">Is</h1>
-			<PersonButton
-				person={currentPerson}
-				daily={currentPerson ? studentDailyMap.get(currentPerson.id) : undefined}
-				style="h-full "
-				showAvatar={true}
-				avatarStyle="h-full -px-6"
-				showName={true}
-				nameStyle="text-question"
-			/>
-			<h1 class="text-question">here today?</h1>
-		</div>
-	</div>
-
-	<div class="h-2/12 absolute bottom-0 flex w-full justify-evenly pt-1">
-		<button onclick={() => updateAttendance(currentPerson, true)}  class="btn preset-filled-success-500 text-answer col-span-2 rounded-full border">
-			{getPronounSubject(currentPerson)}
-			{getPronounPresent(currentPerson)}
-			here!
-		</button>
-		<a href={youtubeUrl(currentPerson)} class="btn col-span-1 overflow-hidden rounded-full">
-			<img class="h-full rounded-full" src="/youtube.png" alt="" />
-		</a>
-		<button onclick={() => updateAttendance(currentPerson, false)}  class="btn preset-filled-error-500 text-answer col-span-2 rounded-full border">
-			{getPronounSubject(currentPerson)}
-			{getPronounPresent(currentPerson) + "n't"}
-			here.
-		</button>
-	</div>
+{#if slide === 0}
+	<Attendance
+		people={students}
+		dailyMap={studentDailyMap}
+		{updateAttendance}
+		bind:currentPerson
+		title="Let's Take Attendance!"
+		subtitle="Which students are here today?"
+		prompt="Click on a student's button above."
+	/>
+{:else if slide === 1}
+	<Attendance
+		people={teachers}
+		dailyMap={teacherDailyMap}
+		{updateAttendance}
+		bind:currentPerson
+		title="Attendance: Part 2!"
+		subtitle="Which teachers are here today?"
+		prompt="Click on a teacher's button above."
+	/>
 {/if}

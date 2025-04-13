@@ -1,5 +1,5 @@
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public'
-import PocketBase from 'pocketbase'
+import PocketBase, { type RecordSubscription } from 'pocketbase'
 import type { DailyRecord, Student, StudentDaily, Teacher, TeacherDaily } from './types'
 import { getCurrentISOString, isISOString } from '$lib'
 
@@ -23,7 +23,7 @@ const getDailyCollectionName = (collection: string) => {
 	switch (collection) {
 		case "students":
 			return "student_dailies"
-		case "teachers":	
+		case "teachers":
 			return "teacher_dailies"
 		default:
 			console.error(`${collection} is not a "students or "teachers"`)
@@ -261,4 +261,4 @@ export const findDaily = async (person: Student | Teacher, isoString?: string) =
 		return null
 	}
 	return existingDaily
-}	
+} 

@@ -20,13 +20,40 @@
   --anchor-font-family: 'inherit';
 }
 
+@theme {
+	/* default breakpoints
+	--breakpoint-sm: 40rem;
+	--breakpoint-md: 48rem;
+	--breakpoint-lg: 64rem;
+	--breakpoint-xl: 80rem;
+	--breakpoint-2xl: 96rem;
+	*/
+	--breakpoint-3xl: 112rem;
+}
+
 @layer utilities {
+	.text-title {
+		@apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-black;
+	}
+
+	.text-subtitle {
+		@apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-extrabold;
+	}
+
 	.text-question {
 		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold;
 	}
 
 	.text-answer {
 		@apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-semibold;
+	}
+
+	.text-prompt {
+		@apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-medium;
+	}
+
+	.text-nav-arrows {
+		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-extralight;
 	}
 }
 
