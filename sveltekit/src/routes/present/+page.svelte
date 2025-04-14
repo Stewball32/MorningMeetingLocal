@@ -51,9 +51,35 @@
 			}
 			studentDailyMap = newStudentDailyMap;
 		});
+
+		pb.collection('teacher_dailies').subscribe('*', (e: RecordSubscription<TeacherDaily>) => {
+			if (e.record.date !== todayISOString) return;
+			const newTeacherDailyMap = new Map(teacherDailyMap);
+			switch (e.action) {
+				case 'create':
+					newTeacherDailyMap.set(e.record.teacher, e.record);
+					if (e.record.here) updateSound(e.record.teacher, e.record.here);
+					break;
+				case 'update':
+					const oldRecord = newTeacherDailyMap.get(e.record.teacher);
+					newTeacherDailyMap.set(e.record.teacher, e.record);
+					if (!e.record.here && oldRecord?.here) {
+						updateSound(e.record.teacher, e.record.here);
+					} else if (e.record.here && e.record.here !== oldRecord?.here) {
+						updateSound(e.record.teacher, e.record.here);
+					}
+					break;
+				case 'delete':
+					newTeacherDailyMap.delete(e.record.teacher);
+					break;
+			}
+			teacherDailyMap = newTeacherDailyMap;
+		});
+
 		onDestroy(() => {
 			// sounds multiply if not removed (mainly in dev mode)
 			pb.collection('student_dailies').unsubscribe('*');
+			pb.collection('teacher_dailies').unsubscribe('*');
 		});
 	});
 
