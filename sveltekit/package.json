@@ -48,6 +48,7 @@
 	},
 	"dependencies": {
 		"@fontsource/abeezee": "^5.2.5",
+		"@lucide/svelte": "^0.488.0",
 		"pocketbase": "^0.25.2"
 	}
 }
