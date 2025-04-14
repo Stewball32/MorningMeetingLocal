@@ -4,7 +4,7 @@
 
 ## 🧱 Tech Stack
 
-- **Frontend:** [SvelteKit 5](https://kit.svelte.dev/) + [Skeleton UI v3](https://www.skeleton.dev/) + [Reveal.js](https://revealjs.com/) + Tailwind CSS
+- **Frontend:** [SvelteKit 5](https://kit.svelte.dev/) + [Skeleton UI v3](https://www.skeleton.dev/) + Tailwind CSS
 - **Backend:** [PocketBase](https://pocketbase.io/)
 - **Local Dev:** Runs on Raspberry Pi or other local hardware
 - **Current Enviroment**: Currently supporting Node/NPM LTS (currently 22.14.0)
@@ -25,21 +25,15 @@ cd MorningMeetingLocal
 
 ### 2. Run Setup Script
 
-#### For Linux/macOS:
 ```bash
 ./setup.sh
-```
-
-#### For Windows:
-```powershell
-setup.bat
 ```
 
 This script will:
 - Download the correct PocketBase binary based on your OS/architecture
 - Optionally restore sample data to `pb_data/`
-- Create `.env` file in `animotion/` if it doesn't exist
-- Run `npm install` in `animotion/`
+- Create `.env` file in `sveltekit/` if it doesn't exist
+- Run `npm install` in `sveltekit/`
 
 Config options can be modified in `setup.env` before running the script.
 

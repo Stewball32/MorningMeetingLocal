@@ -5,7 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [Unreleased/To Do]
+
+### pocketbase/
+- update pb_migrations to one file.
+- update sample_pb_data to the latest migration
+
+## [0.2.0] - 2025-04-14
+
+### Removed animotion
+- Due to issues with the DOM not updating properly with changes from pocketbase, the project no longer uses reveal.js or animotion as a whole.
+
+### Added sveltekit
+- Migrated working code from animotion to new pocketbase instance.
+- Still using Skeleton UI v3 for styling w/ Tailwind 4
+- Added initial verion of Attendance Slide.
+
+### /
+- removed setup.bat (may reinstate when project is more along.)
 
 ## [0.1.2] - 2025-04-02
 

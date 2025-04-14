@@ -45,6 +45,7 @@
 
 	let collectionNames: string[] = $state([]);
 	onMount(() => {
+		currentPerson = undefined;
 		people.forEach((person) => {
 			if (!collectionNames.includes(person.collectionName)) {
 				collectionNames.push(person.collectionName);
@@ -52,30 +53,45 @@
 		});
 	});
 
+	const getPersonIndex = (person: Student | Teacher) => { return people.findIndex((p) => p.id === person.id);};
 	function onKeydown(event: KeyboardEvent) {
-		const currentPersonIndex = people.findIndex((person) => person.id === currentPerson?.id) ?? 0;
-		if (event.key === 'ArrowLeft') {
-			// for loop starting from currentPersonInedex
-			// find the next person that has here === ""
+		if (event.key === 'ArrowUp') {
+			if (!currentPerson) return;
+			updateAttendance(currentPerson, true);
+
+		} else if (event.key === 'ArrowDown') {
+			if (!currentPerson) return;
+			updateAttendance(currentPerson, false);
+
+		} if (event.key === 'ArrowLeft') {
+			let currentPersonIndex: number;
+			if (currentPerson===undefined) {
+				currentPerson = people[people.length-1];
+				currentPersonIndex = getPersonIndex(currentPerson) + 1;
+			} else currentPersonIndex = getPersonIndex(currentPerson);
 			for (let i = currentPersonIndex - 1; i >= 0; i--) {
-				if (people[i].collectionName === currentPerson?.collectionName) {
+				if (!dailyMap.get(people[i].id)?.here) {
 					updateCurrentPerson(people[i]);
 					return;
 				}
 			}
-			// if no more people, go to the previous page
-			pageLeft();
+			if (currentPersonIndex !== 0) {
+				updateCurrentPerson(people[currentPersonIndex - 1]);
+			} else pageLeft();
+			
 		} else if (event.key === 'ArrowRight') {
-			// for loop starting from currentPersonInedex
-			// find the next person that has here === ""
+			if (currentPerson===undefined) currentPerson = people[0];
+			let currentPersonIndex = getPersonIndex(currentPerson);
 			for (let i = currentPersonIndex + 1; i < people.length; i++) {
-				if (people[i].collectionName === currentPerson?.collectionName) {
+				if (!dailyMap.get(people[i].id)?.here) {
 					updateCurrentPerson(people[i]);
 					return;
 				}
 			}
 			// if no more people, go to the next page
-			pageRight();
+			if (currentPersonIndex !== people.length - 1) {
+				updateCurrentPerson(people[currentPersonIndex + 1]);
+			} else pageRight();
 		}
 	}
 </script>

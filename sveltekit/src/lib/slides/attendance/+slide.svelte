@@ -7,6 +7,7 @@
 	import { updateSound } from '$lib/sounds';
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import PeopleMath from './PeopleMath.svelte';
+	import { act } from '@testing-library/svelte';
 
 	interface SlideProps {
 		todayISOString: string;
@@ -24,7 +25,7 @@
 		teachers = $bindable([]),
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
-		slide = $bindable(0),
+		slide = $bindable(0)
 		// page = $bindable(0),
 	}: SlideProps = $props();
 
@@ -91,14 +92,19 @@
 
 	let page = $state(0);
 
+	let totalStudentsGuess = $state(undefined);
+	let absentStudentsGuess = $state(undefined);
+	let presentStudentsGuess = $state(undefined);
+	let presentStudentsGuessTwo = $state(undefined);
+	let presentTeachersGuess = $state(undefined);
+	let totalPeopleGuess = $state(undefined);
 </script>
-
 
 <div
 	class="h-1/12 absolute bottom-2 right-2 z-10 flex w-[8%] items-center justify-center gap-1 sm:gap-4"
 >
-	<button class="text-nav-arrows " onclick={() => page--} disabled={page <= 0}>❮</button>
-	<button class="text-nav-arrows " onclick={() => page++} disabled={page >= 3}>❯</button>
+	<button class="text-nav-arrows" onclick={() => page--} disabled={page <= 0}>❮</button>
+	<button class="text-nav-arrows" onclick={() => page++} disabled={page >= 3}>❯</button>
 </div>
 
 {#if page === 0}
@@ -114,14 +120,18 @@
 		{pageRight}
 	/>
 {:else if page === 1}
-<PeopleMath
+	<PeopleMath
 		peopleOne={students}
 		peopleOneName="Students"
+		bind:peopleOneGuess={totalStudentsGuess}
 		peopleTwo={students.filter((s) => studentDailyMap.get(s.id)?.here === 'absent')}
 		peopleTwoMap={studentDailyMap}
 		peopleTwoName="Absent"
+		bind:peopleTwoGuess={absentStudentsGuess}
 		mathOperation="subtract"
+		resultMap={studentDailyMap}
 		resultName="Here"
+		bind:resultGuess={presentStudentsGuess}
 		title="How Many Students?"
 		{pageLeft}
 		{pageRight}
@@ -135,6 +145,21 @@
 		title="Attendance: Part 2!"
 		subtitle="Which teachers are here today?"
 		prompt="Click on a teacher's button above."
+		{pageLeft}
+		{pageRight}
+	/>
+{:else if page === 3}
+	<PeopleMath
+		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
+		peopleOneName="Students"
+		bind:peopleOneGuess={presentStudentsGuessTwo}
+		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
+		peopleTwoName="Teachers"
+		bind:peopleTwoGuess={presentTeachersGuess}
+		mathOperation="add"
+		resultName="Total"
+		bind:resultGuess={totalPeopleGuess}
+		title="How Many People?"
 		{pageLeft}
 		{pageRight}
 	/>
