@@ -103,8 +103,8 @@
 <div
 	class="h-1/12 absolute bottom-2 right-2 z-10 flex w-[8%] items-center justify-center gap-1 sm:gap-4"
 >
-	<button class="text-nav-arrows" onclick={() => page--} disabled={page <= 0}>❮</button>
-	<button class="text-nav-arrows" onclick={() => page++} disabled={page >= 3}>❯</button>
+	<button class="text-nav-arrows" onclick={pageLeft} disabled={page <= 0}>❮</button>
+	<button class="text-nav-arrows" onclick={pageRight} disabled={page >= 3}>❯</button>
 </div>
 
 {#if page === 0}
