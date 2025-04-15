@@ -162,11 +162,13 @@
 
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowLeft') {
+			event.preventDefault();
 			if (peopleResultGuess === correctAnswers.result) return peopleResultGuess = undefined;
 			if (peopleTwoGuess === correctAnswers.two) return peopleTwoGuess = undefined;
 			if (peopleOneGuess === correctAnswers.one) return peopleOneGuess = undefined;
 			pageLeft();
 		} else if (event.key === 'ArrowRight') {
+			event.preventDefault();
 			if (peopleOneGuess !== correctAnswers.one) return peopleOneGuess = correctAnswers.one;
 			if (peopleTwoGuess !== correctAnswers.two) return peopleTwoGuess = correctAnswers.two;
 			if (peopleResultGuess !== correctAnswers.result) return peopleResultGuess = correctAnswers.result;

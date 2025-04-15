@@ -58,13 +58,16 @@
 	};
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowUp') {
+			event.preventDefault();
 			if (!currentPerson) return;
 			updateAttendance(currentPerson, true);
 		} else if (event.key === 'ArrowDown') {
+			event.preventDefault();
 			if (!currentPerson) return;
 			updateAttendance(currentPerson, false);
 		}
 		if (event.key === 'ArrowLeft') {
+			event.preventDefault();
 			let currentPersonIndex: number;
 			if (currentPerson === undefined) {
 				currentPerson = people[people.length - 1];
@@ -80,6 +83,7 @@
 				updateCurrentPerson(people[currentPersonIndex - 1]);
 			} else pageLeft();
 		} else if (event.key === 'ArrowRight') {
+			event.preventDefault();
 			if (currentPerson === undefined) currentPerson = people[0];
 			let currentPersonIndex = getPersonIndex(currentPerson);
 			for (let i = currentPersonIndex + 1; i < people.length; i++) {
@@ -96,7 +100,7 @@
 	}
 </script>
 
-<svelte:window on:keydown|preventDefault={onKeydown} />
+<svelte:window on:keydown={onKeydown} />
 
 <PersonBar {people} {dailyMap} {currentPerson} onClick={updateCurrentPerson} />
 {#if currentPerson && collectionNames.includes(currentPerson.collectionName)}
