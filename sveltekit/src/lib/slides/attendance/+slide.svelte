@@ -7,7 +7,7 @@
 	import { updateSound } from '$lib/sounds';
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import PeopleMath from './PeopleMath.svelte';
-	import { act } from '@testing-library/svelte';
+	import { makeSearchParams } from '$lib';
 
 	interface SlideProps {
 		todayISOString: string;
@@ -15,8 +15,16 @@
 		teachers: Teacher[];
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
-		slide: number;
-		// page: number;
+		slideParams?: {
+			slide: number;
+			page: number;
+			[key: string]: any;
+			person?: Student | Teacher;
+		};
+		slideLeft: () => void;
+		slideRight: () => void;
+		clearSlideParams?: () => void;
+		updateNavUrl: (page: number, searchParams: URLSearchParams) => void;
 	}
 
 	let {
@@ -25,40 +33,21 @@
 		teachers = $bindable([]),
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
-		slide = $bindable(0)
-		// page = $bindable(0),
+		slideParams = $bindable({ slide: 0, page: 0 }),
+		slideLeft = () => {},
+		slideRight = () => {},
+		clearSlideParams = () => {},
+		updateNavUrl = (page: number, searchParams: URLSearchParams) => {},
 	}: SlideProps = $props();
 
 	let currentPerson: Student | Teacher | undefined = $state(undefined);
+	let page = $state(slideParams.page);
 
 	onMount(async () => {
-		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
-			if (e.record.date !== todayISOString) return;
-			const newStudentDailyMap = new Map(studentDailyMap);
-			switch (e.action) {
-				case 'create':
-					newStudentDailyMap.set(e.record.student, e.record);
-					if (e.record.here) updateSound(e.record.student, e.record.here);
-					break;
-				case 'update':
-					const oldRecord = newStudentDailyMap.get(e.record.student);
-					newStudentDailyMap.set(e.record.student, e.record);
-					if (!e.record.here && oldRecord?.here) {
-						updateSound(e.record.student, e.record.here);
-					} else if (e.record.here && e.record.here !== oldRecord?.here) {
-						updateSound(e.record.student, e.record.here);
-					}
-					break;
-				case 'delete':
-					newStudentDailyMap.delete(e.record.student);
-					break;
-			}
-			studentDailyMap = newStudentDailyMap;
-		});
-		onDestroy(() => {
-			// sounds multiply if not removed (mainly in dev mode)
-			pb.collection('student_dailies').unsubscribe('*');
-		});
+		if (slideParams.person) {
+			currentPerson = slideParams.person
+			clearSlideParams();
+		};
 	});
 
 	const updateAttendance = async (person: Student | Teacher | undefined, isHere: boolean) => {
@@ -83,14 +72,21 @@
 		await updateDaily(person, { ...daily, here });
 	};
 
+	const setNavUrl = () => {
+		const searchParams = makeSearchParams({
+			pid: currentPerson?.id,
+		});
+		updateNavUrl(page, searchParams);		
+	}
+
 	const pageLeft = () => {
+		setNavUrl();
 		if (page > 0) page--;
 	};
 	const pageRight = () => {
+		setNavUrl();
 		if (page < 3) page++;
 	};
-
-	let page = $state(0);
 
 	let totalStudentsGuess = $state(undefined);
 	let absentStudentsGuess = $state(undefined);
