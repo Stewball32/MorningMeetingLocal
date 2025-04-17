@@ -3,6 +3,8 @@
 	import { pb, updateDaily } from '$lib/pb';
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { pushState } from '$app/navigation';
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
 	import Attendance from '$lib/slides/attendance/+slide.svelte';
@@ -28,10 +30,10 @@
 			: teachers.filter((teacher) => teacherDailyMap.get(teacher.id)?.here !== 'absent')
 	);
 
-	let slideParams: any | undefined = $state(data?.slideParams ?? {});
-	let slide = $state(data?.slideParams.slide ?? 0);
+	let searchParams: URLSearchParams = $state(data.searchParams);
+	let slide = $state(data?.slide ?? 0);
 	const clearSlideParams = () => {
-		slideParams = undefined;
+		// searchParams = new URLSearchParams();
 	};
 	onMount(async () => {
 		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
@@ -90,19 +92,20 @@
 	});
 
 	const updateNavUrl = (page: number, searchParams: URLSearchParams) => {
-		const url = new URL(window.location.href);
+		console.log('Updating nav URL:', page, searchParams);
+		if (typeof window === 'undefined') return;
 
-		// Update pathname
-		url.pathname = `/present/${slide}/${page}`;
+		requestAnimationFrame(() => {
+			const url = new URL(window.location.href);
+			url.pathname = `/present/${slide}/${page}`;
 
-		// Clear current searchParams and apply new ones
-		url.search = ''; // reset to avoid leftovers
-		for (const [key, value] of searchParams.entries()) {
-			url.searchParams.set(key, value);
-		}
+			url.search = '';
+			for (const [key, value] of searchParams.entries()) {
+				url.searchParams.set(key, value);
+			}
 
-		// Push updated URL without triggering a reload
-		window.history.pushState(history.state, '', url.toString());
+			pushState(url, {}); // {} = custom page state if needed
+		});
 	};
 
 	const slideLeft = () => {
@@ -120,10 +123,10 @@
 		{teachers}
 		{studentDailyMap}
 		{teacherDailyMap}
-		bind:slideParams
+		bind:searchParams
 		{slideLeft}
 		{slideRight}
-		{clearSlideParams}
+		clearSearchParams={clearSlideParams}
 		{updateNavUrl}
 	/>
 {/if}

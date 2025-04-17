@@ -6,6 +6,7 @@
 	import IconX from '@lucide/svelte/icons/x';
 
 	interface PeopleMathProps {
+		from?: 'left' | 'right';
 		peopleOne: Student[] | Teacher[];
 		peopleOneMap?: Map<string, StudentDaily | TeacherDaily>;
 		peopleOneName?: string;
@@ -18,10 +19,14 @@
 		resultMap?: Map<string, StudentDaily | TeacherDaily>;
 		resultName?: string;
 		resultGuess?: number;
+		showHint?: boolean;
 		title?: string;
 		subtitle?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
+		setNavUrl: (
+			params: Record<string, string | number | (string | number)[] | null | undefined>
+		) => void;
 	}
 
 	let {
@@ -37,10 +42,12 @@
 		resultMap,
 		resultName,
 		resultGuess: peopleResultGuess = $bindable(undefined),
+		showHint = $bindable(false),
 		title,
 		subtitle,
 		pageLeft = () => {},
-		pageRight = () => {}
+		pageRight = () => {},
+		setNavUrl
 	}: PeopleMathProps = $props();
 
 	const peopleResult: Student[] | Teacher[] =
@@ -49,8 +56,6 @@
 			: mathOperation === 'subtract'
 				? peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id))
 				: peopleOne;
-
-	let showResultItems = $state(false);
 
 	const totalAnswers: number = 6;
 
@@ -88,6 +93,15 @@
 	function popoverResultClose() {
 		openStateResult = false;
 	}
+
+	onMount(() => {
+		setNavUrl({
+			num1: peopleOneGuess === correctAnswers.one ? 1 : undefined,
+			num2: peopleTwoGuess === correctAnswers.two ? 1 : undefined,
+			answer: peopleResultGuess === correctAnswers.result ? 1 : undefined,
+			hint: showHint ? 1 : undefined
+		});
+	});
 
 	const baseAnswerClass = 'btn text-title border-3 md:border-6 rounded-2xl aspect-square';
 	const undefinedAnswerClass = `preset-filled-surface-300-700 ${baseAnswerClass}`;
@@ -146,35 +160,71 @@
 
 	const baseGridDivClass = 'grid';
 	const getGridDivClass = (columns: number) => {
-		const cols: string = 1 <= columns && columns <= 5 ? columns.toString() : '5';
+		const cols: string = 1 <= columns && columns <= 4 ? columns.toString() : '4';
 		const gridColClasses = {
-			1: 'grid-cols-1 w-1/5',
-			2: 'grid-cols-2 w-2/5',
-			3: 'grid-cols-3 w-3/5',
-			4: 'grid-cols-4 w-4/5',
-			5: 'grid-cols-5 w-full'
+			1: 'grid-cols-1 w-1/4',
+			2: 'grid-cols-2 w-2/4',
+			3: 'grid-cols-3 w-3/4',
+			4: 'grid-cols-4 w-full'
 		};
 		// just making typescript happy
 		const colClass =
-			gridColClasses[cols as unknown as keyof typeof gridColClasses] || gridColClasses[5];
+			gridColClasses[cols as unknown as keyof typeof gridColClasses] || gridColClasses[4];
 		return `${baseGridDivClass} ${colClass}`;
 	};
 
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowLeft') {
 			event.preventDefault();
-			if (peopleResultGuess === correctAnswers.result) return peopleResultGuess = undefined;
-			if (peopleTwoGuess === correctAnswers.two) return peopleTwoGuess = undefined;
-			if (peopleOneGuess === correctAnswers.one) return peopleOneGuess = undefined;
-			pageLeft();
+			if (
+				[
+					peopleResultGuess === undefined,
+					peopleTwoGuess === undefined,
+					peopleResultGuess === undefined
+				].every((e) => e)
+			)
+				return pageLeft();
+			else if (peopleResultGuess === correctAnswers.result) peopleResultGuess = undefined;
+			else if (peopleTwoGuess === correctAnswers.two) peopleTwoGuess = undefined;
+			else if (peopleOneGuess === correctAnswers.one) peopleOneGuess = undefined;
+			setNavUrl({
+				num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
+				num2: correctAnswers.two === peopleOneGuess ? 1 : undefined,
+				answer: correctAnswers.result === peopleOneGuess ? 1 : undefined,
+				hint: showHint ? 1 : undefined
+			});
 		} else if (event.key === 'ArrowRight') {
 			event.preventDefault();
-			if (peopleOneGuess !== correctAnswers.one) return peopleOneGuess = correctAnswers.one;
-			if (peopleTwoGuess !== correctAnswers.two) return peopleTwoGuess = correctAnswers.two;
-			if (peopleResultGuess !== correctAnswers.result) return peopleResultGuess = correctAnswers.result;
-			pageRight();
+			if (
+				[
+					peopleResultGuess === correctAnswers.one,
+					peopleTwoGuess === correctAnswers.two,
+					peopleResultGuess === correctAnswers.result
+				].every((e) => e)
+			)
+				return pageRight();
+			else if (peopleOneGuess !== correctAnswers.one) peopleOneGuess = correctAnswers.one;
+			else if (peopleTwoGuess !== correctAnswers.two) peopleTwoGuess = correctAnswers.two;
+			else if (peopleResultGuess !== correctAnswers.result) peopleResultGuess = correctAnswers.result;
+			setNavUrl({
+				num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
+				num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
+				answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
+				hint: showHint ? 1 : undefined
+			});
 		}
 	}
+
+	let clickedPeopleIds: string[] = $state([]);
+	const personClicked = (id: string) => {
+		const newClickedPeopleIds = clickedPeopleIds.filter((clickedId) => clickedId !== id);
+		if (newClickedPeopleIds.length === clickedPeopleIds.length) {
+			clickedPeopleIds = [...clickedPeopleIds, id];
+		} else {
+			clickedPeopleIds = newClickedPeopleIds;
+		}
+	};
+
 </script>
 
 <svelte:window on:keydown|preventDefault={onKeydown} />
@@ -189,9 +239,13 @@
 				{#each peopleOne as personOne}
 					<div class="aspect-square">
 						<PersonButton
+							onClick={() => {
+								personClicked(personOne.id);
+							}}
 							person={personOne}
 							showName={false}
-							style="w-full h-full"
+							style={"w-full h-full"}
+							forceStyle={clickedPeopleIds.includes(personOne.id) && mathOperation === "subtract" ? 'absent' : undefined}
 							daily={peopleOneMap?.get(personOne.id)}
 						/>
 					</div>
@@ -214,25 +268,26 @@
 		</div>
 
 		<div class="flex w-full items-center justify-center p-[5%]">
-			{#if showResultItems || peopleResultGuess === correctAnswers.result}
-			<div class={getGridDivClass(peopleResult.length)}>
-				{#each peopleResult as personResult}
-					<div class="aspect-square">
-						<PersonButton
-							person={personResult}
-							showName={false}
-							style="w-full h-full"
-							daily={resultMap?.get(personResult.id)}
-						/>
-					</div>
-				{/each}
-			</div>
+			{#if showHint || peopleResultGuess === correctAnswers.result}
+				<div class={getGridDivClass(peopleResult.length)}>
+					{#each peopleResult as personResult}
+						<div class="aspect-square">
+							<PersonButton
+								person={personResult}
+								showName={false}
+								style="w-full h-full"
+								daily={resultMap?.get(personResult.id)}
+							/>
+						</div>
+					{/each}
+				</div>
 			{:else}
 				<button
 					onclick={() => {
-						showResultItems = true;
-					}} 
-				 class="btn text-title preset-outlined rounded-full w-full">
+						showHint = true;
+					}}
+					class="btn text-title preset-outlined w-full rounded-full"
+				>
 					???
 				</button>
 			{/if}
@@ -272,6 +327,12 @@
 										peopleOneGuesses.push(answer);
 										peopleOneGuess = answer;
 									}
+									setNavUrl({
+										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
+										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
+										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
+										hint: showHint ? 1 : undefined
+									});
 									popoverOneClose();
 								}}
 							>
@@ -317,6 +378,12 @@
 										peopleTwoGuesses.push(answer);
 										peopleTwoGuess = answer;
 									}
+									setNavUrl({
+										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
+										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
+										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
+										hint: showHint ? 1 : undefined
+									});
 									popoverTwoClose();
 								}}
 							>
@@ -361,6 +428,12 @@
 										peopleResultGuesses.push(answer);
 										peopleResultGuess = answer;
 									}
+									setNavUrl({
+										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
+										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
+										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
+										hint: showHint ? 1 : undefined
+									});
 									popoverResultClose();
 								}}
 							>

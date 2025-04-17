@@ -15,15 +15,10 @@
 		teachers: Teacher[];
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
-		slideParams?: {
-			slide: number;
-			page: number;
-			[key: string]: any;
-			person?: Student | Teacher;
-		};
+		searchParams: URLSearchParams;
 		slideLeft: () => void;
 		slideRight: () => void;
-		clearSlideParams?: () => void;
+		clearSearchParams?: () => void;
 		updateNavUrl: (page: number, searchParams: URLSearchParams) => void;
 	}
 
@@ -33,21 +28,49 @@
 		teachers = $bindable([]),
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
-		slideParams = $bindable({ slide: 0, page: 0 }),
+		searchParams = $bindable(new URLSearchParams()),
 		slideLeft = () => {},
 		slideRight = () => {},
-		clearSlideParams = () => {},
-		updateNavUrl = (page: number, searchParams: URLSearchParams) => {},
+		clearSearchParams = () => {},
+		updateNavUrl,
 	}: SlideProps = $props();
 
 	let currentPerson: Student | Teacher | undefined = $state(undefined);
-	let page = $state(slideParams.page);
+	let page = $state(parseInt(searchParams.get("page") as string) || 0);
+
+	let totalStudentsGuess: number | undefined = $state(undefined);
+	let absentStudentsGuess: number | undefined = $state(undefined);
+	let presentStudentsGuess: number | undefined = $state(undefined);
+	let hintPresentStudents: boolean = $state(false);
+	let presentStudentsGuessTwo: number | undefined = $state(undefined);
+	let presentTeachersGuess: number | undefined = $state(undefined);
+	let totalPeopleGuess: number | undefined = $state(undefined);
+	let hintTotalPeople: boolean = $state(false);
 
 	onMount(async () => {
-		if (slideParams.person) {
-			currentPerson = slideParams.person
-			clearSlideParams();
-		};
+		const pid = searchParams.get('pid');
+		console.log('Mounting attendance slide with pid:', pid);
+		if (pid) {
+			const person = students.find((s) => s.id === pid) || teachers.find((t) => t.id === pid);
+			if (person) {
+				currentPerson = person;
+			}
+		}
+		const num1 = searchParams.get('num1');
+		const num2 = searchParams.get('num2');
+		const result = searchParams.get('result');
+		const hint = searchParams.get('hint');
+		if (page === 1) {
+			if (num1) totalStudentsGuess = parseInt(num1) || undefined;
+			if (num2) absentStudentsGuess = parseInt(num2) || undefined;
+			if (result) presentStudentsGuess = parseInt(result) || undefined;
+			if (hint) hintPresentStudents = hint === 'true';
+		} else if (page === 3) {
+			if (num1) presentStudentsGuessTwo = parseInt(num1) || undefined;
+			if (num2) presentTeachersGuess = parseInt(num2) || undefined;
+			if (result) totalPeopleGuess = parseInt(result) || undefined;
+			if (hint) hintTotalPeople = hint === 'true';
+		}
 	});
 
 	const updateAttendance = async (person: Student | Teacher | undefined, isHere: boolean) => {
@@ -72,28 +95,17 @@
 		await updateDaily(person, { ...daily, here });
 	};
 
-	const setNavUrl = () => {
-		const searchParams = makeSearchParams({
-			pid: currentPerson?.id,
-		});
+	const setNavUrl = (params: Record<string, string | number | (string | number)[] | null | undefined>) => {
+		const searchParams = makeSearchParams(params);
 		updateNavUrl(page, searchParams);		
 	}
 
 	const pageLeft = () => {
-		setNavUrl();
 		if (page > 0) page--;
 	};
 	const pageRight = () => {
-		setNavUrl();
 		if (page < 3) page++;
 	};
-
-	let totalStudentsGuess = $state(undefined);
-	let absentStudentsGuess = $state(undefined);
-	let presentStudentsGuess = $state(undefined);
-	let presentStudentsGuessTwo = $state(undefined);
-	let presentTeachersGuess = $state(undefined);
-	let totalPeopleGuess = $state(undefined);
 </script>
 
 <div
@@ -114,6 +126,7 @@
 		prompt="Click on a student's button above."
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 1}
 	<PeopleMath
@@ -131,6 +144,7 @@
 		title="How Many Students?"
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 2}
 	<WhoIsHere
@@ -143,6 +157,7 @@
 		prompt="Click on a teacher's button above."
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 3}
 	<PeopleMath
@@ -158,5 +173,6 @@
 		title="How Many People?"
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {/if}
