@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import PersonButton from '$lib/PersonButton.svelte';
-	import { getPronounPresent, getPronounSubject } from '$lib';
+	import { getPronounPresent, getPronounSubject, makeSearchParams } from '$lib';
 	import PersonBar from '$lib/slides/attendance/PersonBar.svelte';
 
 	interface WhoIsHereProps {
+		from?: "left" | "right";
 		people: Student[] | Teacher[];
 		dailyMap: Map<string, StudentDaily | TeacherDaily>;
 		updateAttendance: (person: Student | Teacher | undefined, isHere: boolean) => Promise<void>;
@@ -15,6 +16,9 @@
 		prompt?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
+		setNavUrl: (
+			params: Record<string, string | number | (string | number)[] | null | undefined>
+		) => void;
 	}
 
 	let {
@@ -26,7 +30,8 @@
 		subtitle = 'Part 1: Students',
 		prompt = 'Click on a button!',
 		pageLeft = () => {},
-		pageRight = () => {}
+		pageRight = () => {},
+		setNavUrl
 	}: WhoIsHereProps = $props();
 
 	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
@@ -41,17 +46,31 @@
 
 	const updateCurrentPerson = (person?: Student | Teacher) => {
 		currentPerson = person;
+		setNavUrl({
+			pid: person ? person.id : undefined
+		});
 	};
 
 	let collectionNames: string[] = $state([]);
 	onMount(() => {
-		currentPerson = undefined;
 		people.forEach((person) => {
 			if (!collectionNames.includes(person.collectionName)) {
 				collectionNames.push(person.collectionName);
 			}
 		});
+		if (currentPerson) {
+			const person = people.find((p) => p.id === currentPerson?.id);
+			if (person) {
+				setNavUrl({
+					pid: currentPerson ? currentPerson.id : undefined
+				});
+			} else {
+				updateCurrentPerson(undefined);
+			}
+		}
 	});
+
+	onDestroy(() => {});
 
 	const getPersonIndex = (person: Student | Teacher) => {
 		return people.findIndex((p) => p.id === person.id);
@@ -68,34 +87,28 @@
 		}
 		if (event.key === 'ArrowLeft') {
 			event.preventDefault();
-			let currentPersonIndex: number;
+			let newPerson: Student | Teacher | undefined;
 			if (currentPerson === undefined) {
-				currentPerson = people[people.length - 1];
-				currentPersonIndex = getPersonIndex(currentPerson) + 1;
-			} else currentPersonIndex = getPersonIndex(currentPerson);
-			for (let i = currentPersonIndex - 1; i >= 0; i--) {
-				if (!dailyMap.get(people[i].id)?.here) {
-					updateCurrentPerson(people[i]);
-					return;
-				}
+				newPerson = people[people.length - 1];
+			} else {
+				const currentPersonIndex = getPersonIndex(currentPerson);
+				if (currentPersonIndex === -1) newPerson = people[people.length - 1];
+				else newPerson = people[currentPersonIndex - 1];
 			}
-			if (currentPersonIndex !== 0) {
-				updateCurrentPerson(people[currentPersonIndex - 1]);
-			} else pageLeft();
+			if (!newPerson) return pageLeft();
+			updateCurrentPerson(newPerson);
 		} else if (event.key === 'ArrowRight') {
 			event.preventDefault();
-			if (currentPerson === undefined) currentPerson = people[0];
-			let currentPersonIndex = getPersonIndex(currentPerson);
-			for (let i = currentPersonIndex + 1; i < people.length; i++) {
-				if (!dailyMap.get(people[i].id)?.here) {
-					updateCurrentPerson(people[i]);
-					return;
-				}
+			let newPerson: Student | Teacher | undefined;
+			if (currentPerson === undefined) {
+				newPerson = people[0];
+			} else {
+				const currentPersonIndex = getPersonIndex(currentPerson);
+				if (currentPersonIndex === -1) newPerson = people[0];
+				else newPerson = people[currentPersonIndex + 1];
 			}
-			// if no more people, go to the next page
-			if (currentPersonIndex !== people.length - 1) {
-				updateCurrentPerson(people[currentPersonIndex + 1]);
-			} else pageRight();
+			if (!newPerson) return pageRight();
+			updateCurrentPerson(newPerson);
 		}
 	}
 </script>

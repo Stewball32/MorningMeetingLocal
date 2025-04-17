@@ -6,6 +6,7 @@
 		person: Student | Teacher
 		daily?: StudentDaily | TeacherDaily
 		style?: string
+		forceStyle?: 'default' | 'present' | 'absent'
 		showAvatar?: boolean
 		avatarStyle?: string
 		showName?: boolean
@@ -17,6 +18,7 @@
 		person,
 		daily,
 		style = '',
+		forceStyle,
 		showAvatar = true,
 		avatarStyle = '',
 		showName = true,
@@ -24,7 +26,7 @@
 		onClick,
 	}: Props = $props()
 
-	const baseStyle = `flex btn overflow-hidden rounded-full border`
+	const baseStyle = `flex btn relative overflow-hidden rounded-full border`
 	const defaultStyle = `preset-tonal-surface ${baseStyle} ${style}`
 	const presentStyle = `preset-tonal-success ${baseStyle} ${style}`
 	const absentStyle = `preset-tonal-error  ${baseStyle} ${style}`
@@ -33,7 +35,7 @@
 		present: presentStyle,
 		absent: absentStyle
 	}
-	let buttonStyle = $derived(daily && daily.here !== "" ? styleMap[daily.here] : styleMap.default)
+	let buttonStyle = $derived(forceStyle ? styleMap[forceStyle] : daily && daily.here !== "" ? styleMap[daily.here] : styleMap.default)
 
 	const fullAvatarStyle = `aspect-auto ${avatarStyle}`
 	const fullNameStyle = ` ${nameStyle}`

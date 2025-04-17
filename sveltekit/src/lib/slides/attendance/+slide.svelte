@@ -7,7 +7,7 @@
 	import { updateSound } from '$lib/sounds';
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import PeopleMath from './PeopleMath.svelte';
-	import { act } from '@testing-library/svelte';
+	import { makeSearchParams } from '$lib';
 
 	interface SlideProps {
 		todayISOString: string;
@@ -15,8 +15,11 @@
 		teachers: Teacher[];
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
-		slide: number;
-		// page: number;
+		searchParams: URLSearchParams;
+		slideLeft: () => void;
+		slideRight: () => void;
+		clearSearchParams?: () => void;
+		updateNavUrl: (page: number, searchParams: URLSearchParams) => void;
 	}
 
 	let {
@@ -25,40 +28,49 @@
 		teachers = $bindable([]),
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
-		slide = $bindable(0)
-		// page = $bindable(0),
+		searchParams = $bindable(new URLSearchParams()),
+		slideLeft = () => {},
+		slideRight = () => {},
+		clearSearchParams = () => {},
+		updateNavUrl,
 	}: SlideProps = $props();
 
 	let currentPerson: Student | Teacher | undefined = $state(undefined);
+	let page = $state(parseInt(searchParams.get("page") as string) || 0);
+
+	let totalStudentsGuess: number | undefined = $state(undefined);
+	let absentStudentsGuess: number | undefined = $state(undefined);
+	let presentStudentsGuess: number | undefined = $state(undefined);
+	let hintPresentStudents: boolean = $state(false);
+	let presentStudentsGuessTwo: number | undefined = $state(undefined);
+	let presentTeachersGuess: number | undefined = $state(undefined);
+	let totalPeopleGuess: number | undefined = $state(undefined);
+	let hintTotalPeople: boolean = $state(false);
 
 	onMount(async () => {
-		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
-			if (e.record.date !== todayISOString) return;
-			const newStudentDailyMap = new Map(studentDailyMap);
-			switch (e.action) {
-				case 'create':
-					newStudentDailyMap.set(e.record.student, e.record);
-					if (e.record.here) updateSound(e.record.student, e.record.here);
-					break;
-				case 'update':
-					const oldRecord = newStudentDailyMap.get(e.record.student);
-					newStudentDailyMap.set(e.record.student, e.record);
-					if (!e.record.here && oldRecord?.here) {
-						updateSound(e.record.student, e.record.here);
-					} else if (e.record.here && e.record.here !== oldRecord?.here) {
-						updateSound(e.record.student, e.record.here);
-					}
-					break;
-				case 'delete':
-					newStudentDailyMap.delete(e.record.student);
-					break;
+		const pid = searchParams.get('pid');
+		console.log('Mounting attendance slide with pid:', pid);
+		if (pid) {
+			const person = students.find((s) => s.id === pid) || teachers.find((t) => t.id === pid);
+			if (person) {
+				currentPerson = person;
 			}
-			studentDailyMap = newStudentDailyMap;
-		});
-		onDestroy(() => {
-			// sounds multiply if not removed (mainly in dev mode)
-			pb.collection('student_dailies').unsubscribe('*');
-		});
+		}
+		const num1 = searchParams.get('num1');
+		const num2 = searchParams.get('num2');
+		const result = searchParams.get('result');
+		const hint = searchParams.get('hint');
+		if (page === 1) {
+			if (num1) totalStudentsGuess = parseInt(num1) || undefined;
+			if (num2) absentStudentsGuess = parseInt(num2) || undefined;
+			if (result) presentStudentsGuess = parseInt(result) || undefined;
+			if (hint) hintPresentStudents = hint === 'true';
+		} else if (page === 3) {
+			if (num1) presentStudentsGuessTwo = parseInt(num1) || undefined;
+			if (num2) presentTeachersGuess = parseInt(num2) || undefined;
+			if (result) totalPeopleGuess = parseInt(result) || undefined;
+			if (hint) hintTotalPeople = hint === 'true';
+		}
 	});
 
 	const updateAttendance = async (person: Student | Teacher | undefined, isHere: boolean) => {
@@ -83,21 +95,17 @@
 		await updateDaily(person, { ...daily, here });
 	};
 
+	const setNavUrl = (params: Record<string, string | number | (string | number)[] | null | undefined>) => {
+		const searchParams = makeSearchParams(params);
+		updateNavUrl(page, searchParams);		
+	}
+
 	const pageLeft = () => {
 		if (page > 0) page--;
 	};
 	const pageRight = () => {
 		if (page < 3) page++;
 	};
-
-	let page = $state(0);
-
-	let totalStudentsGuess = $state(undefined);
-	let absentStudentsGuess = $state(undefined);
-	let presentStudentsGuess = $state(undefined);
-	let presentStudentsGuessTwo = $state(undefined);
-	let presentTeachersGuess = $state(undefined);
-	let totalPeopleGuess = $state(undefined);
 </script>
 
 <div
@@ -118,6 +126,7 @@
 		prompt="Click on a student's button above."
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 1}
 	<PeopleMath
@@ -135,6 +144,7 @@
 		title="How Many Students?"
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 2}
 	<WhoIsHere
@@ -147,6 +157,7 @@
 		prompt="Click on a teacher's button above."
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {:else if page === 3}
 	<PeopleMath
@@ -162,5 +173,6 @@
 		title="How Many People?"
 		{pageLeft}
 		{pageRight}
+		{setNavUrl}
 	/>
 {/if}
