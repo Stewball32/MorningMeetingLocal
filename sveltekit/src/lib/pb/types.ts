@@ -16,7 +16,7 @@ export interface DailyRecord extends RecordModel {
 	// weather: string[];
 }
 
-export interface Student extends Person {}
+export interface Student extends Person { }
 export interface StudentDaily extends DailyRecord {
 	student: string;
 }
@@ -27,4 +27,9 @@ export interface Teacher extends Person {
 }
 export interface TeacherDaily extends DailyRecord {
 	teacher: string;
+}
+
+export interface GuestDaily extends DailyRecord {
+	guest_name: string;
+	avatar_str: string;
 }

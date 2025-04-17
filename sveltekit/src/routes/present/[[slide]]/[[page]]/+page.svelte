@@ -5,7 +5,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
-	import Attendance from '$lib/slides/attendance/+slide.svelte'
+	import Attendance from '$lib/slides/attendance/+slide.svelte';
+	import { makeSearchParams } from '$lib';
 
 	let { data }: { data: PageData } = $props();
 
@@ -19,14 +20,19 @@
 	let activeStudents: Student[] = $derived(
 		students.some((student) => studentDailyMap.get(student.id)?.here === 'present')
 			? students.filter((student) => studentDailyMap.get(student.id)?.here === 'present')
-			: students.filter((student) => studentDailyMap.get(student.id)?.here !== 'absent')	
+			: students.filter((student) => studentDailyMap.get(student.id)?.here !== 'absent')
 	);
 	let activeTeachers: Teacher[] = $derived(
 		teachers.some((teacher) => teacherDailyMap.get(teacher.id)?.here === 'present')
 			? teachers.filter((teacher) => teacherDailyMap.get(teacher.id)?.here === 'present')
-			: teachers.filter((teacher) => teacherDailyMap.get(teacher.id)?.here !== 'absent')	
+			: teachers.filter((teacher) => teacherDailyMap.get(teacher.id)?.here !== 'absent')
 	);
 
+	let slideParams: any | undefined = $state(data?.slideParams ?? {});
+	let slide = $state(data?.slideParams.slide ?? 0);
+	const clearSlideParams = () => {
+		slideParams = undefined;
+	};
 	onMount(async () => {
 		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
 			if (e.record.date !== todayISOString) return;
@@ -83,17 +89,41 @@
 		});
 	});
 
-	let slide = $state(0);
-	// let page = $state(0);
+	const updateNavUrl = (page: number, searchParams: URLSearchParams) => {
+		const url = new URL(window.location.href);
+
+		// Update pathname
+		url.pathname = `/present/${slide}/${page}`;
+
+		// Clear current searchParams and apply new ones
+		url.search = ''; // reset to avoid leftovers
+		for (const [key, value] of searchParams.entries()) {
+			url.searchParams.set(key, value);
+		}
+
+		// Push updated URL without triggering a reload
+		window.history.pushState(history.state, '', url.toString());
+	};
+
+	const slideLeft = () => {
+		if (slide > 0) slide++;
+	};
+	const slideRight = () => {
+		if (slide < 1) slide--;
+	};
 </script>
 
 {#if slide === 0}
 	<Attendance
-		todayISOString={todayISOString}
-		students={students}
-		teachers={teachers}
-		studentDailyMap={studentDailyMap}
-		teacherDailyMap={teacherDailyMap}
-		bind:slide
+		{todayISOString}
+		{students}
+		{teachers}
+		{studentDailyMap}
+		{teacherDailyMap}
+		bind:slideParams
+		{slideLeft}
+		{slideRight}
+		{clearSlideParams}
+		{updateNavUrl}
 	/>
 {/if}

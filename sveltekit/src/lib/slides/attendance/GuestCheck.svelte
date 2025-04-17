@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import PersonButton from '$lib/PersonButton.svelte';
-	import { getPronounPresent, getPronounSubject, makeSearchParams } from '$lib';
+	import { getPronounPresent, getPronounSubject } from '$lib';
 	import PersonBar from '$lib/slides/attendance/PersonBar.svelte';
 
 	interface WhoIsHereProps {
@@ -45,15 +45,12 @@
 
 	let collectionNames: string[] = $state([]);
 	onMount(() => {
+		currentPerson = undefined;
 		people.forEach((person) => {
 			if (!collectionNames.includes(person.collectionName)) {
 				collectionNames.push(person.collectionName);
 			}
 		});
-	});
-
-	onDestroy(() => {
-		currentPerson = undefined;
 	});
 
 	const getPersonIndex = (person: Student | Teacher) => {

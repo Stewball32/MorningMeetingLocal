@@ -3,6 +3,25 @@
 import type { Student, Teacher } from "./pb/types";
 
 
+export const makeSearchParams = (obj: Record<string, string | number | (string | number)[] | null | undefined>): URLSearchParams => {
+	const entries: [string, string][] = [];
+
+	for (const [key, value] of Object.entries(obj)) {
+		if (value === undefined || value === null) continue;
+
+		if (Array.isArray(value)) {
+			for (const v of value) {
+				entries.push([key, String(v)]);
+			}
+		} else {
+			entries.push([key, String(value)]);
+		}
+	}
+
+	return new URLSearchParams(entries);
+}
+
+
 /**
  * Checks if a ISO string is in the format YYYY-MM-DD.
  * @param isoString - The ISO string to validate.
