@@ -2,52 +2,52 @@
 	import { onMount } from 'svelte';
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
 	import PersonButton from '$lib/PersonButton.svelte';
-	import { Popover } from '@skeletonlabs/skeleton-svelte';
-	import IconX from '@lucide/svelte/icons/x';
+	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
+
+	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
+	import Hash from '@lucide/svelte/icons/hash';
+	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
+	import type { ClassProps, MathPageProps } from './_types';
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
 		peopleOne: Student[] | Teacher[];
 		peopleOneMap?: Map<string, StudentDaily | TeacherDaily>;
 		peopleOneName?: string;
-		peopleOneGuess?: number;
 		peopleTwo: Student[] | Teacher[];
 		peopleTwoMap?: Map<string, StudentDaily | TeacherDaily>;
 		peopleTwoName?: string;
-		peopleTwoGuess?: number;
 		mathOperation: 'add' | 'subtract';
 		resultMap?: Map<string, StudentDaily | TeacherDaily>;
 		resultName?: string;
-		resultGuess?: number;
-		showHint?: boolean;
+		mathProps?: MathPageProps;
+		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
 		subtitle?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
-		setNavUrl: (
-			params: Record<string, string | number | (string | number)[] | null | undefined>
-		) => void;
+		updateClassDailyAttendance?: (
+			partialClassDailyAttendance: Partial<ClassProps>
+		) => Promise<void>;
 	}
 
 	let {
 		peopleOne,
-		peopleOneMap,
-		peopleOneName,
-		peopleOneGuess = $bindable(undefined),
+		peopleOneMap: oneMap,
+		peopleOneName: oneName,
 		peopleTwo,
-		peopleTwoMap,
-		peopleTwoName,
-		peopleTwoGuess = $bindable(undefined),
+		peopleTwoMap: twoMap,
+		peopleTwoName: twoName,
 		mathOperation,
 		resultMap,
 		resultName,
-		resultGuess: peopleResultGuess = $bindable(undefined),
-		showHint = $bindable(false),
+		mathProps,
+		mathPropsName,
 		title,
 		subtitle,
 		pageLeft = () => {},
 		pageRight = () => {},
-		setNavUrl
+		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
 	const peopleResult: Student[] | Teacher[] =
@@ -77,9 +77,15 @@
 		(_, i) => resultStart + i
 	);
 
-	let peopleOneGuesses: number[] = $state([]);
-	let peopleTwoGuesses: number[] = $state([]);
-	let peopleResultGuesses: number[] = $state([]);
+	let oneGuesses: number[] = $state(mathProps?.oneGuesses ?? []);
+	let twoGuesses: number[] = $state(mathProps?.twoGuesses ?? []);
+	let resultGuesses: number[] = $state(mathProps?.resultGuesses ?? []);
+	let oneGuess: number | undefined = $derived(oneGuesses[0] ?? undefined);
+	let twoGuess: number | undefined = $derived(twoGuesses[0] ?? undefined);
+	let resultGuess: number | undefined = $derived(resultGuesses[0] ?? undefined);
+	let showHintOne = $state(mathProps?.showHintOne ?? true);
+	let showHintTwo = $state(mathProps?.showHintTwo ?? true);
+	let showHintResult = $state(mathProps?.showHintResult ?? false);
 
 	let openStateOne = $state(false);
 	function popoverOneClose() {
@@ -94,14 +100,7 @@
 		openStateResult = false;
 	}
 
-	onMount(() => {
-		setNavUrl({
-			num1: peopleOneGuess === correctAnswers.one ? 1 : undefined,
-			num2: peopleTwoGuess === correctAnswers.two ? 1 : undefined,
-			answer: peopleResultGuess === correctAnswers.result ? 1 : undefined,
-			hint: showHint ? 1 : undefined
-		});
-	});
+	onMount(() => {});
 
 	const baseAnswerClass = 'btn text-title border-3 md:border-6 rounded-2xl aspect-square';
 	const undefinedAnswerClass = `preset-filled-surface-300-700 ${baseAnswerClass}`;
@@ -122,11 +121,11 @@
 	};
 	const wasGuessed = (result: 'one' | 'two' | 'result', num: number) => {
 		if (result === 'one') {
-			return peopleOneGuesses.includes(num);
+			return oneGuesses.includes(num);
 		} else if (result === 'two') {
-			return peopleTwoGuesses.includes(num);
+			return twoGuesses.includes(num);
 		} else if (result === 'result') {
-			return peopleResultGuesses.includes(num);
+			return resultGuesses.includes(num);
 		}
 	};
 	const getOptionClass = (result: 'one' | 'two' | 'result', num: number) => {
@@ -139,14 +138,14 @@
 	const disableGuess = (result: 'one' | 'two' | 'result', num: number) => {
 		if (correctAnswers[result] === num) return false;
 		const allGuesses = {
-			one: peopleOneGuesses,
-			two: peopleTwoGuesses,
-			result: peopleResultGuesses
+			one: oneGuesses,
+			two: twoGuesses,
+			result: resultGuesses
 		};
 		const allNums = {
-			one: peopleOneGuess,
-			two: peopleTwoGuess,
-			result: peopleResultGuess
+			one: oneGuess,
+			two: twoGuess,
+			result: resultGuess
 		};
 		const guesses = allGuesses[result];
 		const correctAnswer = correctAnswers[result];
@@ -173,45 +172,51 @@
 		return `${baseGridDivClass} ${colClass}`;
 	};
 
+	const toggleHint = (result: 'one' | 'two' | 'result') => {
+		console.log('toggleHint', result);
+		if (result === 'one') {
+			showHintOne = !showHintOne;
+			console.log('showHintOne', showHintOne);
+		} else if (result === 'two') {
+			showHintTwo = !showHintTwo;
+		} else if (result === 'result') {
+			showHintResult = !showHintResult;
+		}
+		const attendanceProps: Partial<ClassProps> = {};
+		attendanceProps[mathPropsName] = {
+			...mathProps,
+			showHintOne,
+			showHintTwo,
+			showHintResult
+		};
+		updateClassDailyAttendance(attendanceProps);
+	};
+
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowLeft') {
 			event.preventDefault();
 			if (
-				[
-					peopleResultGuess === undefined,
-					peopleTwoGuess === undefined,
-					peopleResultGuess === undefined
-				].every((e) => e)
+				[resultGuess === undefined, twoGuess === undefined, resultGuess === undefined].every(
+					(e) => e
+				)
 			)
 				return pageLeft();
-			else if (peopleResultGuess === correctAnswers.result) peopleResultGuess = undefined;
-			else if (peopleTwoGuess === correctAnswers.two) peopleTwoGuess = undefined;
-			else if (peopleOneGuess === correctAnswers.one) peopleOneGuess = undefined;
-			setNavUrl({
-				num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
-				num2: correctAnswers.two === peopleOneGuess ? 1 : undefined,
-				answer: correctAnswers.result === peopleOneGuess ? 1 : undefined,
-				hint: showHint ? 1 : undefined
-			});
+			else if (resultGuess === correctAnswers.result) resultGuess = undefined;
+			else if (twoGuess === correctAnswers.two) twoGuess = undefined;
+			else if (oneGuess === correctAnswers.one) oneGuess = undefined;
 		} else if (event.key === 'ArrowRight') {
 			event.preventDefault();
 			if (
 				[
-					peopleResultGuess === correctAnswers.one,
-					peopleTwoGuess === correctAnswers.two,
-					peopleResultGuess === correctAnswers.result
+					resultGuess === correctAnswers.one,
+					twoGuess === correctAnswers.two,
+					resultGuess === correctAnswers.result
 				].every((e) => e)
 			)
 				return pageRight();
-			else if (peopleOneGuess !== correctAnswers.one) peopleOneGuess = correctAnswers.one;
-			else if (peopleTwoGuess !== correctAnswers.two) peopleTwoGuess = correctAnswers.two;
-			else if (peopleResultGuess !== correctAnswers.result) peopleResultGuess = correctAnswers.result;
-			setNavUrl({
-				num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
-				num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
-				answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
-				hint: showHint ? 1 : undefined
-			});
+			else if (oneGuess !== correctAnswers.one) oneGuess = correctAnswers.one;
+			else if (twoGuess !== correctAnswers.two) twoGuess = correctAnswers.two;
+			else if (resultGuess !== correctAnswers.result) resultGuess = correctAnswers.result;
 		}
 	}
 
@@ -224,7 +229,6 @@
 			clickedPeopleIds = newClickedPeopleIds;
 		}
 	};
-
 </script>
 
 <svelte:window on:keydown|preventDefault={onKeydown} />
@@ -235,40 +239,66 @@
 	</div>
 	<div class="grid h-[40%] grid-cols-3 items-center justify-center">
 		<div class="flex w-full items-center justify-center p-[5%]">
-			<div class={getGridDivClass(peopleOne.length)}>
-				{#each peopleOne as personOne}
-					<div class="aspect-square">
-						<PersonButton
-							onClick={() => {
-								personClicked(personOne.id);
-							}}
-							person={personOne}
-							showName={false}
-							style={"w-full h-full"}
-							forceStyle={clickedPeopleIds.includes(personOne.id) && mathOperation === "subtract" ? 'absent' : undefined}
-							daily={peopleOneMap?.get(personOne.id)}
-						/>
-					</div>
-				{/each}
-			</div>
+			{#if showHintOne}
+				<div class={getGridDivClass(peopleOne.length)}>
+					{#each peopleOne as personOne}
+						<div class="aspect-square">
+							<PersonButton
+								onClick={() => {
+									personClicked(personOne.id);
+								}}
+								person={personOne}
+								showName={false}
+								style={'w-full h-full'}
+								forceStyle={clickedPeopleIds.includes(personOne.id) && mathOperation === 'subtract'
+									? 'absent'
+									: undefined}
+								daily={oneMap?.get(personOne.id)}
+							/>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<div class="flex h-full w-full items-center justify-center">
+					<h1 class="text-character">
+						{#if oneGuess === correctAnswers.one}
+							{oneGuess}
+						{:else}
+							?
+						{/if}
+					</h1>
+				</div>
+			{/if}
 		</div>
 		<div class="flex w-full items-center justify-center p-[5%]">
-			<div class={getGridDivClass(peopleTwo.length)}>
-				{#each peopleTwo as personTwo}
-					<div class="aspect-square">
-						<PersonButton
-							person={personTwo}
-							showName={false}
-							style="w-full h-full"
-							daily={peopleTwoMap?.get(personTwo.id)}
-						/>
-					</div>
-				{/each}
-			</div>
+			{#if showHintTwo}
+				<div class={getGridDivClass(peopleTwo.length)}>
+					{#each peopleTwo as personTwo}
+						<div class="aspect-square">
+							<PersonButton
+								person={personTwo}
+								showName={false}
+								style="w-full h-full"
+								daily={twoMap?.get(personTwo.id)}
+							/>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<div class="flex h-full w-full items-center justify-center">
+					<h1 class="text-character">
+						{#if twoGuess === correctAnswers.two}
+							{twoGuess}
+						{:else}
+							?
+						{/if}
+					</h1>
+				</div>
+			{/if}
 		</div>
 
 		<div class="flex w-full items-center justify-center p-[5%]">
-			{#if showHint || peopleResultGuess === correctAnswers.result}
+			{#if showHintResult}
 				<div class={getGridDivClass(peopleResult.length)}>
 					{#each peopleResult as personResult}
 						<div class="aspect-square">
@@ -282,36 +312,50 @@
 					{/each}
 				</div>
 			{:else}
-				<button
-					onclick={() => {
-						showHint = true;
-					}}
-					class="btn text-title preset-outlined w-full rounded-full"
-				>
-					???
-				</button>
+				<div class="flex h-full w-full items-center justify-center">
+					<h1 class="text-character">
+						{#if resultGuess === correctAnswers.result}
+							{resultGuess}
+						{:else}
+							?
+						{/if}
+					</h1>
+				</div>
 			{/if}
 		</div>
 	</div>
 	<div class="relative grid h-[38%] grid-cols-3 items-center justify-center">
-		<div
-			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
-		>
-			<h1 class="text-answer hidden w-full truncate text-nowrap px-[10%] text-center sm:block">
-				{peopleOneName}
+		<div class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%]">
+			<h1
+				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+			>
+				<Switch
+					name="one"
+					classes="h-1/2"
+					controlWidth=""
+					compact
+					checked={showHintOne}
+					onCheckedChange={() => {
+						toggleHint('one');
+					}}
+				>
+					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
+					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
+				</Switch>
+				{oneName}
 			</h1>
 			<Popover
 				open={openStateOne}
 				onOpenChange={(e) => (openStateOne = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('one', peopleOneGuess)}
+				classes={getAnswerClass('one', oneGuess)}
 				triggerBase="btn text-title w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{peopleOneGuess ?? '?'}
+					{oneGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-3 gap-2 md:gap-4">
@@ -320,19 +364,13 @@
 								class={getOptionClass('one', answer)}
 								disabled={disableGuess('one', answer)}
 								onclick={() => {
-									if (peopleOneGuess === answer) {
-										peopleOneGuesses = [];
-										peopleOneGuess = undefined;
+									if (oneGuess === answer) {
+										oneGuesses = [];
+										oneGuess = undefined;
 									} else {
-										peopleOneGuesses.push(answer);
-										peopleOneGuess = answer;
+										oneGuesses.push(answer);
+										oneGuess = answer;
 									}
-									setNavUrl({
-										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
-										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
-										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
-										hint: showHint ? 1 : undefined
-									});
 									popoverOneClose();
 								}}
 							>
@@ -348,21 +386,36 @@
 		<div
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
-			<h1 class="text-answer hidden w-full truncate text-nowrap px-[10%] text-center sm:block">
-				{peopleTwoName}
+			<h1
+				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+			>
+				<Switch
+					name="one"
+					classes="h-1/2"
+					controlWidth=""
+					compact
+					checked={showHintTwo}
+					onCheckedChange={() => {
+						toggleHint('two');
+					}}
+				>
+					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
+					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
+				</Switch>
+				{twoName}
 			</h1>
 			<Popover
 				open={openStateTwo}
 				onOpenChange={(e) => (openStateTwo = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('two', peopleTwoGuess)}
+				classes={getAnswerClass('two', twoGuess)}
 				triggerBase="btn text-title w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{peopleTwoGuess ?? '?'}
+					{twoGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-3 gap-2 md:gap-4">
@@ -371,19 +424,13 @@
 								class={getOptionClass('two', answer)}
 								disabled={disableGuess('two', answer)}
 								onclick={() => {
-									if (peopleTwoGuess === answer) {
-										peopleTwoGuesses = [];
-										peopleTwoGuess = undefined;
+									if (twoGuess === answer) {
+										twoGuesses = [];
+										twoGuess = undefined;
 									} else {
-										peopleTwoGuesses.push(answer);
-										peopleTwoGuess = answer;
+										twoGuesses.push(answer);
+										twoGuess = answer;
 									}
-									setNavUrl({
-										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
-										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
-										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
-										hint: showHint ? 1 : undefined
-									});
 									popoverTwoClose();
 								}}
 							>
@@ -397,7 +444,22 @@
 		<div
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
-			<h1 class="text-answer hidden w-full truncate text-nowrap px-[10%] text-center sm:block">
+			<h1
+				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+			>
+				<Switch
+					name="one"
+					classes="h-1/2"
+					controlWidth=""
+					compact
+					checked={showHintResult}
+					onCheckedChange={() => {
+						toggleHint('result');
+					}}
+				>
+					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
+					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
+				</Switch>
 				{resultName}
 			</h1>
 
@@ -405,14 +467,14 @@
 				open={openStateResult}
 				onOpenChange={(e) => (openStateResult = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('result', peopleResultGuess)}
+				classes={getAnswerClass('result', resultGuess)}
 				triggerBase="btn text-title w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{peopleResultGuess ?? '?'}
+					{resultGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-3 gap-2 md:gap-4">
@@ -421,19 +483,13 @@
 								class={getOptionClass('result', answer)}
 								disabled={disableGuess('result', answer)}
 								onclick={() => {
-									if (peopleResultGuess === answer) {
-										peopleResultGuesses = [];
-										peopleResultGuess = undefined;
+									if (resultGuess === answer) {
+										resultGuesses = [];
+										resultGuess = undefined;
 									} else {
-										peopleResultGuesses.push(answer);
-										peopleResultGuess = answer;
+										resultGuesses.push(answer);
+										resultGuess = answer;
 									}
-									setNavUrl({
-										num1: correctAnswers.one === peopleOneGuess ? 1 : undefined,
-										num2: correctAnswers.two === peopleTwoGuess ? 1 : undefined,
-										answer: correctAnswers.result === peopleResultGuess ? 1 : undefined,
-										hint: showHint ? 1 : undefined
-									});
 									popoverResultClose();
 								}}
 							>
