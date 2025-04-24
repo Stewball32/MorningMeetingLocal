@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { pb, updateDaily } from '$lib/pb';
+	import { pb, updatePersonDaily } from '$lib/pb';
 	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
 	import type { RecordSubscription } from 'pocketbase';
@@ -65,7 +65,7 @@
 				here = isHere ? 'present' : 'absent';
 				break;
 		}
-		await updateDaily(person, { ...daily, here });
+		await updatePersonDaily(person, { ...daily, here });
 	};
 
 	let slide = $state(0);

@@ -1,18 +1,16 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { pb, updateDaily } from '$lib/pb';
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import { pb } from '$lib/pb';
+	import type { ClassDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
-	import { page } from '$app/state';
-	import { pushState } from '$app/navigation';
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
 	import Attendance from '$lib/slides/attendance/+slide.svelte';
-	import { makeSearchParams } from '$lib';
 
 	let { data }: { data: PageData } = $props();
 
 	const todayISOString = data.todayISOString;
+	let classDaily: ClassDaily = $state(data.classDaily);
 	let students: Student[] = $state(data.students);
 	let teachers: Teacher[] = $state(data.teachers);
 	let studentDailyMap: Map<string, StudentDaily> = $state(data.studentDailyMap);
@@ -30,12 +28,23 @@
 			: teachers.filter((teacher) => teacherDailyMap.get(teacher.id)?.here !== 'absent')
 	);
 
-	let searchParams: URLSearchParams = $state(data.searchParams);
-	let slide = $state(data?.slide ?? 0);
+	// let searchParams: URLSearchParams = $state(data.searchParams);
+	// svelte-ignore state_referenced_locally
+	let slide = $state(classDaily.slide ?? 0);
 	const clearSlideParams = () => {
 		// searchParams = new URLSearchParams();
 	};
 	onMount(async () => {
+		pb.collection('class_dailies').subscribe(classDaily.id, (e: RecordSubscription<ClassDaily>) => {
+			console.log('classDaily');
+			if (e.record.date !== todayISOString) return;
+			console.log('classDaily', e.action, e.record);
+			if (e.action === 'update') {
+				const newClassDaily = e.record;
+				classDaily = newClassDaily;
+			}
+		});
+
 		pb.collection('student_dailies').subscribe('*', (e: RecordSubscription<StudentDaily>) => {
 			if (e.record.date !== todayISOString) return;
 			const newStudentDailyMap = new Map(studentDailyMap);
@@ -91,23 +100,6 @@
 		});
 	});
 
-	const updateNavUrl = (page: number, searchParams: URLSearchParams) => {
-		console.log('Updating nav URL:', page, searchParams);
-		if (typeof window === 'undefined') return;
-
-		requestAnimationFrame(() => {
-			const url = new URL(window.location.href);
-			url.pathname = `/present/${slide}/${page}`;
-
-			url.search = '';
-			for (const [key, value] of searchParams.entries()) {
-				url.searchParams.set(key, value);
-			}
-
-			pushState(url, {}); // {} = custom page state if needed
-		});
-	};
-
 	const slideLeft = () => {
 		if (slide > 0) slide++;
 	};
@@ -118,15 +110,12 @@
 
 {#if slide === 0}
 	<Attendance
-		{todayISOString}
 		{students}
 		{teachers}
+		{classDaily}
 		{studentDailyMap}
 		{teacherDailyMap}
-		bind:searchParams
 		{slideLeft}
 		{slideRight}
-		clearSearchParams={clearSlideParams}
-		{updateNavUrl}
 	/>
 {/if}
