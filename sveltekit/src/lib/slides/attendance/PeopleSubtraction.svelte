@@ -12,11 +12,11 @@
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
+		peopleTogetherName?: string;
 		peopleSubtracted: Student[] | Teacher[];
 		peopleSubtractedName?: string;
 		peopleRemaining: Student[] | Teacher[];
 		peopleRemainingName?: string;
-		peopleTogetherName?: string;
 		mathProps?: MathPageProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
@@ -29,11 +29,11 @@
 	}
 
 	let {
+		peopleTogetherName,
 		peopleSubtracted,
 		peopleSubtractedName,
 		peopleRemaining,
 		peopleRemainingName,
-		peopleTogetherName,
 		mathProps,
 		mathPropsName,
 		title,
@@ -257,7 +257,7 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				{peopleSubtractedName}
+				{peopleTogetherName}
 			</h1>
 			<Popover
 				open={openStateOne}
@@ -305,7 +305,7 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				{peopleRemainingName}
+				{peopleSubtractedName}
 			</h1>
 			<Popover
 				open={openStateTwo}
@@ -351,7 +351,7 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				{peopleTogetherName}
+				{peopleRemainingName}
 			</h1>
 
 			<Popover
