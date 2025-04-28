@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import type { ClassDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
 	import PersonButton from '$lib/PersonButton.svelte';
 	import { getPronounPresent, getPronounSubject, makeSearchParams } from '$lib';
 	import PersonBar from '$lib/slides/attendance/PersonBar.svelte';
+	import type { ClassProps } from './_types';
 
 	interface WhoIsHereProps {
 		from?: "left" | "right";
@@ -16,9 +17,7 @@
 		prompt?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
-		setNavUrl: (
-			params: Record<string, string | number | (string | number)[] | null | undefined>
-		) => void;
+		updateClassDailyAttendance: (partialClassDailyAttendance: Partial<ClassProps>) => Promise<void>;
 	}
 
 	let {
@@ -31,7 +30,7 @@
 		prompt = 'Click on a button!',
 		pageLeft = () => {},
 		pageRight = () => {},
-		setNavUrl
+		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {},
 	}: WhoIsHereProps = $props();
 
 	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
@@ -46,9 +45,8 @@
 
 	const updateCurrentPerson = (person?: Student | Teacher) => {
 		currentPerson = person;
-		setNavUrl({
-			pid: person ? person.id : undefined
-		});
+		const updatedProps = { currentPerson: person?.id, }
+		updateClassDailyAttendance(updatedProps);
 	};
 
 	let collectionNames: string[] = $state([]);
@@ -58,19 +56,7 @@
 				collectionNames.push(person.collectionName);
 			}
 		});
-		if (currentPerson) {
-			const person = people.find((p) => p.id === currentPerson?.id);
-			if (person) {
-				setNavUrl({
-					pid: currentPerson ? currentPerson.id : undefined
-				});
-			} else {
-				updateCurrentPerson(undefined);
-			}
-		}
 	});
-
-	onDestroy(() => {});
 
 	const getPersonIndex = (person: Student | Teacher) => {
 		return people.findIndex((p) => p.id === person.id);

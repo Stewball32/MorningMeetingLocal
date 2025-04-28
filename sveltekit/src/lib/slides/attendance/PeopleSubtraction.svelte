@@ -7,19 +7,16 @@
 	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Hash from '@lucide/svelte/icons/hash';
 	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
+	import Cross from '@lucide/svelte/icons/x';
 	import type { ClassProps, MathPageProps } from './_types';
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
-		peopleOne: Student[] | Teacher[];
-		peopleOneMap?: Map<string, StudentDaily | TeacherDaily>;
-		peopleOneName?: string;
-		peopleTwo: Student[] | Teacher[];
-		peopleTwoMap?: Map<string, StudentDaily | TeacherDaily>;
-		peopleTwoName?: string;
-		mathOperation: 'add' | 'subtract';
-		resultMap?: Map<string, StudentDaily | TeacherDaily>;
-		resultName?: string;
+		peopleSubtracted: Student[] | Teacher[];
+		peopleSubtractedName?: string;
+		peopleRemaining: Student[] | Teacher[];
+		peopleRemainingName?: string;
+		peopleTogetherName?: string;
 		mathProps?: MathPageProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
@@ -32,15 +29,11 @@
 	}
 
 	let {
-		peopleOne,
-		peopleOneMap: oneMap,
-		peopleOneName: oneName,
-		peopleTwo,
-		peopleTwoMap: twoMap,
-		peopleTwoName: twoName,
-		mathOperation,
-		resultMap,
-		resultName,
+		peopleSubtracted,
+		peopleSubtractedName,
+		peopleRemaining,
+		peopleRemainingName,
+		peopleTogetherName: peopleTogetherName,
 		mathProps,
 		mathPropsName,
 		title,
@@ -50,14 +43,11 @@
 		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
-	const peopleResult: Student[] | Teacher[] =
-		mathOperation === 'add'
-			? peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id)).concat(peopleTwo)
-			: mathOperation === 'subtract'
-				? peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id))
-				: peopleOne;
+	let peopleTogether: (Student | Teacher)[] = [...peopleSubtracted, ...peopleRemaining].sort(
+		(a, b) => a.name.localeCompare(b.name)
+	);
 
-	const totalAnswers: number = 6;
+	const totalAnswers: number = 4;
 
 	const getStartNumber = (correctNumber: number) => {
 		const startNumber =
@@ -65,13 +55,13 @@
 		return startNumber < 0 ? 0 : startNumber;
 	};
 
-	const oneStart = getStartNumber(peopleOne.length);
+	const oneStart = getStartNumber(peopleSubtracted.length);
 	const oneAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => oneStart + i);
 
-	const twoStart = getStartNumber(peopleTwo.length);
+	const twoStart = getStartNumber(peopleRemaining.length);
 	const twoAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => twoStart + i);
 
-	const resultStart = getStartNumber(peopleResult.length);
+	const resultStart = getStartNumber(peopleTogether.length);
 	const resultAnswerOptions: number[] = Array.from(
 		{ length: totalAnswers },
 		(_, i) => resultStart + i
@@ -107,9 +97,9 @@
 	const correctAnswerClass = `preset-filled-success-300-700 ${baseAnswerClass}`;
 	const wrongAnswerClass = `preset-filled-error-300-700 ${baseAnswerClass}`;
 	const correctAnswers = {
-		one: peopleOne.length,
-		two: peopleTwo.length,
-		result: peopleResult.length
+		one: peopleSubtracted.length,
+		two: peopleRemaining.length,
+		result: peopleTogether.length
 	};
 	const isCorrectAnswer = (result: 'one' | 'two' | 'result', num: number) => {
 		return correctAnswers[result] === num;
@@ -159,15 +149,16 @@
 
 	const baseGridDivClass = 'grid';
 	const getGridDivClass = (columns: number) => {
-		const cols: string = 1 <= columns && columns <= 4 ? columns.toString() : '4';
+		const cols: string = 1 <= columns && columns <= 5 ? columns.toString() : '5';
 		const gridColClasses = {
-			1: 'grid-cols-1 w-1/4',
-			2: 'grid-cols-2 w-2/4',
-			3: 'grid-cols-3 w-3/4',
-			4: 'grid-cols-4 w-full'
+			1: 'grid-cols-1 w-1/5',
+			2: 'grid-cols-2 w-2/5',
+			3: 'grid-cols-3 w-3/5',
+			4: 'grid-cols-4 w-4/5',
+			5: 'grid-cols-5 w-full'
 		};
-		// just making typescript happy
 		const colClass =
+			// just making typescript happy
 			gridColClasses[cols as unknown as keyof typeof gridColClasses] || gridColClasses[4];
 		return `${baseGridDivClass} ${colClass}`;
 	};
@@ -237,91 +228,28 @@
 	<div class="flex h-[20%] w-full items-center justify-center">
 		<h1 class="text-title">{title}</h1>
 	</div>
-	<div class="grid h-[40%] grid-cols-3 items-center justify-center">
-		<div class="flex w-full items-center justify-center p-[5%]">
-			{#if showHintOne}
-				<div class={getGridDivClass(peopleOne.length)}>
-					{#each peopleOne as personOne}
-						<div class="aspect-square">
-							<PersonButton
-								onClick={() => {
-									personClicked(personOne.id);
-								}}
-								person={personOne}
-								showName={false}
-								style={'w-full h-full'}
-								forceStyle={clickedPeopleIds.includes(personOne.id) && mathOperation === 'subtract'
-									? 'absent'
-									: undefined}
-								daily={oneMap?.get(personOne.id)}
+	<div class="flex h-[40%] items-center justify-center">
+		<div class="flex w-1/2 items-center justify-center p-[5%]">
+			<div class={getGridDivClass(peopleTogether.length)}>
+				{#each peopleTogether as person}
+					<div class="relative aspect-square">
+						{#if clickedPeopleIds.includes(person.id)}
+							<Cross
+								class="z-1 pointer-events-none absolute left-1/2 top-1/2 h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2"
 							/>
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
-						{#if oneGuess === correctAnswers.one}
-							{oneGuess}
-						{:else}
-							?
 						{/if}
-					</h1>
-				</div>
-			{/if}
-		</div>
-		<div class="flex w-full items-center justify-center p-[5%]">
-			{#if showHintTwo}
-				<div class={getGridDivClass(peopleTwo.length)}>
-					{#each peopleTwo as personTwo}
-						<div class="aspect-square">
-							<PersonButton
-								person={personTwo}
-								showName={false}
-								style="w-full h-full"
-								daily={twoMap?.get(personTwo.id)}
-							/>
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
-						{#if twoGuess === correctAnswers.two}
-							{twoGuess}
-						{:else}
-							?
-						{/if}
-					</h1>
-				</div>
-			{/if}
-		</div>
-
-		<div class="flex w-full items-center justify-center p-[5%]">
-			{#if showHintResult}
-				<div class={getGridDivClass(peopleResult.length)}>
-					{#each peopleResult as personResult}
-						<div class="aspect-square">
-							<PersonButton
-								person={personResult}
-								showName={false}
-								style="w-full h-full"
-								daily={resultMap?.get(personResult.id)}
-							/>
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
-						{#if resultGuess === correctAnswers.result}
-							{resultGuess}
-						{:else}
-							?
-						{/if}
-					</h1>
-				</div>
-			{/if}
+						<PersonButton
+							onClick={() => {
+								personClicked(person.id);
+							}}
+							{person}
+							showName={false}
+							style="w-full h-full m-0 p-0"
+							forceStyle={undefined}
+						/>
+					</div>
+				{/each}
+			</div>
 		</div>
 	</div>
 	<div class="relative grid h-[38%] grid-cols-3 items-center justify-center">
@@ -329,23 +257,11 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				<Switch
-					name="one"
-					classes="h-1/2"
-					controlWidth=""
-					compact
-					checked={showHintOne}
-					onCheckedChange={() => {
-						toggleHint('one');
-					}}
-				>
-					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
-					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
-				</Switch>
-				{oneName}
+				{peopleSubtractedName}
 			</h1>
 			<Popover
 				open={openStateOne}
+				zIndex={'10'}
 				onOpenChange={(e) => (openStateOne = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('one', oneGuess)}
@@ -358,7 +274,7 @@
 					{oneGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each oneAnswerOptions as answer}
 							<button
 								class={getOptionClass('one', answer)}
@@ -389,23 +305,11 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				<Switch
-					name="one"
-					classes="h-1/2"
-					controlWidth=""
-					compact
-					checked={showHintTwo}
-					onCheckedChange={() => {
-						toggleHint('two');
-					}}
-				>
-					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
-					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
-				</Switch>
-				{twoName}
+				{peopleRemainingName}
 			</h1>
 			<Popover
 				open={openStateTwo}
+				zIndex={'10'}
 				onOpenChange={(e) => (openStateTwo = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('two', twoGuess)}
@@ -418,7 +322,7 @@
 					{twoGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each twoAnswerOptions as answer}
 							<button
 								class={getOptionClass('two', answer)}
@@ -447,24 +351,12 @@
 			<h1
 				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
 			>
-				<Switch
-					name="one"
-					classes="h-1/2"
-					controlWidth=""
-					compact
-					checked={showHintResult}
-					onCheckedChange={() => {
-						toggleHint('result');
-					}}
-				>
-					{#snippet inactiveChild()}<Hash size="20" />{/snippet}
-					{#snippet activeChild()}<GripHorizontal size="20" />{/snippet}
-				</Switch>
-				{resultName}
+				{peopleTogetherName}
 			</h1>
 
 			<Popover
 				open={openStateResult}
+				zIndex={'10'}
 				onOpenChange={(e) => (openStateResult = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('result', resultGuess)}
@@ -477,7 +369,7 @@
 					{resultGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each resultAnswerOptions as answer}
 							<button
 								class={getOptionClass('result', answer)}
@@ -504,7 +396,7 @@
 		<h2
 			class="-translate-1/2 text-title absolute left-1/3 top-[60%] transform items-center text-center"
 		>
-			{mathOperation === 'add' ? '+' : mathOperation === 'subtract' ? '-' : ''}
+			-
 		</h2>
 		<h2
 			class="-translate-1/2 text-title absolute left-2/3 top-[60%] transform items-center text-center"
