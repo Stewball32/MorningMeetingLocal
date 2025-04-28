@@ -33,7 +33,7 @@
 		peopleSubtractedName,
 		peopleRemaining,
 		peopleRemainingName,
-		peopleTogetherName: peopleTogetherName,
+		peopleTogetherName,
 		mathProps,
 		mathPropsName,
 		title,
@@ -97,9 +97,9 @@
 	const correctAnswerClass = `preset-filled-success-300-700 ${baseAnswerClass}`;
 	const wrongAnswerClass = `preset-filled-error-300-700 ${baseAnswerClass}`;
 	const correctAnswers = {
-		one: peopleSubtracted.length,
-		two: peopleRemaining.length,
-		result: peopleTogether.length
+		one: peopleTogether.length,
+		two: peopleSubtracted.length,
+		result: peopleRemaining.length,
 	};
 	const isCorrectAnswer = (result: 'one' | 'two' | 'result', num: number) => {
 		return correctAnswers[result] === num;
