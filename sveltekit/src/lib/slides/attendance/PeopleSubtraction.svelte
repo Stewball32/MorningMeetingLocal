@@ -55,13 +55,13 @@
 		return startNumber < 0 ? 0 : startNumber;
 	};
 
-	const oneStart = getStartNumber(peopleSubtracted.length);
+	const oneStart = getStartNumber(peopleTogether.length);
 	const oneAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => oneStart + i);
 
-	const twoStart = getStartNumber(peopleRemaining.length);
+	const twoStart = getStartNumber(peopleSubtracted.length);
 	const twoAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => twoStart + i);
 
-	const resultStart = getStartNumber(peopleTogether.length);
+	const resultStart = getStartNumber(peopleRemaining.length);
 	const resultAnswerOptions: number[] = Array.from(
 		{ length: totalAnswers },
 		(_, i) => resultStart + i
@@ -73,9 +73,6 @@
 	let oneGuess: number | undefined = $derived(oneGuesses[0] ?? undefined);
 	let twoGuess: number | undefined = $derived(twoGuesses[0] ?? undefined);
 	let resultGuess: number | undefined = $derived(resultGuesses[0] ?? undefined);
-	let showHintOne = $state(mathProps?.showHintOne ?? true);
-	let showHintTwo = $state(mathProps?.showHintTwo ?? true);
-	let showHintResult = $state(mathProps?.showHintResult ?? false);
 
 	let openStateOne = $state(false);
 	function popoverOneClose() {
@@ -161,26 +158,6 @@
 			// just making typescript happy
 			gridColClasses[cols as unknown as keyof typeof gridColClasses] || gridColClasses[4];
 		return `${baseGridDivClass} ${colClass}`;
-	};
-
-	const toggleHint = (result: 'one' | 'two' | 'result') => {
-		console.log('toggleHint', result);
-		if (result === 'one') {
-			showHintOne = !showHintOne;
-			console.log('showHintOne', showHintOne);
-		} else if (result === 'two') {
-			showHintTwo = !showHintTwo;
-		} else if (result === 'result') {
-			showHintResult = !showHintResult;
-		}
-		const attendanceProps: Partial<ClassProps> = {};
-		attendanceProps[mathPropsName] = {
-			...mathProps,
-			showHintOne,
-			showHintTwo,
-			showHintResult
-		};
-		updateClassDailyAttendance(attendanceProps);
 	};
 
 	function onKeydown(event: KeyboardEvent) {
