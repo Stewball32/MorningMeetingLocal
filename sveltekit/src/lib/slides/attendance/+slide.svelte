@@ -1,75 +1,46 @@
 <script lang="ts">
-	// import type { PageData } from './$types';
-	import { pb, updateDaily } from '$lib/pb';
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import { onDestroy, onMount } from 'svelte';
-	import type { RecordSubscription } from 'pocketbase';
-	import { updateSound } from '$lib/sounds';
+	import { updateClassDaily, updatePersonDaily } from '$lib/pb';
+	import type { ClassDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import { onMount } from 'svelte';
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import PeopleMath from './PeopleMath.svelte';
-	import { makeSearchParams } from '$lib';
+	import type { ClassProps, MathPageProps } from './_types';
+	import PeopleAddition from './PeopleAddition.svelte';
+	import PeopleSubtraction from './PeopleSubtraction.svelte';
 
 	interface SlideProps {
-		todayISOString: string;
 		students: Student[];
 		teachers: Teacher[];
+		classDaily: ClassDaily;
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
-		searchParams: URLSearchParams;
 		slideLeft: () => void;
 		slideRight: () => void;
-		clearSearchParams?: () => void;
-		updateNavUrl: (page: number, searchParams: URLSearchParams) => void;
 	}
 
 	let {
-		todayISOString,
 		students = $bindable([]),
 		teachers = $bindable([]),
+		classDaily = $bindable({} as ClassDaily),
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
-		searchParams = $bindable(new URLSearchParams()),
 		slideLeft = () => {},
 		slideRight = () => {},
-		clearSearchParams = () => {},
-		updateNavUrl,
 	}: SlideProps = $props();
 
 	let currentPerson: Student | Teacher | undefined = $state(undefined);
-	let page = $state(parseInt(searchParams.get("page") as string) || 0);
-
-	let totalStudentsGuess: number | undefined = $state(undefined);
-	let absentStudentsGuess: number | undefined = $state(undefined);
-	let presentStudentsGuess: number | undefined = $state(undefined);
-	let hintPresentStudents: boolean = $state(false);
-	let presentStudentsGuessTwo: number | undefined = $state(undefined);
-	let presentTeachersGuess: number | undefined = $state(undefined);
-	let totalPeopleGuess: number | undefined = $state(undefined);
-	let hintTotalPeople: boolean = $state(false);
+	let attendanceDaily = $derived(classDaily.attendance ?? {} as ClassProps);
+	let page = $state(classDaily?.attendance?.page ?? 0);
+	let studentMath: MathPageProps = $derived(attendanceDaily.studentMath || {} as MathPageProps);
+	let peopleMath: MathPageProps = $derived(attendanceDaily.peopleMath || {} as MathPageProps);
 
 	onMount(async () => {
-		const pid = searchParams.get('pid');
-		console.log('Mounting attendance slide with pid:', pid);
-		if (pid) {
-			const person = students.find((s) => s.id === pid) || teachers.find((t) => t.id === pid);
+		const personId = attendanceDaily.currentPerson // id string
+		if (personId) {
+			const person = students.find((s) => s.id === personId) || teachers.find((t) => t.id === personId);
 			if (person) {
 				currentPerson = person;
 			}
-		}
-		const num1 = searchParams.get('num1');
-		const num2 = searchParams.get('num2');
-		const result = searchParams.get('result');
-		const hint = searchParams.get('hint');
-		if (page === 1) {
-			if (num1) totalStudentsGuess = parseInt(num1) || undefined;
-			if (num2) absentStudentsGuess = parseInt(num2) || undefined;
-			if (result) presentStudentsGuess = parseInt(result) || undefined;
-			if (hint) hintPresentStudents = hint === 'true';
-		} else if (page === 3) {
-			if (num1) presentStudentsGuessTwo = parseInt(num1) || undefined;
-			if (num2) presentTeachersGuess = parseInt(num2) || undefined;
-			if (result) totalPeopleGuess = parseInt(result) || undefined;
-			if (hint) hintTotalPeople = hint === 'true';
 		}
 	});
 
@@ -92,19 +63,30 @@
 				here = isHere ? 'present' : 'absent';
 				break;
 		}
-		await updateDaily(person, { ...daily, here });
+		await updatePersonDaily(person, { ...daily, here });
 	};
-
-	const setNavUrl = (params: Record<string, string | number | (string | number)[] | null | undefined>) => {
-		const searchParams = makeSearchParams(params);
-		updateNavUrl(page, searchParams);		
+	
+	const updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {
+		const newClassDaily: Partial<ClassDaily> = {
+			attendance: {
+				...classDaily.attendance,
+				...partialClassDailyAttendance,
+			},
+		};
+		await updateClassDaily(newClassDaily);
 	}
 
 	const pageLeft = () => {
-		if (page > 0) page--;
+		if (page > 0) {
+			page--
+			updateClassDailyAttendance({ page });
+		};
 	};
 	const pageRight = () => {
-		if (page < 3) page++;
+		if (page < 3) {
+			page++
+			updateClassDailyAttendance({ page });
+		};
 	};
 </script>
 
@@ -126,26 +108,38 @@
 		prompt="Click on a student's button above."
 		{pageLeft}
 		{pageRight}
-		{setNavUrl}
+		{updateClassDailyAttendance}
 	/>
 {:else if page === 1}
-	<PeopleMath
+	<PeopleSubtraction
+		peopleTogetherName="Students"
+		peopleSubtracted={students.filter((s) => studentDailyMap.get(s.id)?.here === 'absent')}
+		peopleSubtractedName="Absent"
+		peopleRemaining={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
+		peopleRemainingName="Here"
+		title="How Many Students?"
+		mathProps={studentMath}
+		mathPropsName="studentMath"
+		{pageLeft}
+		{pageRight}
+		updateClassDailyAttendance={updateClassDailyAttendance}
+	/>
+	<!-- <PeopleMath
 		peopleOne={students}
 		peopleOneName="Students"
-		bind:peopleOneGuess={totalStudentsGuess}
 		peopleTwo={students.filter((s) => studentDailyMap.get(s.id)?.here === 'absent')}
 		peopleTwoMap={studentDailyMap}
 		peopleTwoName="Absent"
-		bind:peopleTwoGuess={absentStudentsGuess}
 		mathOperation="subtract"
 		resultMap={studentDailyMap}
 		resultName="Here"
-		bind:resultGuess={presentStudentsGuess}
 		title="How Many Students?"
+		mathProps={studentMath}
+		mathPropsName="studentMath"
 		{pageLeft}
 		{pageRight}
-		{setNavUrl}
-	/>
+		{updateClassDailyAttendance}
+	/> -->
 {:else if page === 2}
 	<WhoIsHere
 		people={teachers}
@@ -157,22 +151,36 @@
 		prompt="Click on a teacher's button above."
 		{pageLeft}
 		{pageRight}
-		{setNavUrl}
+		{updateClassDailyAttendance}
 	/>
 {:else if page === 3}
-	<PeopleMath
+	<PeopleAddition
 		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
 		peopleOneName="Students"
-		bind:peopleOneGuess={presentStudentsGuessTwo}
 		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
 		peopleTwoName="Teachers"
-		bind:peopleTwoGuess={presentTeachersGuess}
-		mathOperation="add"
 		resultName="Total"
-		bind:resultGuess={totalPeopleGuess}
 		title="How Many People?"
+		mathProps={peopleMath}
+		mathPropsName="peopleMath"
 		{pageLeft}
 		{pageRight}
-		{setNavUrl}
+		updateClassDailyAttendance={updateClassDailyAttendance}
 	/>
 {/if}
+
+
+	<!-- <PeopleMath
+		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
+		peopleOneName="Students"
+		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
+		peopleTwoName="Teachers"
+		mathOperation="add"
+		resultName="Total"
+		title="How Many People?"
+		mathProps={peopleMath}
+		mathPropsName="peopleMath"
+		{pageLeft}
+		{pageRight}
+		{updateClassDailyAttendance}
+	/> -->

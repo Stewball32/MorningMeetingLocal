@@ -12,13 +12,9 @@
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
 		peopleOne: Student[] | Teacher[];
-		peopleOneMap?: Map<string, StudentDaily | TeacherDaily>;
 		peopleOneName?: string;
 		peopleTwo: Student[] | Teacher[];
-		peopleTwoMap?: Map<string, StudentDaily | TeacherDaily>;
 		peopleTwoName?: string;
-		mathOperation: 'add' | 'subtract';
-		resultMap?: Map<string, StudentDaily | TeacherDaily>;
 		resultName?: string;
 		mathProps?: MathPageProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
@@ -33,13 +29,9 @@
 
 	let {
 		peopleOne,
-		peopleOneMap: oneMap,
 		peopleOneName: oneName,
 		peopleTwo,
-		peopleTwoMap: twoMap,
 		peopleTwoName: twoName,
-		mathOperation,
-		resultMap,
 		resultName,
 		mathProps,
 		mathPropsName,
@@ -50,12 +42,7 @@
 		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
-	const peopleResult: Student[] | Teacher[] =
-		mathOperation === 'add'
-			? peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id)).concat(peopleTwo)
-			: mathOperation === 'subtract'
-				? peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id))
-				: peopleOne;
+	const peopleResult: Student[] | Teacher[] = peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id)).concat(peopleTwo);
 
 	const totalAnswers: number = 6;
 
@@ -159,12 +146,13 @@
 
 	const baseGridDivClass = 'grid';
 	const getGridDivClass = (columns: number) => {
-		const cols: string = 1 <= columns && columns <= 4 ? columns.toString() : '4';
+		const cols: string = 1 <= columns && columns <= 5 ? columns.toString() : '5';
 		const gridColClasses = {
-			1: 'grid-cols-1 w-1/4',
-			2: 'grid-cols-2 w-2/4',
-			3: 'grid-cols-3 w-3/4',
-			4: 'grid-cols-4 w-full'
+			1: 'grid-cols-1 w-1/5',
+			2: 'grid-cols-2 w-2/5',
+			3: 'grid-cols-3 w-3/5',
+			4: 'grid-cols-4 w-4/5',
+			5: 'grid-cols-5 w-full'
 		};
 		// just making typescript happy
 		const colClass =
@@ -249,11 +237,8 @@
 								}}
 								person={personOne}
 								showName={false}
-								style={'w-full h-full'}
-								forceStyle={clickedPeopleIds.includes(personOne.id) && mathOperation === 'subtract'
-									? 'absent'
-									: undefined}
-								daily={oneMap?.get(personOne.id)}
+								style="w-full h-full m-0 p-0"
+								forceStyle={undefined}
 							/>
 						</div>
 					{/each}
@@ -278,8 +263,8 @@
 							<PersonButton
 								person={personTwo}
 								showName={false}
-								style="w-full h-full"
-								daily={twoMap?.get(personTwo.id)}
+								style="w-full h-full m-0 p-0"
+								forceStyle={undefined}
 							/>
 						</div>
 					{/each}
@@ -305,8 +290,8 @@
 							<PersonButton
 								person={personResult}
 								showName={false}
-								style="w-full h-full"
-								daily={resultMap?.get(personResult.id)}
+								style="w-full h-full m-0 p-0"
+								forceStyle={undefined}
 							/>
 						</div>
 					{/each}
@@ -504,7 +489,7 @@
 		<h2
 			class="-translate-1/2 text-title absolute left-1/3 top-[60%] transform items-center text-center"
 		>
-			{mathOperation === 'add' ? '+' : mathOperation === 'subtract' ? '-' : ''}
+		+
 		</h2>
 		<h2
 			class="-translate-1/2 text-title absolute left-2/3 top-[60%] transform items-center text-center"
