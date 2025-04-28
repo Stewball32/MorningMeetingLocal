@@ -5,6 +5,8 @@
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import PeopleMath from './PeopleMath.svelte';
 	import type { ClassProps, MathPageProps } from './_types';
+	import PeopleAddition from './PeopleAddition.svelte';
+	import PeopleSubtraction from './PeopleSubtraction.svelte';
 
 	interface SlideProps {
 		students: Student[];
@@ -109,7 +111,20 @@
 		{updateClassDailyAttendance}
 	/>
 {:else if page === 1}
-	<PeopleMath
+	<PeopleSubtraction
+		peopleTogetherName="Students"
+		peopleSubtracted={students.filter((s) => studentDailyMap.get(s.id)?.here === 'absent')}
+		peopleSubtractedName="Absent"
+		peopleRemaining={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
+		peopleRemainingName="Here"
+		title="How Many Students?"
+		mathProps={studentMath}
+		mathPropsName="studentMath"
+		{pageLeft}
+		{pageRight}
+		updateClassDailyAttendance={updateClassDailyAttendance}
+	/>
+	<!-- <PeopleMath
 		peopleOne={students}
 		peopleOneName="Students"
 		peopleTwo={students.filter((s) => studentDailyMap.get(s.id)?.here === 'absent')}
@@ -124,7 +139,7 @@
 		{pageLeft}
 		{pageRight}
 		{updateClassDailyAttendance}
-	/>
+	/> -->
 {:else if page === 2}
 	<WhoIsHere
 		people={teachers}
@@ -139,7 +154,23 @@
 		{updateClassDailyAttendance}
 	/>
 {:else if page === 3}
-	<PeopleMath
+	<PeopleAddition
+		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
+		peopleOneName="Students"
+		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
+		peopleTwoName="Teachers"
+		resultName="Total"
+		title="How Many People?"
+		mathProps={peopleMath}
+		mathPropsName="peopleMath"
+		{pageLeft}
+		{pageRight}
+		updateClassDailyAttendance={updateClassDailyAttendance}
+	/>
+{/if}
+
+
+	<!-- <PeopleMath
 		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
 		peopleOneName="Students"
 		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
@@ -152,5 +183,4 @@
 		{pageLeft}
 		{pageRight}
 		{updateClassDailyAttendance}
-	/>
-{/if}
+	/> -->
