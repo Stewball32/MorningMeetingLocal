@@ -29,7 +29,21 @@
 	--breakpoint-2xl: 96rem;
 	*/
 	--breakpoint-3xl: 112rem;
+	
+  --text-10xl: 10rem;
+  --text-10xl--line-height: 1;
+  --text-11xl: 12rem;
+  --text-11xl--line-height: 1;
+	--text-12xl: 14rem;
+	--text-12xl--line-height: 1;
 }
+
+@custom-variant smh   (@media (min-width: 640px)  and (min-height: 360px));
+@custom-variant mdh   (@media (min-width: 768px)  and (min-height: 432px));
+@custom-variant lgh   (@media (min-width: 1024px) and (min-height: 576px));
+@custom-variant xlh   (@media (min-width: 1280px) and (min-height: 720px));
+@custom-variant 2xlh  (@media (min-width: 1536px) and (min-height: 864px));
+@custom-variant 3xlh  (@media (min-width: 1920px) and (min-height: 1080px));
 
 @layer utilities {
 	.text-10xl {
