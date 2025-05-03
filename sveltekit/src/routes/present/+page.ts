@@ -1,5 +1,5 @@
 import { getCurrentISOString } from '$lib';
-import { getAllStudents, getAllTeachers, getClassDaily, getStudentDailyMap, getTeacherDailyMap } from '$lib/pb';
+import { getAllStudents, getAllTeachers, getClassDaily, getGuestDailes, getStudentDailyMap, getTeacherDailyMap } from '$lib/pb';
 import type { PageLoad } from './$types';
 
 export const load  = (async ({ params, url }) => {
@@ -10,6 +10,7 @@ export const load  = (async ({ params, url }) => {
 		const teachers = await getAllTeachers()
 		const studentDailyMap = await getStudentDailyMap()
 		const teacherDailyMap = await getTeacherDailyMap()
+		const guestDailies = await getGuestDailes()
 		
 		return {
 			todayISOString,
@@ -18,6 +19,7 @@ export const load  = (async ({ params, url }) => {
 			studentDailyMap,
 			teachers,
 			teacherDailyMap,
+			guestDailies,
 		};
 
 }) satisfies PageLoad;

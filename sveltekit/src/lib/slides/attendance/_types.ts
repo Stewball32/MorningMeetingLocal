@@ -15,8 +15,9 @@ export interface MathPageProps {
 export interface ClassProps { // ClassDaily {attendance: ClassProps}
 	page: number;
 	currentPerson?: string; // student or teacher ID
-	studentMath: MathPageProps;
-	peopleMath: MathPageProps;
+	studentMath?: MathPageProps;
+	peopleMath?: MathPageProps;
+	hasGuests?: boolean;
 }
 
 type HereGuess = "present" | "absent" | "";

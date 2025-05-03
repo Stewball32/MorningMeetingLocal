@@ -133,7 +133,7 @@
 	<div class="h-2/12 absolute bottom-0 flex w-full justify-evenly pt-1">
 		<button
 			onclick={() => updateAttendance(currentPerson, true)}
-			class="btn preset-filled-success-500 text-answer col-span-2 rounded-full border"
+			class="btn preset-filled-success-500 w-1/4 text-answer col-span-2 rounded-full border"
 		>
 			{getPronounSubject(currentPerson)}
 			{getPronounPresent(currentPerson)}
@@ -149,7 +149,7 @@
 		</a>
 		<button
 			onclick={() => updateAttendance(currentPerson, false)}
-			class="btn preset-filled-error-500 text-answer col-span-2 rounded-full border"
+			class="btn preset-filled-error-500 w-1/4 text-answer col-span-2 rounded-full border"
 		>
 			{getPronounSubject(currentPerson)}
 			{getPronounPresent(currentPerson) + "n't"}
