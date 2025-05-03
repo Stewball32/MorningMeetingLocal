@@ -1,6 +1,6 @@
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public'
 import PocketBase, { type RecordSubscription } from 'pocketbase'
-import type { ClassDaily, DailyRecord, Student, StudentDaily, Teacher, TeacherDaily } from './types'
+import type { ClassDaily, DailyRecord, GuestAvatar, GuestDaily, Student, StudentDaily, Teacher, TeacherDaily } from './types'
 import { getCurrentISOString, isISOString } from '$lib'
 
 
@@ -13,6 +13,10 @@ function createInstance() {
  * @returns A new PocketBase instance.
  */
 export const pb = createInstance()
+
+export const getPbImageUrl = (collectionId: string, recordId: string, fileId: string) => {
+	return `${PUBLIC_POCKETBASE_URL}/api/files/${collectionId}/${recordId}/${fileId}`
+}
 
 /**
  * Gets the collection name for daily records based on the input collection.
@@ -70,6 +74,23 @@ export const getAllTeachers = async (): Promise<Teacher[]> => {
 		return [];
 	}
 };
+
+export const getGuestAvatarMap = async (): Promise<Map<string, GuestAvatar>> => {
+	const guestAvatarMap = new Map<string, GuestAvatar>()
+	try {
+		const guestAvatars = await pb.collection('guest_avatars').getFullList({
+			sort: 'name'
+		}) as GuestAvatar[]
+		guestAvatars.forEach((avatar) => {
+			guestAvatarMap.set(avatar.id, avatar)
+		})
+		return guestAvatarMap
+	}
+	catch (error) {
+		console.error(error)
+		return guestAvatarMap
+	}
+}
 
 export const getClassDaily = async (isoString?: string): Promise<ClassDaily> => {
 	const dateString = isoString ?? getCurrentISOString()
@@ -140,6 +161,34 @@ export const getTeacherDailyMap = async (isoString?: string): Promise<Map<string
 		return teacherDailyMap
 	}
 }
+
+/**
+ * Gets a list of guest dailies for the specified date range.
+ * @param before - The end date of the range (inclusive). Defaults to today.
+ * @param after - The start date of the range (inclusive). Defaults to today.
+ * @returns An array of GuestDaily records. Empty array if error or no data.
+ */
+export const getGuestDailes = async ({ before, after}: { before?: string, after?: string } = {}): Promise<GuestDaily[]> => {
+	const guestDailies: GuestDaily[] = []
+	const startDateString = after?.toString()
+	const endDateString = before ?? getCurrentISOString()
+	if (!isISOString(endDateString) && (!startDateString || !isISOString(startDateString))) return guestDailies
+
+	try {
+		const filter = startDateString ? `date >= "${startDateString}" && date <= "${endDateString}"` : `date = "${endDateString}"`
+		const guestDailiesData = await pb.collection('guest_dailies').getFullList() as GuestDaily[]
+		console.log(guestDailiesData)
+		guestDailies.push(...guestDailiesData)
+	}
+	catch (error) {
+		console.error(error)
+		return guestDailies
+	}
+
+	return guestDailies
+}
+
+
 
 /**
  * Creates a new class daily record.

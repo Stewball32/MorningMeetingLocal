@@ -1,168 +1,232 @@
 <script lang="ts">
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import type {
+		GuestAvatar,
+		GuestDaily,
+		Student,
+		StudentDaily,
+		Teacher,
+		TeacherDaily
+	} from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import PersonButton from '$lib/PersonButton.svelte';
 	import { getPronounPresent, getPronounSubject } from '$lib';
 	import PersonBar from '$lib/slides/attendance/PersonBar.svelte';
+	import type { ClassProps } from './_types';
+	import { Combobox, Modal } from '@skeletonlabs/skeleton-svelte';
+	import Trash from '@lucide/svelte/icons/trash-2';
+	import { getGuestAvatarMap, getGuestDailes, getPbImageUrl } from '$lib/pb';
 
-	interface WhoIsHereProps {
-		people: Student[] | Teacher[];
-		dailyMap: Map<string, StudentDaily | TeacherDaily>;
-		updateAttendance: (person: Student | Teacher | undefined, isHere: boolean) => Promise<void>;
-		currentPerson: Student | Teacher | undefined;
-		title?: string;
-		subtitle?: string;
-		prompt?: string;
-		pageLeft?: () => void;
-		pageRight?: () => void;
+	interface GuestCheckProps {
+		hasGuests?: boolean;
+		pageLeft: () => void;
+		pageRight: () => void;
+		updateClassDailyAttendance: (partialClassDailyAttendance: Partial<ClassProps>) => Promise<void>;
+	}
+
+	interface ComboboxData {
+		label: string;
+		value: string;
+		emoji: string;
 	}
 
 	let {
-		people,
-		dailyMap,
-		updateAttendance,
-		currentPerson = $bindable(undefined),
-		title = 'Attendance',
-		subtitle = 'Part 1: Students',
-		prompt = 'Click on a button!',
+		hasGuests = $bindable(undefined), // TODO set default to undefined
 		pageLeft = () => {},
-		pageRight = () => {}
-	}: WhoIsHereProps = $props();
+		pageRight = () => {},
+		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
+	}: GuestCheckProps = $props();
 
-	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
-		const videoId = person.video_id;
-		const start = person.video_start ? `&start=${person.video_start}` : '';
-		const end = person.video_end ? `&end=${person.video_end}` : '';
-		const baseUrl = embedded
-			? 'https://www.youtube.com/embed/'
-			: 'https://www.youtube.com/watch?v=';
-		return `${baseUrl}${videoId}?rel=0&enablejsapi=1&autoplay=0${start}${end}`;
+	const answerQuestion = (answer: boolean) => {
+		hasGuests = hasGuests === answer ? undefined : answer;
+		updateClassDailyAttendance({ hasGuests: hasGuests });
 	};
 
-	const updateCurrentPerson = (person?: Student | Teacher) => {
-		currentPerson = person;
-	};
+	let todayGuests: GuestDaily[] = $state([]);
+	let previousGuests: GuestDaily[] = $state([]);
+	let guestComboboxArray: ComboboxData[] = $state([]);
+	let guestAvatarMap: Map<string, GuestAvatar> = new Map();
+	let avatarComboboxArray: ComboboxData[] = $state([]);
+	onMount(async () => {
+		guestAvatarMap = await getGuestAvatarMap();
+		guestAvatarMap.values().forEach((avatar) => {
+			avatarComboboxArray.push({
+				label: avatar.name,
+				value: avatar.id,
+				emoji: avatar.emoji
+			});
+		});
 
-	let collectionNames: string[] = $state([]);
-	onMount(() => {
-		currentPerson = undefined;
-		people.forEach((person) => {
-			if (!collectionNames.includes(person.collectionName)) {
-				collectionNames.push(person.collectionName);
-			}
+		const date = new Date();
+		const [year, month, day] = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+		const lastDate = month < 8 ? `${year - 1}-08-01` : `${year}-08-01`;
+
+		todayGuests = await getGuestDailes();
+		previousGuests = await getGuestDailes({ after: lastDate });
+		previousGuests.forEach((guestDaily) => {
+			let emoji = guestAvatarMap.get(guestDaily.avatar)?.emoji || '❔';
+			guestComboboxArray.push({
+				label: guestDaily.name,
+				value: guestDaily.id,
+				emoji: emoji
+			});
 		});
 	});
 
-	const getPersonIndex = (person: Student | Teacher) => {
-		return people.findIndex((p) => p.id === person.id);
+	let selectedGuestName: string[] = $state([]);
+	let selectedAvatarId: string[] = $state([]);
+	let selectedPronoun: string | undefined = $state();
+
+	let formName: string | undefined = $state();
+	let formPronoun: string | undefined = $state();
+	let formAvatar: string | undefined = $state();
+
+	const reusePreviousGuest = (e: any) => {
+		console.log('Selected Guest', e);
+		let guest = previousGuests.find((guest) => guest.id === e.value[0]);
+		console.log('Guest', guest);
+		selectedPronoun = guest?.pronoun || '';
+		selectedGuestName = [guest?.name || e.label];
+		selectedAvatarId = [guest?.avatar ?? ""];
 	};
-	function onKeydown(event: KeyboardEvent) {
-		if (event.key === 'ArrowUp') {
-			event.preventDefault();
-			if (!currentPerson) return;
-			updateAttendance(currentPerson, true);
-		} else if (event.key === 'ArrowDown') {
-			event.preventDefault();
-			if (!currentPerson) return;
-			updateAttendance(currentPerson, false);
-		}
-		if (event.key === 'ArrowLeft') {
-			event.preventDefault();
-			let currentPersonIndex: number;
-			if (currentPerson === undefined) {
-				currentPerson = people[people.length - 1];
-				currentPersonIndex = getPersonIndex(currentPerson) + 1;
-			} else currentPersonIndex = getPersonIndex(currentPerson);
-			for (let i = currentPersonIndex - 1; i >= 0; i--) {
-				if (!dailyMap.get(people[i].id)?.here) {
-					updateCurrentPerson(people[i]);
-					return;
-				}
-			}
-			if (currentPersonIndex !== 0) {
-				updateCurrentPerson(people[currentPersonIndex - 1]);
-			} else pageLeft();
-		} else if (event.key === 'ArrowRight') {
-			event.preventDefault();
-			if (currentPerson === undefined) currentPerson = people[0];
-			let currentPersonIndex = getPersonIndex(currentPerson);
-			for (let i = currentPersonIndex + 1; i < people.length; i++) {
-				if (!dailyMap.get(people[i].id)?.here) {
-					updateCurrentPerson(people[i]);
-					return;
-				}
-			}
-			// if no more people, go to the next page
-			if (currentPersonIndex !== people.length - 1) {
-				updateCurrentPerson(people[currentPersonIndex + 1]);
-			} else pageRight();
-		}
+
+	let openState = $state(false);
+
+	const updateAvatar = (avatar: any) => {
+		selectedAvatarId = avatar.value;
+		console.log('Avatars', avatar.value);
+	};
+
+	const avatarURL = (avatarId: string) => {
+		let avatar = guestAvatarMap.get(avatarId);
+		if (!avatar) return '/default_guest_avatar.png';
+		let url =  getPbImageUrl(avatar.collectionId, avatar.id, avatar.image);
+		console.log('Avatar URL', url);
+		return url;
+	};
+
+	function modalClose() {
+		openState = false;
 	}
+
+	const onKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'ArrowLeft') {
+			pageLeft();
+		} else if (event.key === 'ArrowRight') {
+			pageRight();
+		}
+	};
 </script>
 
 <svelte:window on:keydown={onKeydown} />
 
-<PersonBar {people} {dailyMap} {currentPerson} onClick={updateCurrentPerson} />
-{#if currentPerson && collectionNames.includes(currentPerson.collectionName)}
-	<div class="h-8/12 top-2/12 absolute flex w-full flex-col justify-center py-2">
-		<div class="h-9/12 flex w-full items-center justify-center pb-2">
-			<!--iFrame of youtube video with 16/9 ratio-->
-			<iframe
-				class="rounded-4xl aspect-video h-full"
-				src={youtubeUrl(currentPerson)}
-				title="YouTube video player"
-				frameborder="0"
-				allowfullscreen
-			></iframe>
-		</div>
-		<div class="h-3/12 flex w-full items-center justify-center gap-2">
-			<h1 class="text-question">Is</h1>
-			<PersonButton
-				person={currentPerson}
-				daily={currentPerson ? dailyMap.get(currentPerson.id) : undefined}
-				style="h-full "
-				showAvatar={true}
-				avatarStyle="h-full -px-6"
-				showName={true}
-				nameStyle="text-question"
-				onClick={() => updateCurrentPerson(undefined)}
-			/>
-			<h1 class="text-question">here today?</h1>
-		</div>
-	</div>
+<div class=" absolute bottom-2 flex h-1/6 w-full justify-around gap-4">
+	<button
+		class="btn text-medium preset-filled-success-500 aspect-square w-1/5 rounded-full border-2 p-[2%]"
+		onclick={() => answerQuestion(true)}>Yes</button
+	>
+	<button
+		class="btn text-medium preset-filled-error-500 aspect-square w-1/5 rounded-full border-2 p-[2%]"
+		onclick={() => answerQuestion(false)}>No</button
+	>
+</div>
 
-	<div class="h-2/12 absolute bottom-0 flex w-full justify-evenly pt-1">
-		<button
-			onclick={() => updateAttendance(currentPerson, true)}
-			class="btn preset-filled-success-500 text-answer col-span-2 rounded-full border"
-		>
-			{getPronounSubject(currentPerson)}
-			{getPronounPresent(currentPerson)}
-			here!
-		</button>
-		<a
-			href={youtubeUrl(currentPerson, false)}
-			target="_blank"
-			rel="noopener noreferrer"
-			class="btn col-span-1 overflow-hidden rounded-full"
-		>
-			<img class="h-full rounded-full" src="/youtube.png" alt="" />
-		</a>
-		<button
-			onclick={() => updateAttendance(currentPerson, false)}
-			class="btn preset-filled-error-500 text-answer col-span-2 rounded-full border"
-		>
-			{getPronounSubject(currentPerson)}
-			{getPronounPresent(currentPerson) + "n't"}
-			here.
-		</button>
+{#if hasGuests === undefined}
+	<div class="flex h-full w-full flex-col items-center justify-center">
+		<h1 class="text-extralarge my-[2%] font-bold">Any Guests Today?</h1>
+		<h2 class="text-small my-[5%]">Look around the room and check!</h2>
+	</div>
+{:else if !hasGuests}
+	<div class="flex h-full w-full flex-col items-center justify-center">
+		<h1 class="text-extralarge my-[2%] text-center font-bold">No Guests Today!</h1>
+		<h2 class="text-small my-[5%]">There are now guests today.</h2>
 	</div>
 {:else}
-	<div class="h-10/12 top-2/12 absolute flex w-full flex-col justify-center py-2">
-		<div class="flex h-full w-full flex-col items-center justify-around">
-			<h1 class="text-title text-center">{title}</h1>
-			<h2 class="text-subtitle text-normal text-balance text-center">{subtitle}</h2>
-			<h3 class="text-answer hidden text-balance py-[5%] text-center italic sm:block">{prompt}</h3>
+	<div class="flex h-full w-full flex-col items-center justify-start bg-red-500">
+		<h1 class="text-extralarge my-[2%] bg-blue-500 text-center font-bold">Who are they?</h1>
+		<div class="flex h-[15%] w-full items-center justify-center gap-[10%] bg-green-500">
+			<Modal
+				open={openState}
+				onOpenChange={(e) => (openState = e.open)}
+				triggerBase="btn preset-filled-primary-500 rouned-full"
+				contentBase="card bg-primary-100 p-4 space-y-4 shadow-xl max-w-screen-sm"
+				backdropClasses="backdrop-blur-sm"
+			>
+				{#snippet trigger()}Add a Guest{/snippet}
+				{#snippet content()}
+					<header class="flex justify-between">
+						<Combobox
+							ids={{ root: 'guest-combobox' }}
+							classes="h-2/5 bg-yellow-500 z-10"
+							allowCustomValue={true}
+							data={guestComboboxArray}
+							value={selectedGuestName}
+							onValueChange={reusePreviousGuest}
+							label=""
+							placeholder="Guest Name"
+						>
+							<!-- This is optional. Combobox will render label by default -->
+							{#snippet item(item)}
+								<div class="flex w-full justify-between space-x-2">
+									<span>{item.label}</span>
+									<span>{item.emoji}</span>
+								</div>
+							{/snippet}
+						</Combobox>
+
+						<nav
+							class="btn preset-outlined-surface-500 group relative w-[15%] gap-0 overflow-clip rounded-full outline-2 contain-strict"
+						>
+							<button
+								type="button"
+								class="btn preset-tonal hover:preset-tonal-primary -ml-[50%] w-1/2 border-r-2 py-[50%] pl-[50%]"
+								>He</button
+							>
+							<button
+								type="button"
+								class="btn preset-tonal hover:preset-tonal-primary -mr-[50%] w-1/2 border-l-2 py-[50%] pr-[50%]"
+								>She</button
+							>
+						</nav>
+						<Combobox
+							ids={{ root: 'avatar-combobox' }}
+							classes="bg-yellow-500 z-10 w-1/3"
+							allowCustomValue={false}
+							data={avatarComboboxArray}
+							value={selectedAvatarId}
+							onValueChange={updateAvatar}
+							onFocusOutside={(e) => console.log('focus outside', e)}
+							label=""
+							placeholder="Avatar"
+						>
+							<!-- This is optional. Combobox will render label by default -->
+							{#snippet item(item)}
+								<div class="flex w-full justify-between space-x-2">
+									<span class="w-5/6 truncate">{item.label}</span>
+									<span>{item.emoji}</span>
+								</div>
+							{/snippet}
+						</Combobox>
+					</header>
+					<article
+						class=" grid w-full grid-cols-4 items-center justify-center gap-[10%] bg-green-500"
+					>
+						<img class="" src={avatarURL(selectedAvatarId[0])} alt="" />
+						<span class="col-span-2">
+							{#if selectedGuestName}
+								{selectedGuestName[0]}
+							{/if}
+						</span>
+					</article>
+					<footer class="flex justify-end gap-4">
+						<button type="button" class="btn preset-tonal" onclick={modalClose}>Cancel</button>
+						<button type="button" class="btn preset-filled" onclick={modalClose}>Confirm</button>
+					</footer>
+				{/snippet}
+			</Modal>
 		</div>
+
+		<button class="btn hover:scale-105 active:scale-95">
+			<Trash class="" />
+		</button>
 	</div>
 {/if}
