@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import type { ClassProps } from './_types';
 	import { Combobox, Modal, Popover } from '@skeletonlabs/skeleton-svelte';
-	import Undo from '@lucide/svelte/icons/Undo';
+	import Undo from '@lucide/svelte/icons/undo';
 	import UserRoundPlus from '@lucide/svelte/icons/user-round-plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
 	import TvMinimalPlay from '@lucide/svelte/icons/tv-minimal-play';
