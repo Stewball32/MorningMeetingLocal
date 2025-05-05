@@ -6,10 +6,11 @@
 
 <div class="place-items-center">
 	<!-- <h1> Current thing</h1> -->
-	<div class=" relative min-h-screen  place-content-center">
+	<div class=" relative min-h-screen place-content-center">
 		<img
 			src="/paper.svg"
 			class="
+        3xl:w-[1920px]
 				absolute
 				aspect-[16/9]
 				w-[320px]
@@ -18,8 +19,8 @@
 				sm:w-[640px]
 				md:w-[768px]
 				lg:w-[1024px]
-				xl:w-[1280px]
-				2xl:w-[1536px]
+        xl:w-[1280px]
+        2xl:w-[1536px]
 			"
 			alt=""
 		/>

@@ -38,7 +38,14 @@ export interface TeacherDaily extends DailyRecord {
 	attendance: TeacherAttendanceProps
 }
 
+export interface GuestAvatar extends RecordModel {
+	name: string;
+	emoji: string; // emoji
+	image: string; // image url
+}
+
 export interface GuestDaily extends DailyRecord {
-	guest_name: string;
-	avatar_str: string;
+	name: string;
+	avatar: string; // GuestAvatar.id
+	pronoun?: "he" | "she";
 }

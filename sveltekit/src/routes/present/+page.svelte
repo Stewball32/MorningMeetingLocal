@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { pb } from '$lib/pb';
-	import type { ClassDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import type {
+		ClassDaily,
+		GuestAvatar,
+		GuestDaily,
+		Student,
+		StudentDaily,
+		Teacher,
+		TeacherDaily
+	} from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
@@ -15,6 +23,8 @@
 	let teachers: Teacher[] = $state(data.teachers);
 	let studentDailyMap: Map<string, StudentDaily> = $state(data.studentDailyMap);
 	let teacherDailyMap: Map<string, TeacherDaily> = $state(data.teacherDailyMap);
+	let guestDailies: GuestDaily[] = $state(data.guestDailies);
+	let guestAvatarMap: Map<string, GuestAvatar> = data.guestAvatarMap;
 	// let currentPerson: Student | Teacher | undefined = $state(undefined);
 
 	let activeStudents: Student[] = $derived(
@@ -93,10 +103,30 @@
 			teacherDailyMap = newTeacherDailyMap;
 		});
 
+		pb.collection('guest_dailies').subscribe('*', (e: RecordSubscription<GuestDaily>) => {
+			if (e.record.date !== todayISOString) return;
+			const newGuestDailies = [...guestDailies];
+			switch (e.action) {
+				case 'create':
+					newGuestDailies.push(e.record);
+					break;
+				case 'update':
+					const index = newGuestDailies.findIndex((g) => g.id === e.record.id);
+					if (index !== -1) newGuestDailies[index] = e.record;
+					break;
+				case 'delete':
+					const deleteIndex = newGuestDailies.findIndex((g) => g.id === e.record.id);
+					if (deleteIndex !== -1) newGuestDailies.splice(deleteIndex, 1);
+					break;
+			}
+			guestDailies = newGuestDailies;
+		});
+
 		onDestroy(() => {
 			// sounds multiply if not removed (mainly in dev mode)
 			pb.collection('student_dailies').unsubscribe('*');
 			pb.collection('teacher_dailies').unsubscribe('*');
+			pb.collection('guest_dailies').unsubscribe('*');
 		});
 	});
 
@@ -115,6 +145,8 @@
 		{classDaily}
 		{studentDailyMap}
 		{teacherDailyMap}
+		{guestDailies}
+		{guestAvatarMap}
 		{slideLeft}
 		{slideRight}
 	/>

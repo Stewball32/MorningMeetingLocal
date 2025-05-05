@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import PersonButton from '$lib/PersonButton.svelte';
-	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
+	import type { Student, Teacher } from '$lib/pb/types';
+	import PersonButton from '$lib/buttons/PersonButton.svelte';
+	import { Popover } from '@skeletonlabs/skeleton-svelte';
 
 	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
-	import Hash from '@lucide/svelte/icons/hash';
-	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
 	import Cross from '@lucide/svelte/icons/x';
 	import type { ClassProps, MathPageProps } from './_types';
 
@@ -89,14 +87,15 @@
 
 	onMount(() => {});
 
-	const baseAnswerClass = 'btn text-title border-3 md:border-6 rounded-2xl aspect-square';
+	const baseAnswerClass =
+		'btn text-size-8 font-black border-3 md:border-6 rounded-2xl aspect-square';
 	const undefinedAnswerClass = `preset-filled-surface-300-700 ${baseAnswerClass}`;
 	const correctAnswerClass = `preset-filled-success-300-700 ${baseAnswerClass}`;
 	const wrongAnswerClass = `preset-filled-error-300-700 ${baseAnswerClass}`;
 	const correctAnswers = {
 		one: peopleTogether.length,
 		two: peopleSubtracted.length,
-		result: peopleRemaining.length,
+		result: peopleRemaining.length
 	};
 	const isCorrectAnswer = (result: 'one' | 'two' | 'result', num: number) => {
 		return correctAnswers[result] === num;
@@ -203,7 +202,7 @@
 
 <div class="h-full w-full">
 	<div class="flex h-[20%] w-full items-center justify-center">
-		<h1 class="text-title">{title}</h1>
+		<h1 class="text-size-8 font-black">{title}</h1>
 	</div>
 	<div class="flex h-[40%] items-center justify-center">
 		<div class="flex w-1/2 items-center justify-center p-[5%]">
@@ -216,13 +215,12 @@
 							/>
 						{/if}
 						<PersonButton
+							{person}
+							buttonClass="w-full h-full m-0 p-0"
+							showName={false}
 							onClick={() => {
 								personClicked(person.id);
 							}}
-							{person}
-							showName={false}
-							style="w-full h-full m-0 p-0"
-							forceStyle={undefined}
 						/>
 					</div>
 				{/each}
@@ -232,7 +230,7 @@
 	<div class="relative grid h-[38%] grid-cols-3 items-center justify-center">
 		<div class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%]">
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				{peopleTogetherName}
 			</h1>
@@ -242,7 +240,7 @@
 				onOpenChange={(e) => (openStateOne = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('one', oneGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -273,14 +271,12 @@
 					</div>
 				{/snippet}
 			</Popover>
-
-			<!-- <button class="btn  text-question preset-outlined outline-4 w-[45%] aspect-square "> ? </button> -->
 		</div>
 		<div
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				{peopleSubtractedName}
 			</h1>
@@ -290,7 +286,7 @@
 				onOpenChange={(e) => (openStateTwo = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('two', twoGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -326,7 +322,7 @@
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				{peopleRemainingName}
 			</h1>
@@ -337,7 +333,7 @@
 				onOpenChange={(e) => (openStateResult = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('result', resultGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -371,12 +367,12 @@
 		</div>
 
 		<h2
-			class="-translate-1/2 text-title absolute left-1/3 top-[60%] transform items-center text-center"
+			class="-translate-1/2 text-size-8 absolute left-1/3 top-[60%] transform items-center text-center font-black"
 		>
 			-
 		</h2>
 		<h2
-			class="-translate-1/2 text-title absolute left-2/3 top-[60%] transform items-center text-center"
+			class="-translate-1/2 text-size-8 absolute left-2/3 top-[60%] transform items-center text-center font-black"
 		>
 			=
 		</h2>
