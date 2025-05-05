@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { ClassDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import { onDestroy, onMount } from 'svelte';
-	import PersonButton from '$lib/PersonButton.svelte';
+	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import { onMount } from 'svelte';
+	import type { ClassProps } from './_types';
 	import { getPronounPresent, getPronounSubject, makeSearchParams } from '$lib';
 	import PersonBar from '$lib/slides/attendance/PersonBar.svelte';
-	import type { ClassProps } from './_types';
+	import PersonButton from '$lib/buttons/PersonButton.svelte';
 
 	interface WhoIsHereProps {
-		from?: "left" | "right";
+		from?: 'left' | 'right';
 		people: Student[] | Teacher[];
 		dailyMap: Map<string, StudentDaily | TeacherDaily>;
 		updateAttendance: (person: Student | Teacher | undefined, isHere: boolean) => Promise<void>;
@@ -30,7 +30,7 @@
 		prompt = 'Click on a button!',
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {},
+		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
 	}: WhoIsHereProps = $props();
 
 	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
@@ -45,7 +45,7 @@
 
 	const updateCurrentPerson = (person?: Student | Teacher) => {
 		currentPerson = person;
-		const updatedProps = { currentPerson: person?.id, }
+		const updatedProps = { currentPerson: person?.id };
 		updateClassDailyAttendance(updatedProps);
 	};
 
@@ -61,6 +61,15 @@
 	const getPersonIndex = (person: Student | Teacher) => {
 		return people.findIndex((p) => p.id === person.id);
 	};
+
+	const getButtonPreset = (person: Student | Teacher) => {
+		const daily = dailyMap.get(person.id);
+		if (!daily) return 'surface';
+		if (daily.here === 'present') return 'success';
+		if (daily.here === 'absent') return 'error';
+		return 'surface';
+	};
+
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowUp') {
 			event.preventDefault();
@@ -115,25 +124,23 @@
 			></iframe>
 		</div>
 		<div class="h-3/12 flex w-full items-center justify-center gap-2">
-			<h1 class="text-question">Is</h1>
+			<h1 class="text-size-6 font-bold">Is</h1>
 			<PersonButton
 				person={currentPerson}
-				daily={currentPerson ? dailyMap.get(currentPerson.id) : undefined}
-				style="h-full "
-				showAvatar={true}
-				avatarStyle="h-full -px-6"
-				showName={true}
-				nameStyle="text-question"
+				buttonPreset={getButtonPreset(currentPerson)}
+				buttonClass="h-full"
+				avatarClass="-px-6"
+				nameClass="text-size-6 font-bold"
 				onClick={() => updateCurrentPerson(undefined)}
 			/>
-			<h1 class="text-question">here today?</h1>
+			<h1 class="text-size-6 font-bold">here today?</h1>
 		</div>
 	</div>
 
 	<div class="h-2/12 absolute bottom-0 flex w-full justify-evenly pt-1">
 		<button
 			onclick={() => updateAttendance(currentPerson, true)}
-			class="btn preset-filled-success-500 text-answer col-span-2 rounded-full border"
+			class="btn preset-filled-success-500 text-size-4 col-span-2 w-1/4 rounded-full border font-semibold"
 		>
 			{getPronounSubject(currentPerson)}
 			{getPronounPresent(currentPerson)}
@@ -149,7 +156,7 @@
 		</a>
 		<button
 			onclick={() => updateAttendance(currentPerson, false)}
-			class="btn preset-filled-error-500 text-answer col-span-2 rounded-full border"
+			class="btn preset-filled-error-500 text-size-4 col-span-2 w-1/4 rounded-full border font-semibold"
 		>
 			{getPronounSubject(currentPerson)}
 			{getPronounPresent(currentPerson) + "n't"}
@@ -159,9 +166,11 @@
 {:else}
 	<div class="h-10/12 top-2/12 absolute flex w-full flex-col justify-center py-2">
 		<div class="flex h-full w-full flex-col items-center justify-around">
-			<h1 class="text-title text-center">{title}</h1>
-			<h2 class="text-subtitle text-normal text-balance text-center">{subtitle}</h2>
-			<h3 class="text-answer hidden text-balance py-[5%] text-center italic sm:block">{prompt}</h3>
+			<h1 class="text-size-8 text-center font-black">{title}</h1>
+			<h2 class="text-size-7 text-normal text-balance text-center font-extrabold">{subtitle}</h2>
+			<h3 class="text-size-4 hidden text-balance py-[5%] text-center font-semibold italic sm:block">
+				{prompt}
+			</h3>
 		</div>
 	</div>
 {/if}

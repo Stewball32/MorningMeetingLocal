@@ -15,9 +15,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --heading-font-family: 'ABeeZee', sans-serif;
-  --base-font-family: 'ABeeZee', sans-serif;
-  --anchor-font-family: 'inherit';
+	--heading-font-family: 'ABeeZee', sans-serif;
+	--base-font-family: 'ABeeZee', sans-serif;
+	--anchor-font-family: 'inherit';
 }
 
 @theme {
@@ -29,13 +29,15 @@
 	--breakpoint-2xl: 96rem;
 	*/
 	--breakpoint-3xl: 112rem;
-	
-  --text-10xl: 10rem;
-  --text-10xl--line-height: 1;
-  --text-11xl: 12rem;
-  --text-11xl--line-height: 1;
+
+	--text-10xl: 10rem;
+	--text-10xl--line-height: 1;
+	--text-11xl: 12rem;
+	--text-11xl--line-height: 1;
 	--text-12xl: 14rem;
 	--text-12xl--line-height: 1;
+	--text-13xl: 16rem;
+	--text-13xl--line-height: 1;
 }
 
 @custom-variant smh   (@media (min-width: 640px)  and (min-height: 360px));
@@ -46,51 +48,54 @@
 @custom-variant 3xlh  (@media (min-width: 1920px) and (min-height: 1080px));
 
 @layer utilities {
-	.text-10xl {
-		font-size: calc(9rem /* 144px */ * var(--text-scaling)); /* 9rem = 144px */
-		line-height: var(--tw-leading, calc(1 * var(--text-scaling))); /* 1 */
-	}
-	
-	.text-11xl {
-		font-size: calc(10rem /* 160px */ * var(--text-scaling)); /* 10rem = 160px */
-		line-height: var(--tw-leading, calc(1 * var(--text-scaling))); /* 1 */
-	}
-	
-	.text-12xl {
-		font-size: calc(12rem /* 192px */ * var(--text-scaling)); /* 12rem = 192px */
-		line-height: var(--tw-leading, calc(1 * var(--text-scaling))); /* 1 */
-	}
-
-	.text-character {
-		@apply text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black;
+	.text-size-10 font-black {
+		@apply text-6xl font-black sm:text-7xl md:text-8xl lg:text-9xl;
 		/* @reference xl:text-10xl 2xl:text-11xl; */
 	}
 
-	.text-title {
-		@apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-black;
+	.text-size-1 {
+		@apply 3xl:text-3xl text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl;
 	}
 
-	.text-subtitle {
-		@apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-extrabold;
+	.text-size-2 {
+		@apply 3xl:text-4xl text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl;
 	}
 
-	.text-question {
-		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold;
+	.text-size-3 {
+		@apply 3xl:text-5xl text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl;
 	}
 
-	.text-answer {
-		@apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-semibold;
+	.text-size-4 {
+		@apply 3xl:text-6xl text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl;
 	}
 
-	.text-prompt {
-		@apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-medium;
+	.text-size-5 {
+		@apply 3xl:text-7xl text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl;
+	}
+
+	.text-size-6 {
+		@apply 3xl:text-8xl text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
+	}
+
+	.text-size-7 {
+		@apply 3xl:text-9xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl;
+	}
+
+	.text-size-8 {
+		@apply 3xl:text-10xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl;
+	}
+
+	.text-size-9 {
+		@apply 2xl:text-10xl 3xl:text-11xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl;
+	}
+
+	.text-size-10 {
+		@apply xl:text-10xl 2xl:text-11xl 3xl:text-12xl text-6xl sm:text-7xl md:text-8xl lg:text-9xl;
 	}
 
 	.text-nav-arrows {
-		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-extralight;
+		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
 	}
-
-	
 }
 
 html,
