@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { updateClassDaily, updatePersonDaily } from '$lib/pb';
-	import type { ClassDaily, GuestDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import type {
+		ClassDaily,
+		GuestAvatar,
+		GuestDaily,
+		Student,
+		StudentDaily,
+		Teacher,
+		TeacherDaily
+	} from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import WhoIsHere from '$lib/slides/attendance/WhoIsHere.svelte';
 	import type { ClassProps, MathPageProps } from './_types';
@@ -15,6 +23,7 @@
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
 		guestDailies: GuestDaily[];
+		guestAvatarMap: Map<string, GuestAvatar>;
 		slideLeft: () => void;
 		slideRight: () => void;
 	}
@@ -26,22 +35,26 @@
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
 		guestDailies = $bindable([]),
+		guestAvatarMap = $bindable(new Map<string, GuestAvatar>()),
 		slideLeft = () => {},
-		slideRight = () => {},
+		slideRight = () => {}
 	}: SlideProps = $props();
 
 	let currentPerson: Student | Teacher | undefined = $state(undefined);
-	let attendanceDaily = $derived(classDaily.attendance ?? {} as ClassProps);
+	let attendanceDaily = $derived(classDaily.attendance ?? ({} as ClassProps));
 	let page = $state(classDaily?.attendance?.page ?? 0);
-	let studentMath: MathPageProps = $derived(attendanceDaily.studentMath || {} as MathPageProps);
-	let peopleMath: MathPageProps = $derived(attendanceDaily.peopleMath || {} as MathPageProps);
+	let studentMath: MathPageProps = $derived(attendanceDaily.studentMath || ({} as MathPageProps));
+	let peopleMath: MathPageProps = $derived(attendanceDaily.peopleMath || ({} as MathPageProps));
 	// svelte-ignore state_referenced_locally
 	let hasGuests: boolean | undefined = $state(attendanceDaily.hasGuests ?? undefined);
+	// svelte-ignore state_referenced_locally
+	let welcomeGuests: boolean | undefined = $state(attendanceDaily.welcomeGuests ?? undefined);
 
 	onMount(async () => {
-		const personId = attendanceDaily.currentPerson // id string
+		const personId = attendanceDaily.currentPerson; // id string
 		if (personId) {
-			const person = students.find((s) => s.id === personId) || teachers.find((t) => t.id === personId);
+			const person =
+				students.find((s) => s.id === personId) || teachers.find((t) => t.id === personId);
 			if (person) {
 				currentPerson = person;
 			}
@@ -69,29 +82,29 @@
 		}
 		await updatePersonDaily(person, { ...daily, here });
 	};
-	
+
 	const updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {
 		const newClassDaily: Partial<ClassDaily> = {
 			attendance: {
 				...classDaily.attendance,
-				...partialClassDailyAttendance,
-			},
+				...partialClassDailyAttendance
+			}
 		};
 		await updateClassDaily(newClassDaily);
-	}
+	};
 
 	let totalSlides = 5; // total number of slides
 	const pageLeft = () => {
 		if (page > 0) {
-			page--
+			page--;
 			updateClassDailyAttendance({ page });
-		};
+		}
 	};
 	const pageRight = () => {
 		if (page < totalSlides - 1) {
-			page++
+			page++;
 			updateClassDailyAttendance({ page });
-		};
+		}
 	};
 </script>
 
@@ -160,30 +173,34 @@
 	/>
 {:else if page === 3}
 	<GuestCheck
-	{hasGuests}
-	{pageLeft}
-	{pageRight}
-	{updateClassDailyAttendance}
-		/>
+		{hasGuests}
+		{guestDailies}
+		{welcomeGuests}
+		{guestAvatarMap}
+		{pageLeft}
+		{pageRight}
+		{updateClassDailyAttendance}
 	/>
 {:else if page === 4}
 	<PeopleAddition
 		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
 		peopleOneName="Students"
-		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}
+		peopleTwo={teachers
+			.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')
+			.concat(guestDailies)}
 		peopleTwoName="Teachers"
 		resultName="Total"
 		title="How Many People?"
 		mathProps={peopleMath}
 		mathPropsName="peopleMath"
+		{guestAvatarMap}
 		{pageLeft}
 		{pageRight}
-		updateClassDailyAttendance={updateClassDailyAttendance}
+		{updateClassDailyAttendance}
 	/>
 {/if}
 
-
-	<!-- <PeopleMath
+<!-- <PeopleMath
 		peopleOne={students.filter((s) => studentDailyMap.get(s.id)?.here === 'present')}
 		peopleOneName="Students"
 		peopleTwo={teachers.filter((s) => teacherDailyMap.get(s.id)?.here === 'present')}

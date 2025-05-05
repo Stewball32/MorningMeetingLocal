@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { pb } from '$lib/pb';
-	import type { ClassDaily, GuestDaily, Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import type {
+		ClassDaily,
+		GuestAvatar,
+		GuestDaily,
+		Student,
+		StudentDaily,
+		Teacher,
+		TeacherDaily
+	} from '$lib/pb/types';
 	import { onDestroy, onMount } from 'svelte';
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
@@ -16,6 +24,7 @@
 	let studentDailyMap: Map<string, StudentDaily> = $state(data.studentDailyMap);
 	let teacherDailyMap: Map<string, TeacherDaily> = $state(data.teacherDailyMap);
 	let guestDailies: GuestDaily[] = $state(data.guestDailies);
+	let guestAvatarMap: Map<string, GuestAvatar> = data.guestAvatarMap;
 	// let currentPerson: Student | Teacher | undefined = $state(undefined);
 
 	let activeStudents: Student[] = $derived(
@@ -137,6 +146,7 @@
 		{studentDailyMap}
 		{teacherDailyMap}
 		{guestDailies}
+		{guestAvatarMap}
 		{slideLeft}
 		{slideRight}
 	/>
