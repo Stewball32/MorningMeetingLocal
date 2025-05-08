@@ -1,44 +1,49 @@
 <script lang="ts">
-
 	interface Props {
-		imageUrl?: string
-		text?: string
-		imgAlt?: string
-		orientation?: 'horizontal' | 'vertical'
-		btnPreset?: "primary" | "secondary" | "tertiary" | "success" | "warning" | "error" | "surface"
-		overrideStyle?: string
-		btnClass?: string
-		imgClass?: string
-		strClass?: string
-		overrideBtn?: boolean
-		showImg?: boolean
-		overrideImgClass?: boolean
-		showText?: boolean
-		overrideTextClass?: boolean
-		disable?: boolean
-		onClick?: () => void
+		imageUrl?: string;
+		text?: string;
+		imgAlt?: string;
+		orientation?: 'horizontal' | 'vertical';
+		buttonPreset?:
+			| 'primary'
+			| 'secondary'
+			| 'tertiary'
+			| 'success'
+			| 'warning'
+			| 'error'
+			| 'surface';
+		buttonClass?: string;
+		imageClass?: string;
+		textClass?: string;
+		overrideButtonClass?: boolean;
+		showImage?: boolean;
+		overrideImageClass?: boolean;
+		showText?: boolean;
+		overrideTextClass?: boolean;
+		disable?: boolean;
+		onClick?: () => void;
 	}
 
 	const {
-		imageUrl = "",
-		text = "",
-		imgAlt = "",
-		orientation = "horizontal",
-		btnPreset = "surface",
-		btnClass = "",
-		imgClass = "",
-		strClass = "",
-		overrideBtn = false,
-		showImg = true,
-		overrideImgClass = false,
+		imageUrl = '',
+		text = '',
+		imgAlt = '',
+		orientation = 'horizontal',
+		buttonPreset = 'surface',
+		buttonClass = '',
+		imageClass = '',
+		textClass = '',
+		overrideButtonClass = false,
+		showImage = true,
+		overrideImageClass = false,
 		showText = true,
 		overrideTextClass = false,
 		disable = false,
-		onClick,
-	}: Props = $props()
+		onClick
+	}: Props = $props();
 
-	const baseClass = `flex btn relative overflow-hidden rounded-full border items-center justify-center`
-	const orientationClass = orientation === "vertical" ? "flex-col" : "flex-row"
+	const baseClass = `flex btn relative overflow-hidden rounded-full border items-center justify-center`;
+	const orientationClass = orientation === 'vertical' ? 'flex-col' : 'flex-row';
 	const presetMap = {
 		surface: `preset-tonal-surface ${baseClass}`,
 		primary: `preset-tonal-primary ${baseClass}`,
@@ -46,28 +51,29 @@
 		tertiary: `preset-tonal-tertiary ${baseClass}`,
 		success: `preset-tonal-success ${baseClass}`,
 		warning: `preset-tonal-warning ${baseClass}`,
-		error: `preset-tonal-error ${baseClass}`,
-	}
-	
-	const baseButtonClass = `${presetMap[btnPreset]} ${orientationClass}`
-	let buttonClass = $derived( overrideBtn ? btnClass : baseButtonClass + ` ${btnClass}`)
+		error: `preset-tonal-error ${baseClass}`
+	};
 
-	const baseImageClass = `aspect-auto`
-	let imageClass = $derived(overrideImgClass ? imgClass : baseImageClass + ` ${imgClass}`)
+	const baseButtonClass = $derived(`${presetMap[buttonPreset]} ${orientationClass}`);
+	let btnClassDerived = $derived(
+		overrideButtonClass ? buttonClass : baseButtonClass + ` ${buttonClass}`
+	);
 
-	const baseStringClass = `text-center`
-	let stringClass = ` ${strClass}`
+	const baseImageClass = `aspect-auto h-full`;
+	let imageClassDerived = $derived(
+		overrideImageClass ? imageClass : baseImageClass + ` ${imageClass}`
+	);
 
-
+	const baseTextClass = `text-center`;
+	let TextClassDerived = $derived(overrideTextClass ? textClass : baseTextClass + ` ${textClass}`);
 </script>
 
-
-<button  class={buttonClass} onclick={onClick}>
-	{#if showImg}
-		<img src={imageUrl} alt={imgAlt} class={imageClass} />
+<button disabled={disable} class={btnClassDerived} onclick={onClick}>
+	{#if showImage}
+		<img src={imageUrl} alt={imgAlt} class={imageClassDerived} />
 	{/if}
 	{#if showText}
-		<h3 class={stringClass}>
+		<h3 class={TextClassDerived}>
 			{text}
 		</h3>
 	{/if}
