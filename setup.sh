@@ -28,12 +28,17 @@ SVELTEKIT_DIR="${SVELTEKIT_DIR:-sveltekit}"
 
 # Detect OS/ARCH
 UNAME_OS=$(uname -s)
-case "$UNAME_OS" in
-	MINGW*|MSYS*|CYGWIN*) OS="windows" ;;
-	Linux)                OS="linux" ;;
-	Darwin)               OS="darwin" ;;
-	*)                    echo "Unsupported OS: $UNAME_OS" && exit 1 ;;
-esac
+if grep -qi microsoft /proc/version; then
+	# WSL detected
+	OS="windows"
+else
+	case "$UNAME_OS" in
+		MINGW*|MSYS*|CYGWIN*) OS="windows" ;;
+		Linux)                OS="linux" ;;
+		Darwin)               OS="darwin" ;;
+		*)                    echo "Unsupported OS: $UNAME_OS" && exit 1 ;;
+	esac
+fi
 
 ARCH=$(uname -m)
 [[ "$ARCH" == "x86_64" ]] && ARCH="amd64"
