@@ -1,25 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
-	import PersonButton from '$lib/PersonButton.svelte';
+	import type { GuestAvatar, GuestDaily, Student, Teacher } from '$lib/pb/types';
+	import PersonButton from '$lib/buttons/PersonButton.svelte';
 	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
 
 	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Hash from '@lucide/svelte/icons/hash';
 	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
 	import type { ClassProps, MathPageProps } from './_types';
+	import GuestButton from '$lib/buttons/GuestButton.svelte';
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
-		peopleOne: Student[] | Teacher[];
+		peopleOne: (Student | Teacher | GuestDaily)[];
 		peopleOneName?: string;
-		peopleTwo: Student[] | Teacher[];
+		peopleTwo: (Student | Teacher | GuestDaily)[];
 		peopleTwoName?: string;
 		resultName?: string;
 		mathProps?: MathPageProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
 		subtitle?: string;
+		guestAvatarMap?: Map<string, GuestAvatar>;
 		pageLeft?: () => void;
 		pageRight?: () => void;
 		updateClassDailyAttendance?: (
@@ -35,6 +37,7 @@
 		resultName,
 		mathProps,
 		mathPropsName,
+		guestAvatarMap,
 		title,
 		subtitle,
 		pageLeft = () => {},
@@ -42,9 +45,11 @@
 		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
-	const peopleResult: Student[] | Teacher[] = peopleOne.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id)).concat(peopleTwo);
+	const peopleResult: Student[] | Teacher[] = peopleOne
+		.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id))
+		.concat(peopleTwo);
 
-	const totalAnswers: number = 6;
+	const totalAnswers: number = 4;
 
 	const getStartNumber = (correctNumber: number) => {
 		const startNumber =
@@ -89,7 +94,8 @@
 
 	onMount(() => {});
 
-	const baseAnswerClass = 'btn text-title border-3 md:border-6 rounded-2xl aspect-square';
+	const baseAnswerClass =
+		'btn text-size-8 font-black border-3 md:border-6 rounded-2xl aspect-square';
 	const undefinedAnswerClass = `preset-filled-surface-300-700 ${baseAnswerClass}`;
 	const correctAnswerClass = `preset-filled-success-300-700 ${baseAnswerClass}`;
 	const wrongAnswerClass = `preset-filled-error-300-700 ${baseAnswerClass}`;
@@ -207,45 +213,36 @@
 			else if (resultGuess !== correctAnswers.result) resultGuess = correctAnswers.result;
 		}
 	}
-
-	let clickedPeopleIds: string[] = $state([]);
-	const personClicked = (id: string) => {
-		const newClickedPeopleIds = clickedPeopleIds.filter((clickedId) => clickedId !== id);
-		if (newClickedPeopleIds.length === clickedPeopleIds.length) {
-			clickedPeopleIds = [...clickedPeopleIds, id];
-		} else {
-			clickedPeopleIds = newClickedPeopleIds;
-		}
-	};
 </script>
 
 <svelte:window on:keydown|preventDefault={onKeydown} />
 
 <div class="h-full w-full">
 	<div class="flex h-[20%] w-full items-center justify-center">
-		<h1 class="text-title">{title}</h1>
+		<h1 class="text-size-8 font-black">{title}</h1>
 	</div>
 	<div class="grid h-[40%] grid-cols-3 items-center justify-center">
 		<div class="flex w-full items-center justify-center p-[5%]">
 			{#if showHintOne}
 				<div class={getGridDivClass(peopleOne.length)}>
 					{#each peopleOne as personOne}
-						<div class="aspect-square">
-							<PersonButton
-								onClick={() => {
-									personClicked(personOne.id);
-								}}
-								person={personOne}
+						{#if ['students', 'teachers'].includes(personOne.collectionName)}
+							<div class="aspect-square">
+								<PersonButton person={personOne} buttonClass="aspect-square p-0" showName={false} />
+							</div>
+						{:else}
+							<GuestButton
+								guest={personOne as GuestDaily}
+								{guestAvatarMap}
+								buttonClass="aspect-square p-0"
 								showName={false}
-								style="w-full h-full m-0 p-0"
-								forceStyle={undefined}
 							/>
-						</div>
+						{/if}
 					{/each}
 				</div>
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
+					<h1 class="text-size-10 font-black">
 						{#if oneGuess === correctAnswers.one}
 							{oneGuess}
 						{:else}
@@ -259,19 +256,23 @@
 			{#if showHintTwo}
 				<div class={getGridDivClass(peopleTwo.length)}>
 					{#each peopleTwo as personTwo}
-						<div class="aspect-square">
-							<PersonButton
-								person={personTwo}
+						{#if ['students', 'teachers'].includes(personTwo.collectionName)}
+							<div class="aspect-square">
+								<PersonButton person={personTwo} buttonClass="aspect-square p-0" showName={false} />
+							</div>
+						{:else}
+							<GuestButton
+								guest={personTwo as GuestDaily}
+								{guestAvatarMap}
+								buttonClass="aspect-square p-0"
 								showName={false}
-								style="w-full h-full m-0 p-0"
-								forceStyle={undefined}
 							/>
-						</div>
+						{/if}
 					{/each}
 				</div>
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
+					<h1 class="text-size-10 font-black">
 						{#if twoGuess === correctAnswers.two}
 							{twoGuess}
 						{:else}
@@ -286,19 +287,27 @@
 			{#if showHintResult}
 				<div class={getGridDivClass(peopleResult.length)}>
 					{#each peopleResult as personResult}
-						<div class="aspect-square">
-							<PersonButton
-								person={personResult}
+						{#if ['students', 'teachers'].includes(personResult.collectionName)}
+							<div class="aspect-square">
+								<PersonButton
+									person={personResult}
+									buttonClass="aspect-square p-0"
+									showName={false}
+								/>
+							</div>
+						{:else}
+							<GuestButton
+								guest={personResult as GuestDaily}
+								{guestAvatarMap}
+								buttonClass="aspect-square p-0"
 								showName={false}
-								style="w-full h-full m-0 p-0"
-								forceStyle={undefined}
 							/>
-						</div>
+						{/if}
 					{/each}
 				</div>
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
-					<h1 class="text-character">
+					<h1 class="text-size-10 font-black">
 						{#if resultGuess === correctAnswers.result}
 							{resultGuess}
 						{:else}
@@ -312,7 +321,7 @@
 	<div class="relative grid h-[38%] grid-cols-3 items-center justify-center">
 		<div class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%]">
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				<Switch
 					name="one"
@@ -334,7 +343,7 @@
 				onOpenChange={(e) => (openStateOne = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('one', oneGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -343,7 +352,7 @@
 					{oneGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each oneAnswerOptions as answer}
 							<button
 								class={getOptionClass('one', answer)}
@@ -365,14 +374,12 @@
 					</div>
 				{/snippet}
 			</Popover>
-
-			<!-- <button class="btn  text-question preset-outlined outline-4 w-[45%] aspect-square "> ? </button> -->
 		</div>
 		<div
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				<Switch
 					name="one"
@@ -394,7 +401,7 @@
 				onOpenChange={(e) => (openStateTwo = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('two', twoGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -403,7 +410,7 @@
 					{twoGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each twoAnswerOptions as answer}
 							<button
 								class={getOptionClass('two', answer)}
@@ -430,7 +437,7 @@
 			class="relative flex h-full flex-col items-center justify-between px-[2%] py-[5%] align-bottom"
 		>
 			<h1
-				class="text-answer hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center sm:flex"
+				class="text-size-4 hidden w-full items-center justify-center truncate text-nowrap px-[10%] text-center font-semibold sm:flex"
 			>
 				<Switch
 					name="one"
@@ -453,7 +460,7 @@
 				onOpenChange={(e) => (openStateResult = e.open)}
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('result', resultGuess)}
-				triggerBase="btn text-title w-full h-full"
+				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
@@ -462,7 +469,7 @@
 					{resultGuess ?? '?'}
 				{/snippet}
 				{#snippet content()}
-					<div class="grid grid-cols-3 gap-2 md:gap-4">
+					<div class="grid grid-cols-2 gap-2 md:gap-4">
 						{#each resultAnswerOptions as answer}
 							<button
 								class={getOptionClass('result', answer)}
@@ -487,12 +494,12 @@
 		</div>
 
 		<h2
-			class="-translate-1/2 text-title absolute left-1/3 top-[60%] transform items-center text-center"
+			class="-translate-1/2 text-size-8 absolute left-1/3 top-[60%] transform items-center text-center font-black"
 		>
-		+
+			+
 		</h2>
 		<h2
-			class="-translate-1/2 text-title absolute left-2/3 top-[60%] transform items-center text-center"
+			class="-translate-1/2 text-size-8 absolute left-2/3 top-[60%] transform items-center text-center font-black"
 		>
 			=
 		</h2>

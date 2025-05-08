@@ -4,7 +4,6 @@
 	let { children } = $props();
 </script>
 
-
 <svelte:head>
 	<title>Morning Meeting</title>
 </svelte:head>
@@ -15,10 +14,10 @@
 	<p class="hidden md:block lg:hidden">MD</p>
 	<p class="hidden lg:block xl:hidden">LG</p>
 	<p class="hidden xl:block 2xl:hidden">XL</p>
-	<p class="hidden 2xl:block">2XL</p>
+	<p class="3xl:hidden hidden 2xl:block">2XL</p>
+	<p class="3xl:block hidden">3XL</p>
 </div>
 
-<div class="relative min-h-screen min-w-screen">
-
+<div class="min-w-screen relative min-h-screen">
 	{@render children()}
 </div>
