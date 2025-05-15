@@ -103,3 +103,13 @@ body {
 	@apply bg-gradient-to-br from-blue-400 to-blue-600;
 	transform: translateZ(0);
 }
+
+@layer utilities {
+	button {
+		@apply select-text;
+	}
+
+	button:disabled {
+		@apply select-text;
+	}
+}

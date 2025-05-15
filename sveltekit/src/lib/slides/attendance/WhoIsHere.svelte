@@ -17,7 +17,10 @@
 		prompt?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
-		updateClassDailyAttendance: (partialClassDailyAttendance: Partial<ClassProps>) => Promise<void>;
+		updateClassDailySlide: (
+			column: string,
+			partialClassDaily: Partial<ClassProps>
+		) => Promise<void>;
 	}
 
 	let {
@@ -30,7 +33,10 @@
 		prompt = 'Click on a button!',
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
+		updateClassDailySlide: updateClassDailySlide = async (
+			column: string,
+			partialClassDaily: Partial<ClassProps>
+		) => {}
 	}: WhoIsHereProps = $props();
 
 	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
@@ -46,7 +52,7 @@
 	const updateCurrentPerson = (person?: Student | Teacher) => {
 		currentPerson = person;
 		const updatedProps = { currentPerson: person?.id };
-		updateClassDailyAttendance(updatedProps);
+		updateClassDailySlide('attendance', updatedProps);
 	};
 
 	let collectionNames: string[] = $state([]);
@@ -164,7 +170,7 @@
 		</button>
 	</div>
 {:else}
-	<div class="h-10/12 top-2/12 absolute flex w-full flex-col justify-center py-2">
+	<div class="h-10/12 top-2/12 absolute flex w-full cursor-default flex-col justify-center py-2">
 		<div class="flex h-full w-full flex-col items-center justify-around">
 			<h1 class="text-size-8 text-center font-black">{title}</h1>
 			<h2 class="text-size-7 text-normal text-balance text-center font-extrabold">{subtitle}</h2>
