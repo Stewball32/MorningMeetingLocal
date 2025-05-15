@@ -211,7 +211,6 @@ const slideStyleArray = [
 	'3xl:w-[1645px]',
 	'3xl:ml-34',
 	'3xl:mr-2',
-	'3xl:mt-0',
 	'3xl:rounded-r-[4rem]'
 ];
 

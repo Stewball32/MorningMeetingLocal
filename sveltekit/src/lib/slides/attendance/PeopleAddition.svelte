@@ -7,7 +7,7 @@
 	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Hash from '@lucide/svelte/icons/hash';
 	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
-	import type { ClassProps, MathPageProps } from './_types';
+	import type { ClassProps, MathClassProps } from './_types';
 	import GuestButton from '$lib/buttons/GuestButton.svelte';
 
 	interface PeopleMathProps {
@@ -17,15 +17,16 @@
 		peopleTwo: (Student | Teacher | GuestDaily)[];
 		peopleTwoName?: string;
 		resultName?: string;
-		mathProps?: MathPageProps;
+		mathProps?: MathClassProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
 		subtitle?: string;
 		guestAvatarMap?: Map<string, GuestAvatar>;
 		pageLeft?: () => void;
 		pageRight?: () => void;
-		updateClassDailyAttendance?: (
-			partialClassDailyAttendance: Partial<ClassProps>
+		updateClassDailySlide: (
+			column: string,
+			partialClassDaily: Partial<ClassProps>
 		) => Promise<void>;
 	}
 
@@ -42,7 +43,7 @@
 		subtitle,
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
+		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
 	const peopleResult: Student[] | Teacher[] = peopleOne
@@ -183,7 +184,7 @@
 			showHintTwo,
 			showHintResult
 		};
-		updateClassDailyAttendance(attendanceProps);
+		updateClassDailySlide('attendance', attendanceProps);
 	};
 
 	function onKeydown(event: KeyboardEvent) {

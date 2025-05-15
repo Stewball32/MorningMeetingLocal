@@ -1,4 +1,13 @@
-export interface MathPageProps {
+export interface ClassProps {
+	page: number;
+	currentPerson?: string; // student or teacher ID
+	studentMath?: MathClassProps;
+	peopleMath?: MathClassProps;
+	hasGuests?: boolean;
+	welcomeGuests?: boolean;
+}
+
+export interface MathClassProps {
 	showHintOne?: boolean;
 	showHintTwo?: boolean;
 	showHintResult?: boolean;
@@ -10,21 +19,20 @@ export interface MathPageProps {
 	resultGuesses?: number[];
 }
 
-export interface ClassProps {
-	// ClassDaily {attendance: ClassProps}
-	page: number;
-	currentPerson?: string; // student or teacher ID
-	studentMath?: MathPageProps;
-	peopleMath?: MathPageProps;
-	hasGuests?: boolean;
-	welcomeGuests?: boolean;
-}
-
 type HereGuess = 'present' | 'absent' | '';
 export interface PersonProps {
-	hereGuesses?: {
-		[key: string]: HereGuess[];
+	hereGuess?: {
+		[key: string]: HereGuess;
 	};
+}
+
+export interface MathPersonProps {
+	oneGuess?: number;
+	twoGuess?: number;
+	resultGuess?: number;
+	oneOptions?: string[];
+	twoOptions?: string[];
+	resultOptions?: string[];
 }
 
 export interface StudentProps extends PersonProps {}
