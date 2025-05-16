@@ -2,6 +2,7 @@
 	import type { ClassDaily } from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import type { Weekday } from './_types';
+	import { updateSound } from '$lib/sounds';
 
 	interface MonthViewProps {
 		classDaily: ClassDaily;
@@ -66,6 +67,8 @@
 			...classDaily.calendar,
 			calendarGuesses: updatedCalendarGuesses
 		};
+		let sound = selectedCalendar == todayDay ? 'correct' : 'incorrect';
+		updateSound('find-calendar', sound);
 		await updateClassDailySlide('calendar', partial);
 	};
 
@@ -191,7 +194,7 @@
 	<div class="flex h-[10%] w-full items-center justify-center">
 		{#if selectedCalendar == todayDay}
 			<span class="text-size-5 text-center font-bold"
-				>Today is {weekdays[startDay + (selectedCalendar % 7)]},
+				>Today is {weekdays[startDay - 1 + (selectedCalendar % 7)]},
 				{monthNames[currentMonth]}
 				{todayDay}, {currentYear}!</span
 			>
