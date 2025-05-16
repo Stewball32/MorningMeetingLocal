@@ -6,7 +6,7 @@
 
 	// import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Cross from '@lucide/svelte/icons/x';
-	import type { ClassProps, MathPageProps } from './_types';
+	import type { ClassProps, MathClassProps } from './_types';
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
@@ -15,14 +15,15 @@
 		peopleSubtractedName?: string;
 		peopleRemaining: Student[] | Teacher[];
 		peopleRemainingName?: string;
-		mathProps?: MathPageProps;
+		mathProps?: MathClassProps;
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
 		subtitle?: string;
 		pageLeft?: () => void;
 		pageRight?: () => void;
-		updateClassDailyAttendance?: (
-			partialClassDailyAttendance: Partial<ClassProps>
+		updateClassDailySlide: (
+			column: string,
+			partialClassDaily: Partial<ClassProps>
 		) => Promise<void>;
 	}
 
@@ -38,7 +39,7 @@
 		subtitle,
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
+		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassProps>) => {}
 	}: PeopleMathProps = $props();
 
 	let peopleTogether: (Student | Teacher)[] = [...peopleSubtracted, ...peopleRemaining].sort(
@@ -198,10 +199,10 @@
 	};
 </script>
 
-<svelte:window on:keydown|preventDefault={onKeydown} />
+<svelte:window on:keydown={onKeydown} />
 
 <div class="h-full w-full">
-	<div class="flex h-[20%] w-full items-center justify-center">
+	<div class="flex h-[20%] w-full cursor-default items-center justify-center">
 		<h1 class="text-size-8 font-black">{title}</h1>
 	</div>
 	<div class="flex h-[40%] items-center justify-center">
@@ -241,7 +242,7 @@
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('one', oneGuess)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
-				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
+				contentBase=" preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
@@ -287,7 +288,7 @@
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('two', twoGuess)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
-				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
+				contentBase=" preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
@@ -334,7 +335,7 @@
 				positioning={{ placement: 'top' }}
 				classes={getAnswerClass('result', resultGuess)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
-				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
+				contentBase=" preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>

@@ -18,7 +18,10 @@
 		guestAvatarMap?: Map<string, GuestAvatar>;
 		pageLeft: () => void;
 		pageRight: () => void;
-		updateClassDailyAttendance: (partialClassDailyAttendance: Partial<ClassProps>) => Promise<void>;
+		updateClassDailySlide: (
+			column: string,
+			partialClassDaily: Partial<ClassProps>
+		) => Promise<void>;
 	}
 
 	interface ComboboxData {
@@ -34,16 +37,16 @@
 		guestAvatarMap = $bindable(new Map<string, GuestAvatar>()),
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailyAttendance = async (partialClassDailyAttendance: Partial<ClassProps>) => {}
+		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassProps>) => {}
 	}: GuestCheckProps = $props();
 
 	const updateHasGuests = (answer?: boolean) => {
 		hasGuests = hasGuests === answer ? undefined : answer;
-		updateClassDailyAttendance({ hasGuests: hasGuests });
+		updateClassDailySlide('attendance', { hasGuests: hasGuests });
 	};
 	const updateWelcomeGuests = () => {
 		welcomeGuests = !welcomeGuests;
-		updateClassDailyAttendance({ welcomeGuests: welcomeGuests });
+		updateClassDailySlide('attendance', { welcomeGuests: welcomeGuests });
 	};
 
 	let previousGuests: GuestDaily[] = $state([]);
@@ -295,7 +298,7 @@
 	open={modalOpen}
 	onOpenChange={(e) => (modalOpen = e.open)}
 	triggerBase="btn preset-filled-primary-500 rounded-full text-size-4"
-	contentBase="card preset-filled-primary-50-950 p-4 space-y-4 shadow-xl max-w-screen-sm"
+	contentBase="card  preset-filled-primary-50-950 p-4 space-y-4 shadow-xl max-w-screen-sm"
 	backdropClasses="backdrop-blur-sm"
 >
 	{#snippet content()}

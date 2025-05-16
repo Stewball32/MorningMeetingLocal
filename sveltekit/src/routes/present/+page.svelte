@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { pb } from '$lib/pb';
+	import { pb, updateClassDaily } from '$lib/pb';
 	import type {
 		ClassDaily,
 		GuestAvatar,
@@ -14,6 +14,7 @@
 	import type { RecordSubscription } from 'pocketbase';
 	import { updateSound } from '$lib/sounds';
 	import Attendance from '$lib/slides/attendance/+slide.svelte';
+	import Calendar from '$lib/slides/calendar/+slide.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -41,9 +42,7 @@
 	// let searchParams: URLSearchParams = $state(data.searchParams);
 	// svelte-ignore state_referenced_locally
 	let slide = $state(classDaily.slide ?? 0);
-	const clearSlideParams = () => {
-		// searchParams = new URLSearchParams();
-	};
+
 	onMount(async () => {
 		pb.collection('class_dailies').subscribe(classDaily.id, (e: RecordSubscription<ClassDaily>) => {
 			console.log('classDaily');
@@ -130,11 +129,26 @@
 		});
 	});
 
+	const updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {
+		const newClassDaily: Partial<ClassDaily> = {};
+		newClassDaily[column] = {
+			...classDaily[column],
+			...partialClassDaily
+		};
+		await updateClassDaily(newClassDaily);
+	};
+
 	const slideLeft = () => {
-		if (slide > 0) slide++;
+		if (slide > 0) {
+			slide--;
+			updateClassDaily({ slide });
+		}
 	};
 	const slideRight = () => {
-		if (slide < 1) slide--;
+		if (slide < 1) {
+			slide++;
+			updateClassDaily({ slide });
+		}
 	};
 </script>
 
@@ -147,7 +161,21 @@
 		{teacherDailyMap}
 		{guestDailies}
 		{guestAvatarMap}
+		{updateClassDailySlide}
 		{slideLeft}
 		{slideRight}
+	/>
+{:else if slide === 1}
+	<Calendar
+		{students}
+		{teachers}
+		{classDaily}
+		{studentDailyMap}
+		{teacherDailyMap}
+		{guestDailies}
+		{guestAvatarMap}
+		{slideLeft}
+		{slideRight}
+		{updateClassDailySlide}
 	/>
 {/if}

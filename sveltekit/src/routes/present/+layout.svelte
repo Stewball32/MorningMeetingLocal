@@ -9,6 +9,7 @@
 	<div class=" relative min-h-screen place-content-center">
 		<img
 			src="/paper.svg"
+			draggable={false}
 			class="
         3xl:w-[1920px]
 				absolute
@@ -25,7 +26,7 @@
 			alt=""
 		/>
 
-		<div class={slideStyle + '  '}>
+		<div class={slideStyle + ' select-none'}>
 			{@render children()}
 		</div>
 	</div>
