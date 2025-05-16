@@ -2,6 +2,8 @@
 	import type { ClassDaily } from '$lib/pb/types';
 	import type { Check, Month, Weekday } from './_types';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import { updateSound } from '$lib/sounds';
+	import ResetSlide from './ResetSlide.svelte';
 
 	interface FindTheDateProps {
 		classDaily: ClassDaily;
@@ -81,6 +83,9 @@
 			...classDaily.calendar,
 			weekdayGuesses: updatedWeekdayGuesses
 		};
+		let sound = selectedWeekday == todayWeekday ? 'correct' : 'incorrect';
+		updateSound('find-weekday', sound);
+
 		await updateClassDailySlide('calendar', partial);
 	};
 
@@ -94,6 +99,9 @@
 			...classDaily.calendar,
 			monthGuesses: updatedMonthGuesses
 		};
+		let sound = selectedMonth == todayMonth ? 'correct' : 'incorrect';
+		updateSound('find-month', sound);
+
 		await updateClassDailySlide('calendar', partial);
 	};
 
@@ -107,6 +115,8 @@
 			...classDaily.calendar,
 			dayGuesses: updatedDayGuesses
 		};
+		let sound = selectedDay == todayDay ? 'correct' : 'incorrect';
+		updateSound('find-day', sound);
 		await updateClassDailySlide('calendar', partial);
 	};
 
@@ -120,6 +130,9 @@
 			...classDaily.calendar,
 			yearGuesses: updatedYearGuesses
 		};
+		let sound = selectedYear == todayYear ? 'correct' : 'incorrect';
+		updateSound('find-year', sound);
+
 		await updateClassDailySlide('calendar', partial);
 	};
 
@@ -157,14 +170,7 @@
 		'btn preset-outlined-surface-500 text-size-4 select-none relative mx-[1%] rounded-full px-[1.5%] py-0';
 </script>
 
-<div class="absolute bottom-0 left-0 z-10 flex h-[4%] items-center justify-center">
-	<button
-		onclick={resetGuesses}
-		class="btn preset-tonal-error aspect-square h-full rounded-full border p-0"
-	>
-		<RotateCcw class="m-0 h-full p-0" />
-	</button>
-</div>
+<ResetSlide onclick={resetGuesses} />
 
 <div class="flex h-full w-full cursor-default select-none flex-col items-center justify-center">
 	<h1 class="text-size-7 h-[15%] font-bold">Let's find today's date!</h1>
