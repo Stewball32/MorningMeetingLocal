@@ -21,6 +21,7 @@
 		showText?: boolean;
 		overrideTextClass?: boolean;
 		disable?: boolean;
+		draggable?: boolean;
 		onClick?: () => void;
 	}
 
@@ -38,11 +39,12 @@
 		overrideImageClass = false,
 		showText = true,
 		overrideTextClass = false,
-		disable = false,
+		disable: disabled = false,
+		draggable = false,
 		onClick
 	}: Props = $props();
 
-	const baseClass = `flex btn relative overflow-hidden rounded-full border items-center justify-center`;
+	const baseClass = `flex btn relative cursor-pointer pointer-none disabled:pointer-not-allowed  overflow-hidden rounded-full border items-center justify-center`;
 	const orientationClass = orientation === 'vertical' ? 'flex-col' : 'flex-row';
 	const presetMap = {
 		surface: `preset-tonal-surface ${baseClass}`,
@@ -56,21 +58,21 @@
 
 	const baseButtonClass = $derived(`${presetMap[buttonPreset]} ${orientationClass}`);
 	let btnClassDerived = $derived(
-		overrideButtonClass ? buttonClass : baseButtonClass + ` ${buttonClass}`
+		`${overrideButtonClass ? buttonClass : baseButtonClass} ${buttonClass}`
 	);
 
 	const baseImageClass = `aspect-auto h-full`;
 	let imageClassDerived = $derived(
-		overrideImageClass ? imageClass : baseImageClass + ` ${imageClass}`
+		`${overrideImageClass ? imageClass : baseImageClass}  ${imageClass}`
 	);
 
 	const baseTextClass = `text-center`;
-	let TextClassDerived = $derived(overrideTextClass ? textClass : baseTextClass + ` ${textClass}`);
+	let TextClassDerived = $derived(`${overrideTextClass ? textClass : baseTextClass} ${textClass}`);
 </script>
 
-<button disabled={disable} class={btnClassDerived} onclick={onClick}>
+<button {draggable} {disabled} class={btnClassDerived} onclick={onClick}>
 	{#if showImage}
-		<img src={imageUrl} alt={imgAlt} class={imageClassDerived} />
+		<img draggable={false} src={imageUrl} alt={imgAlt} class={imageClassDerived} />
 	{/if}
 	{#if showText}
 		<h3 class={TextClassDerived}>
