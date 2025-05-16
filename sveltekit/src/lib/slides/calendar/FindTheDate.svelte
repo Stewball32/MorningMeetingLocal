@@ -1,10 +1,26 @@
 <script lang="ts">
 	import type { ClassDaily } from '$lib/pb/types';
+	import type { Check, Month, Weekday } from './_types';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 
 	interface FindTheDateProps {
 		classDaily: ClassDaily;
-		currentCheck?: 'weekday' | 'day' | 'month' | 'year';
+		today: Date;
+		todayWeekday: Weekday;
+		yesterdayWeekday: Weekday;
+		todayMonth: Month;
+		yesterdayMonth: Month;
+		todayDay: number;
+		yesterdayDay: number;
+		todayYear: number;
+		yesterdayYear: number;
+		currentCheck?: Check;
+		weekdayGuesses?: Weekday[];
+		monthGuesses?: Month[];
+		dayGuesses?: number[];
+		yearGuesses?: number[];
 		startWithSunday?: boolean;
+		weekdayBackgrounds: Record<Weekday, string>;
 		pageLeft: () => void;
 		pageRight: () => void;
 		updateClassDailySlide: (
@@ -13,52 +29,28 @@
 		) => Promise<void>;
 	}
 
-	type Weekday = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
-	type Month =
-		| 'January'
-		| 'February'
-		| 'March'
-		| 'April'
-		| 'May'
-		| 'June'
-		| 'July'
-		| 'August'
-		| 'September'
-		| 'October'
-		| 'November'
-		| 'December';
-
 	let {
 		classDaily,
-		currentCheck = $bindable(),
+		currentCheck,
+		today = new Date(),
+		todayWeekday,
+		yesterdayWeekday,
+		todayMonth,
+		yesterdayMonth,
+		todayDay,
+		yesterdayDay,
+		todayYear,
+		yesterdayYear,
+		weekdayGuesses = [],
+		monthGuesses = [],
+		dayGuesses = [],
+		yearGuesses = [],
 		startWithSunday = $bindable(false),
+		weekdayBackgrounds,
 		pageLeft = () => {},
 		pageRight = () => {},
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {}
 	}: FindTheDateProps = $props();
-
-	const today = new Date();
-	const yesterday = new Date(today);
-	yesterday.setDate(today.getDate() - 1);
-
-	const todayWeekday = today.toLocaleString('en-US', { weekday: 'long' }) as Weekday;
-	const yesterdayWeekday: Weekday = yesterday.toLocaleString('en-US', {
-		weekday: 'long'
-	}) as Weekday;
-	// numeric day of the month typed as number
-	// const todayDay = today.getDate();
-	// const yesterdayDay = yesterday.getDate();
-	// const todayMonth = today.toLocaleString('en-US', { month: 'long' });
-	// const yesterdayMonth = yesterday.toLocaleString('en-US', { month: 'long' });
-	// const todayYear = today.getFullYear();
-	// const yesterdayYear = yesterday.getFullYear();
-
-	const todayDay = 31;
-	const yesterdayDay = 30;
-	const todayMonth = 'September';
-	const yesterdayMonth = 'September';
-	const todayYear = 2025;
-	const yesterdayYear = 2025;
 
 	const weekdayPlaceholder = 'Weekday';
 	const longestWeekday = $derived(
@@ -79,10 +71,72 @@
 				: yesterdayMonth
 	);
 
-	let selectedWeekday: Weekday | undefined = $state();
-	let selectedMonth: Month | undefined = $state();
-	let selectedDay: number | undefined = $state();
-	let selectedYear: number | undefined = $state();
+	let selectedWeekday: Weekday | undefined = $derived(weekdayGuesses[0]);
+	const updateWeekday = async (value: Weekday) => {
+		if (selectedWeekday == todayWeekday) return;
+		let updatedWeekdayGuesses = classDaily?.calendar?.weekdayGuesses ?? [];
+		updatedWeekdayGuesses.unshift(value);
+		weekdayGuesses = updatedWeekdayGuesses;
+		let partial = {
+			...classDaily.calendar,
+			weekdayGuesses: updatedWeekdayGuesses
+		};
+		await updateClassDailySlide('calendar', partial);
+	};
+
+	let selectedMonth: Month | undefined = $derived(monthGuesses[0]);
+	const updateMonth = async (value: Month) => {
+		if (selectedMonth == todayMonth) return;
+		let updatedMonthGuesses = classDaily?.calendar?.monthGuesses ?? [];
+		updatedMonthGuesses.unshift(value);
+		monthGuesses = updatedMonthGuesses;
+		let partial = {
+			...classDaily.calendar,
+			monthGuesses: updatedMonthGuesses
+		};
+		await updateClassDailySlide('calendar', partial);
+	};
+
+	let selectedDay: number | undefined = $derived(dayGuesses[0]);
+	const updateDay = async (value: number) => {
+		if (selectedDay == todayDay) return;
+		let updatedDayGuesses = classDaily?.calendar?.dayGuesses ?? [];
+		updatedDayGuesses.unshift(value);
+		dayGuesses = updatedDayGuesses;
+		let partial = {
+			...classDaily.calendar,
+			dayGuesses: updatedDayGuesses
+		};
+		await updateClassDailySlide('calendar', partial);
+	};
+
+	let selectedYear: number | undefined = $derived(yearGuesses[0]);
+	const updateYear = async (value: number) => {
+		if (selectedYear == todayYear) return;
+		let updatedYearGuesses = classDaily?.calendar?.yearGuesses ?? [];
+		updatedYearGuesses.unshift(value);
+		yearGuesses = updatedYearGuesses;
+		let partial = {
+			...classDaily.calendar,
+			yearGuesses: updatedYearGuesses
+		};
+		await updateClassDailySlide('calendar', partial);
+	};
+
+	const resetGuesses = async () => {
+		weekdayGuesses = [];
+		monthGuesses = [];
+		dayGuesses = [];
+		yearGuesses = [];
+		let partial = {
+			...classDaily.calendar,
+			weekdayGuesses: [],
+			monthGuesses: [],
+			dayGuesses: [],
+			yearGuesses: []
+		};
+		await updateClassDailySlide('calendar', partial);
+	};
 
 	let weekdayOptions: Weekday[] = startWithSunday
 		? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -94,38 +148,37 @@
 			: [todayYear, todayYear + 1, todayYear - 1]
 	);
 
-	let weekdayBackgrounds = {
-		Sunday: 'bg-red-300',
-		Monday: 'bg-orange-300',
-		Tuesday: 'bg-yellow-300',
-		Wednesday: 'bg-green-300',
-		Thursday: 'bg-blue-300',
-		Friday: 'bg-indigo-300',
-		Saturday: 'bg-violet-300'
-	};
-
-	const setCheck = (check: 'weekday' | 'day' | 'month' | 'year') => {
+	const setCheck = (check: Check) => {
 		currentCheck = currentCheck == check ? undefined : check;
 		updateClassDailySlide('calendar', { currentCheck });
 	};
+
+	const baseBtnClass =
+		'btn preset-outlined-surface-500 text-size-4 select-none relative mx-[1%] rounded-full px-[1.5%] py-0';
 </script>
+
+<div class="absolute bottom-0 left-0 z-10 flex h-[4%] items-center justify-center">
+	<button
+		onclick={resetGuesses}
+		class="btn preset-tonal-error aspect-square h-full rounded-full border p-0"
+	>
+		<RotateCcw class="m-0 h-full p-0" />
+	</button>
+</div>
 
 <div class="flex h-full w-full cursor-default select-none flex-col items-center justify-center">
 	<h1 class="text-size-7 h-[15%] font-bold">Let's find today's date!</h1>
-	<div class="flex h-[18%] w-full items-center justify-center bg-green-500 font-bold">
-		<div class="flex h-full flex-col items-center justify-center bg-gray-500">
-			<span class="text-size-3 flex h-1/2 w-full items-end justify-end text-nowrap bg-blue-500"
-				>If yesterday was</span
-			>
-			<span class=" text-size-3 flex h-1/2 w-full items-end justify-end text-nowrap bg-red-500"
-				>...then today is</span
-			>
+	<div class="flex h-[18%] w-full items-center justify-center">
+		<div class="text-size-3 flex-1/3 flex h-full flex-col items-center justify-center">
+			<span class="flex h-1/2 w-full items-end justify-end text-nowrap">If yesterday was</span>
+			<span class="flex h-1/2 w-full items-end justify-end text-nowrap">...then today is</span>
 		</div>
-		<div class="flex h-full flex-col items-start justify-around">
-			<div class="flex">
+		<div class="flex-2/3 flex h-full flex-col items-start justify-around">
+			<!--Yesterday was...-->
+			<div class="flex items-end justify-start">
 				<span
-					class={weekdayBackgrounds[yesterdayWeekday] +
-						' btn text-size-4 rounded-4xl ml-[1%] cursor-default select-none border px-[1%] py-[.25%] font-bold'}
+					class={`${weekdayBackgrounds[yesterdayWeekday]}
+						btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none px-[1.5%] py-[.25%] font-bold outline`}
 				>
 					<span class="z-0 text-transparent">
 						{longestWeekday}
@@ -134,102 +187,116 @@
 						{yesterdayWeekday},
 					</span>
 				</span>
-				<span class="text-size-4 font-bold"></span>
-				<span class={'btn text-size-4 rounded-4xl cursor-default select-none px-[1%] font-bold'}>
-					{yesterdayMonth}
+				<span
+					class={'btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none border border-transparent px-[1.5%] py-[.25%] font-bold'}
+				>
+					<span class="z-0 text-transparent">
+						{longestMonth}
+					</span>
+					<span class="absolute">
+						{yesterdayMonth}
+					</span>
 				</span>
-				<span class="btn text-size-4 rounded-4xl cursor-default select-none px-[1%] font-bold">
-					{yesterdayDay},
+				<span
+					class={'btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none border border-transparent px-[1.5%] py-[.25%] font-bold'}
+				>
+					<span class="z-0 text-transparent"> Day, </span>
+					<span class="absolute">
+						{yesterdayDay},
+					</span>
 				</span>
-				<span class="btn text-size-4 rounded-4xl cursor-default select-none px-[1%] font-bold">
-					{yesterdayYear}...
+				<span
+					class={'btn text-size-4 rounded-4xl ml-[1%] mr-0  cursor-default select-none border border-transparent py-[.25%] pl-[1.5%] pr-0 font-bold'}
+				>
+					{yesterdayYear}
 				</span>
-				<span class="text-size-3 font-bold"></span>
+				<span class="text-size-3 py-[.25%] font-bold">...</span>
 			</div>
-			<div class="flex">
+			<!--Today is...-->
+			<div class="flex items-end justify-start">
 				<button
 					onclick={() => setCheck('weekday')}
-					class="btn preset-outlined-surface-500 text-size-4 relative ml-[1%] rounded-full bg-gray-100 px-[1%] py-0 font-bold outline-2"
+					class={`${currentCheck == 'weekday' ? 'outline-4' : 'outline-2'}
+            ${selectedWeekday == todayWeekday ? weekdayBackgrounds[todayWeekday] : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
 				>
 					<span class="z-0 text-transparent">
 						{longestWeekday}
 					</span>
-					{#if selectedWeekday == todayWeekday}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-bold"
-						>
-							{todayWeekday},
-						</span>
-					{:else}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-light italic"
-						>
-							Weekday,
-						</span>
-					{/if}
+					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
+						{#if selectedWeekday == todayWeekday}
+							<span class={`${currentCheck == 'weekday' ? 'font-extrabold' : 'font-bold'}`}>
+								{todayWeekday},
+							</span>
+						{:else}
+							<span
+								class={`${currentCheck == 'weekday' ? 'font-bold' : 'font-light'} italic text-gray-400`}
+							>
+								Weekday,
+							</span>
+						{/if}
+					</div>
 				</button>
 				<button
-					class="btn preset-outlined-surface-500 text-size-4 relative ml-[1%] rounded-full bg-gray-100 px-[1%] py-0 font-bold outline-2"
+					onclick={() => setCheck('month')}
+					class={`${currentCheck == 'month' ? 'outline-4' : 'outline-2'}
+            ${selectedMonth == todayMonth ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
 				>
 					<span class="z-0 text-transparent">
-						{todayMonth.length > 'Month'.length ? todayMonth : 'Month'}
+						{longestMonth}
 					</span>
-					{#if selectedMonth == todayMonth}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-bold"
-						>
-							{todayMonth}
-						</span>
-					{:else}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-light italic"
-						>
-							Month
-						</span>
-					{/if}
+					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
+						{#if selectedMonth == todayMonth}
+							<span class={`${currentCheck == 'month' ? 'font-extrabold' : 'font-bold'}`}>
+								{todayMonth}
+							</span>
+						{:else}
+							<span
+								class={`${currentCheck == 'month' ? 'font-bold' : 'font-light'} italic text-gray-400`}
+							>
+								Month
+							</span>
+						{/if}
+					</div>
 				</button>
 				<button
 					onclick={() => setCheck('day')}
-					class="btn preset-outlined-surface-500 text-size-4 relative ml-[1%] rounded-full bg-gray-100 px-[1%] font-bold outline-2"
+					class={`${currentCheck == 'day' ? 'outline-4' : 'outline-2'}
+            ${selectedDay == todayDay ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
 				>
-					<span class="z-0 text-transparent">
-						{'Day'}
-					</span>
-					{#if selectedDay == todayDay}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-bold"
-						>
-							{todayDay}
-						</span>
-					{:else}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-light italic"
-						>
-							Day
-						</span>
-					{/if}
+					<span class="z-0 text-transparent"> Day, </span>
+					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
+						{#if selectedDay == todayDay}
+							<span class={`${currentCheck == 'day' ? 'font-extrabold' : 'font-bold'}`}>
+								{todayDay}
+							</span>
+						{:else}
+							<span
+								class={`${currentCheck == 'day' ? 'font-bold' : 'font-light'} italic text-gray-400`}
+							>
+								Day,
+							</span>
+						{/if}
+					</div>
 				</button>
-				<span class="text-size-4 font-bold">,</span>
 				<button
 					onclick={() => setCheck('year')}
-					class={(currentCheck == 'year' ? 'outline-3 bg-gray-200' : 'bg-gray-100 outline-2') +
-						' btn preset-outlined-surface-500 text-size-4 relative ml-[1%] select-none rounded-full  px-[1%]'}
+					class={`${currentCheck == 'year' ? 'outline-4' : 'outline-2'}
+            ${selectedYear == todayYear ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
 				>
-					<span class="z-0 text-transparent">Year</span>
-					{#if selectedYear == todayYear}
-						<span
-							class="text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full font-bold"
-						>
-							{todayYear}
-						</span>
-					{:else}
-						<span
-							class={(currentCheck == 'year' ? 'font-bold' : 'font-light') +
-								' text-size-4 absolute z-10 flex h-full w-full items-center justify-center rounded-full  italic'}
-						>
-							Year
-						</span>
-					{/if}
+					<span class="z-0 text-transparent"> {todayYear} </span>
+					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
+						{#if selectedYear == todayYear}
+							<span class={`${currentCheck == 'year' ? 'font-extrabold' : 'font-bold'}`}>
+								{todayYear}
+							</span>
+						{:else}
+							<span
+								class={`${currentCheck == 'year' ? 'font-bold' : 'font-light'} italic text-gray-400`}
+							>
+								Year
+							</span>
+						{/if}
+					</div>
 				</button>
 				<span class="text-size-4 font-bold">!</span>
 			</div>
@@ -237,35 +304,52 @@
 	</div>
 	<div class="h-[70%] w-[99%] select-none">
 		{#if currentCheck === 'weekday'}
+			<!--Weekday Buttons-->
 			<div class="flex h-full w-full flex-col items-center justify-center gap-[1%]">
 				{#each weekdayOptions as weekday}
 					<button
-						class={'btn preset-outlined-surface-500 text-size-4 rounded-full font-bold outline-2 ' +
-							weekdayBackgrounds[weekday]}
+						onclick={() => updateWeekday(weekday)}
+						disabled={selectedWeekday == todayWeekday ? false : weekdayGuesses.includes(weekday)}
+						class={`${weekday == selectedWeekday && selectedWeekday == todayWeekday ? 'font-black outline-8' : 'font-bold outline-2'}
+              ${selectedWeekday == todayWeekday ? '' : 'hover:scale-110 active:scale-95'} ${weekdayBackgrounds[weekday]}
+              btn preset-outlined-surface-500 text-size-4 select-none rounded-full`}
 					>
-						{weekday}
+						<span class="select-none">
+							{weekday}
+						</span>
 					</button>
 				{/each}
 			</div>
 		{:else if currentCheck == 'month'}
+			<!--Month Buttons-->
 			<div class="grid h-full w-full grid-cols-2">
-				<div class="flex h-full w-full flex-col items-center justify-center gap-[2%]">
-					{#each ['January', 'February', 'March', 'April', 'May', 'June'] as month}
+				<div class="flex h-full w-full select-none flex-col items-center justify-center gap-[2%]">
+					{#each ['January', 'February', 'March', 'April', 'May', 'June'] as Month[] as month}
 						<button
-							class="btn preset-outlined-surface-500 text-size-5 gap-[1%] rounded-full px-[1%] py-0 font-bold outline-2"
+							onclick={() => updateMonth(month)}
+							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
+							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'font-black outline-8' : 'font-bold outline-2'}
+                ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
+                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full px-[1%] py-0 `}
 						>
 							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
-							{month}
+							<span class="select-none">
+								{month}
+							</span>
 						</button>
 					{/each}
 				</div>
-				<div class="flex h-full w-full flex-col items-center justify-center gap-[2%]">
-					{#each ['July', 'August', 'September', 'October', 'November', 'December'] as month}
+				<div class="flex h-full w-full select-none flex-col items-center justify-center gap-[2%]">
+					{#each ['July', 'August', 'September', 'October', 'November', 'December'] as Month[] as month}
 						<button
-							class="btn preset-outlined-surface-500 gap-[1%] rounded-full px-[1%] py-0 font-bold outline-2"
+							onclick={() => updateMonth(month)}
+							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
+							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'font-black outline-8' : 'font-bold outline-2'}
+                ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
+                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full px-[1%] py-0 `}
 						>
 							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
-							<span class="text-size-5 hover:scale-110">
+							<span class="select-none">
 								{month}
 							</span>
 						</button>
@@ -273,24 +357,36 @@
 				</div>
 			</div>
 		{:else if currentCheck == 'day'}
+			<!--Day Buttons-->
 			<div class="grid h-full w-full grid-cols-10">
 				{#each Array(daysInMonth).keys() as day}
 					<button
-						class="btn preset-tonal-surface text-size-6 m-[5%] rounded-3xl font-bold outline-2 hover:scale-110"
+						onclick={() => updateDay(day + 1)}
+						disabled={selectedDay == todayDay ? false : dayGuesses.includes(day + 1)}
+						class={` ${day + 1 == selectedDay && selectedDay == todayDay ? 'font-black outline-8' : 'font-bold outline-2'}
+              ${selectedDay == todayDay ? '' : 'hover:scale-110 active:scale-95'}
+              btn preset-tonal-surface m-[5%] select-none rounded-3xl`}
 					>
-						<span class="text-size-5">
+						<span class="text-size-5 select-none">
 							{day + 1}
 						</span>
 					</button>
 				{/each}
 			</div>
 		{:else if currentCheck == 'year'}
+			<!--Year Buttons-->
 			<div class="flex h-full w-full flex-row items-center justify-evenly">
 				{#each yearOptions as year}
 					<button
-						class="btn preset-outlined-surface-500 text-size-7 rounded-full font-bold outline-2"
+						onclick={() => updateYear(year)}
+						disabled={selectedYear == todayYear ? false : yearGuesses.includes(year)}
+						class={` ${year == selectedYear && selectedYear == todayYear ? 'font-black outline-8' : 'font-bold outline-2'}
+              ${selectedYear == todayYear ? '' : 'hover:scale-110 active:scale-95'}
+              btn preset-outlined-surface-500 text-size-7 select-none rounded-full`}
 					>
-						{year}
+						<span class="text-size-7 select-none">
+							{year}
+						</span>
 					</button>
 				{/each}
 			</div>

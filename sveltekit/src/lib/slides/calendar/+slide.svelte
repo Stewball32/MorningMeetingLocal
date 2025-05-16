@@ -11,7 +11,7 @@
 	import NavArrows from '../NavArrows.svelte';
 	import FindTheDate from './FindTheDate.svelte';
 	import MonthView from './MonthView.svelte';
-	import type { ClassProps } from './_types';
+	import type { ClassProps, Month, Weekday } from './_types';
 
 	interface SlideProps {
 		students: Student[];
@@ -44,15 +44,41 @@
 
 	let calendarProps: ClassProps = $state(classDaily.calendar ?? ({} as ClassProps));
 	let page = $state(calendarProps?.page ?? 0);
-	let currentCheck = $state(classDaily?.calendar?.currentCheck ?? 0);
-	let yearGuesses = $state(classDaily?.calendar?.yearGuesses ?? []);
-	let monthGuesses = $state(classDaily?.calendar?.monthGuesses ?? []);
+	let currentCheck = $state(classDaily?.calendar?.currentCheck);
+	let weekdayGuesses: Weekday[] = $state(classDaily?.calendar?.weekdayGuesses ?? []);
+	let monthGuesses: Month[] = $state(classDaily?.calendar?.monthGuesses ?? []);
 	let dayGuesses = $state(classDaily?.calendar?.dayGuesses ?? []);
-	let weekdayGuesses = $state(classDaily?.calendar?.weekdayGuesses ?? []);
+	let yearGuesses = $state(classDaily?.calendar?.yearGuesses ?? []);
+	let calendarGuesses = $state(classDaily?.calendar?.calendarGuesses ?? []);
 	let dayOpt;
-	let startWithSunday = $state(false);
+	let startWithSunday = $state(true);
 
-	let totalSlides = 5; // total number of slides
+	const today = new Date();
+	const yesterday = new Date(today);
+	yesterday.setDate(today.getDate() - 1);
+
+	const todayWeekday = today.toLocaleString('en-US', { weekday: 'long' }) as Weekday;
+	const yesterdayWeekday: Weekday = yesterday.toLocaleString('en-US', {
+		weekday: 'long'
+	}) as Weekday;
+	const todayDay = today.getDate();
+	const yesterdayDay = yesterday.getDate();
+	const todayMonth = today.toLocaleString('en-US', { month: 'long' }) as Month;
+	const yesterdayMonth = yesterday.toLocaleString('en-US', { month: 'long' }) as Month;
+	const todayYear = today.getFullYear();
+	const yesterdayYear = yesterday.getFullYear();
+
+	let weekdayBackgrounds = {
+		Sunday: 'bg-red-300',
+		Monday: 'bg-orange-300',
+		Tuesday: 'bg-yellow-300',
+		Wednesday: 'bg-green-300',
+		Thursday: 'bg-blue-300',
+		Friday: 'bg-indigo-300',
+		Saturday: 'bg-violet-300'
+	};
+
+	let totalSlides = 2; // total number of slides
 	const pageLeft = () => {
 		if (page > 0) {
 			page--;
@@ -69,17 +95,48 @@
 	};
 </script>
 
-<NavArrows {classDaily} {page} {totalSlides} {pageLeft} {pageRight} />
+<NavArrows
+	{classDaily}
+	{page}
+	{totalSlides}
+	rightDisabled={page == totalSlides - 1}
+	{pageLeft}
+	{pageRight}
+/>
 
 {#if page === 0}
 	<FindTheDate
 		{classDaily}
+		{today}
+		{todayWeekday}
+		{yesterdayWeekday}
+		{todayDay}
+		{yesterdayDay}
+		{todayMonth}
+		{yesterdayMonth}
+		{todayYear}
+		{yesterdayYear}
 		{currentCheck}
+		{weekdayGuesses}
+		{yearGuesses}
+		{monthGuesses}
+		{dayGuesses}
 		{startWithSunday}
+		{weekdayBackgrounds}
 		{pageLeft}
 		{pageRight}
 		{updateClassDailySlide}
 	/>
 {:else if page === 1}
-	<MonthView {classDaily} {startWithSunday} {pageLeft} {pageRight} {updateClassDailySlide} />
+	<MonthView
+		{classDaily}
+		{startWithSunday}
+		{calendarGuesses}
+		{todayDay}
+		{today}
+		{weekdayBackgrounds}
+		{pageLeft}
+		{pageRight}
+		{updateClassDailySlide}
+	/>
 {/if}
