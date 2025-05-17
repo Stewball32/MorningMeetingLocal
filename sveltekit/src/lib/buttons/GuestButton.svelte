@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 	import { getGuestAvatar } from '$lib/pb';
-	import type { GuestAvatar, GuestDaily } from '$lib/pb/types';
+	import type { IconRecord, GuestDaily } from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import Button from './+button.svelte';
 
@@ -25,7 +25,7 @@
 		overrideAvatarClass?: boolean;
 		overrideNameClass?: boolean;
 		disableButton?: boolean;
-		guestAvatarMap?: Map<string, GuestAvatar>;
+		guestAvatarMap?: Map<string, IconRecord>;
 		onClick?: () => void;
 	}
 
@@ -46,7 +46,7 @@
 		onClick
 	}: Props = $props();
 
-	let avatarRecord = $state<GuestAvatar | null>(null);
+	let avatarRecord = $state<IconRecord | null>(null);
 	onMount(async () => {
 		if (guestAvatarMap && guestAvatarMap.has(guest.avatar)) {
 			avatarRecord = guestAvatarMap.get(guest.avatar) || null;

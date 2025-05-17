@@ -43,10 +43,12 @@ export interface TeacherDaily extends DailyRecord {
 	attendance: TeacherAttendanceProps;
 }
 
-export interface GuestAvatar extends RecordModel {
+export interface IconRecord extends RecordModel {
 	name: string;
 	emoji: string; // emoji
 	image: string; // image url
+	for_avatar: boolean; // for avatar
+	for_calendar: boolean; // for calendar
 }
 
 export interface GuestDaily extends DailyRecord {

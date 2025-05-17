@@ -3,7 +3,7 @@
 	import { pb, updateClassDaily } from '$lib/pb';
 	import type {
 		ClassDaily,
-		GuestAvatar,
+		IconRecord,
 		GuestDaily,
 		Student,
 		StudentDaily,
@@ -25,7 +25,7 @@
 	let studentDailyMap: Map<string, StudentDaily> = $state(data.studentDailyMap);
 	let teacherDailyMap: Map<string, TeacherDaily> = $state(data.teacherDailyMap);
 	let guestDailies: GuestDaily[] = $state(data.guestDailies);
-	let guestAvatarMap: Map<string, GuestAvatar> = data.guestAvatarMap;
+	let guestAvatarMap: Map<string, IconRecord> = data.guestAvatarMap;
 	// let currentPerson: Student | Teacher | undefined = $state(undefined);
 
 	let activeStudents: Student[] = $derived(
