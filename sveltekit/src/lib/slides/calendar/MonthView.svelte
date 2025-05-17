@@ -32,8 +32,10 @@
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {}
 	}: MonthViewProps = $props();
 
-	let currentMonth = today.getMonth();
-	let currentYear = today.getFullYear();
+	const currentMonth = today.getMonth();
+	const lastMonth = (currentMonth + 11) % 12;
+	const nextMonth = (currentMonth + 1) % 12;
+	const currentYear = today.getFullYear();
 	let daysInMonth: number[] = $state([]);
 	let startDay = $state(0);
 
@@ -159,9 +161,21 @@
 
 <div class="h-full w-full">
 	<div class="flex h-[15%] items-center justify-center">
+		<img
+			src={`/months/${monthNames[currentMonth]}.png`}
+			alt={monthNames[currentMonth]}
+			class="h-11/12 m-0 rounded-full p-0"
+			onerror={(e) => {
+				(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+			}}
+		/>
 		<h2 class="text-size-7 font-bold">{monthNames[currentMonth]} {currentYear}</h2>
 	</div>
-	<div class="flex h-[74%] items-center justify-center">
+	<div
+		role="presentation"
+		onmouseleave={() => hoverWeekday(null)}
+		class="flex h-[74%] items-center justify-center"
+	>
 		<div class={`grid h-full w-[6%] ${gridRows()}  py-[.5%] text-center font-bold`}>
 			{#each [null, null, ...Array(Math.ceil((daysInMonth.length + startDay) / 7) - (startDay > 0 ? 1 : 0)).keys()] as i}
 				{#if i == null}
@@ -175,8 +189,6 @@
 			{/each}
 		</div>
 		<div
-			onmouseleave={() => hoverWeekday(null)}
-			role="presentation"
 			class={`grid h-full w-[93%] grid-cols-7 ${gridRows()} rounded-4xl overflow-clip border-4 bg-white text-center`}
 		>
 			{#each weekdayAbrs as dayName, i}
@@ -190,7 +202,16 @@
 				</div>
 			{/each}
 			{#each Array(startDay).fill(null) as _}
-				<div class="border bg-gray-400"></div>
+				<div class="flex items-center justify-center overflow-hidden border bg-gray-200">
+					<img
+						src={`/months/${monthNames[lastMonth]}.png`}
+						alt={monthNames[lastMonth]}
+						class=" disabled m-0 h-full rounded-full p-0"
+						onerror={(e) => {
+							(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+						}}
+					/>
+				</div>
 			{/each}
 			{#each daysInMonth as day}
 				<button
@@ -210,7 +231,16 @@
 			{/each}
 			{#if (startDay + daysInMonth.length) % 7 != 0}
 				{#each Array(7 - ((daysInMonth.length + startDay) % 7)).fill(null) as _}
-					<div class="border bg-gray-400"></div>
+					<div class="flex items-center justify-center overflow-hidden border bg-gray-200">
+						<img
+							src={`/months/${monthNames[nextMonth]}.png`}
+							alt={monthNames[nextMonth]}
+							class=" disabled m-0 h-full rounded-full p-0"
+							onerror={(e) => {
+								(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+							}}
+						/>
+					</div>
 				{/each}
 			{/if}
 		</div>

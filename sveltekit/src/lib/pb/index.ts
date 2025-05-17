@@ -3,7 +3,7 @@ import PocketBase, { type RecordSubscription } from 'pocketbase';
 import type {
 	ClassDaily,
 	DailyRecord,
-	GuestAvatar,
+	IconRecord,
 	GuestDaily,
 	Student,
 	StudentDaily,
@@ -83,9 +83,9 @@ export const getAllTeachers = async (): Promise<Teacher[]> => {
 	}
 };
 
-export const getGuestAvatar = async (id: string): Promise<GuestAvatar | null> => {
+export const getGuestAvatar = async (id: string): Promise<IconRecord | null> => {
 	try {
-		const guestAvatar = (await pb.collection('guest_avatars').getOne(id)) as GuestAvatar;
+		const guestAvatar = (await pb.collection('icons').getOne(id)) as IconRecord;
 		return guestAvatar;
 	} catch (error) {
 		console.error(error);
@@ -93,12 +93,13 @@ export const getGuestAvatar = async (id: string): Promise<GuestAvatar | null> =>
 	}
 };
 
-export const getGuestAvatarMap = async (): Promise<Map<string, GuestAvatar>> => {
-	const guestAvatarMap = new Map<string, GuestAvatar>();
+export const getGuestAvatarMap = async (): Promise<Map<string, IconRecord>> => {
+	const guestAvatarMap = new Map<string, IconRecord>();
 	try {
-		const guestAvatars = (await pb.collection('guest_avatars').getFullList({
+		const guestAvatars = (await pb.collection('icons').getFullList({
+			filter: 'for_guests = true',
 			sort: 'name'
-		})) as GuestAvatar[];
+		})) as IconRecord[];
 		guestAvatars.forEach((avatar) => {
 			guestAvatarMap.set(avatar.id, avatar);
 		});

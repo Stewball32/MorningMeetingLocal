@@ -168,8 +168,20 @@
 		updateClassDailySlide('calendar', { currentCheck });
 	};
 
-	const baseBtnClass =
-		'btn preset-outlined-surface-500 text-size-4 select-none relative mx-[1%] rounded-full px-[1.5%] py-0';
+	const baseDateClass = 'btn text-size-4 select-none mx-[.75%] py-0';
+	const baseSpanClass = ` cursor-default select-none border border-transparent font-bold ${baseDateClass} `;
+	const baseBtnClass = `preset-outlined-surface-500 relative rounded-full ${baseDateClass}`;
+	const weekdayClass = ``;
+	const monthClass = `px-[5%]`;
+	const dayClass = ` `;
+	const yearClass = ` `;
+	const longestClass = 'z-2 relative flex h-full w-full items-center justify-center';
+
+	const todayMonthBtnClass = ` ${baseBtnClass}`;
+	const oldSpanClass =
+		'btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none border border-transparent px-[1.5%] py-[.25%] font-bold';
+	const oldBtnClass =
+		'btn preset-outlined-surface-500 w-full text-size-4 select-none relative mx-[1%] rounded-full px-[5%] py-0';
 
 	function onKeydown(event: KeyboardEvent) {
 		let correctAnswers = [
@@ -215,14 +227,6 @@
 			pageLeft();
 		}
 	}
-	let monthImg = (month: string) => {
-		const img = new Image();
-		img.src = `/months/${month}.png`;
-		img.onerror = () => {
-			img.src = '/months/default.png';
-		};
-		return img;
-	};
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -232,17 +236,14 @@
 <div class="flex h-full w-full cursor-default select-none flex-col items-center justify-center">
 	<h1 class="text-size-7 h-[15%] font-bold">Let's find today's date!</h1>
 	<div class="flex h-[18%] w-full items-center justify-center">
-		<div class="text-size-3 flex-1/3 flex h-full flex-col items-center justify-center">
+		<div class="text-size-3 flex h-full flex-col items-center justify-center">
 			<span class="flex h-1/2 w-full items-end justify-end text-nowrap">If yesterday was</span>
 			<span class="flex h-1/2 w-full items-end justify-end text-nowrap">...then today is</span>
 		</div>
-		<div class="flex-2/3 flex h-full flex-col items-start justify-around">
+		<div class="flex h-full flex-col items-start justify-around">
 			<!--Yesterday was...-->
 			<div class="flex items-end justify-start">
-				<span
-					class={`${weekdayBackgrounds[yesterdayWeekday]}
-						btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none px-[1.5%] py-[.25%] font-bold outline`}
-				>
+				<span class={`${weekdayBackgrounds[yesterdayWeekday]} ${baseBtnClass} ${weekdayClass}`}>
 					<span class="z-0 text-transparent">
 						{longestWeekday}
 					</span>
@@ -250,27 +251,31 @@
 						{yesterdayWeekday},
 					</span>
 				</span>
-				<span
-					class={'btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none border border-transparent px-[1.5%] py-[.25%] font-bold'}
-				>
-					<span class="z-0 text-transparent">
-						{longestMonth}
-					</span>
-					<span class="absolute">
-						{yesterdayMonth}
-					</span>
+				<span class={`${baseSpanClass} ${monthClass}`}>
+					<img
+						src={`/months/${yesterdayMonth}.png`}
+						alt={yesterdayMonth}
+						class="m-0 h-[2.5rem] rounded-full p-0"
+						onerror={(e) => {
+							(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+						}}
+					/>
+					<div class={longestClass}>
+						<span class="z-0 text-transparent">
+							{longestMonth}
+						</span>
+						<span class="absolute">
+							{yesterdayMonth}
+						</span>
+					</div>
 				</span>
-				<span
-					class={'btn text-size-4 rounded-4xl mx-[1%] cursor-default select-none border border-transparent px-[1.5%] py-[.25%] font-bold'}
-				>
+				<span class={`${baseSpanClass} ${dayClass}`}>
 					<span class="z-0 text-transparent"> Day, </span>
 					<span class="absolute">
 						{yesterdayDay},
 					</span>
 				</span>
-				<span
-					class={'btn text-size-4 rounded-4xl ml-[1%] mr-0  cursor-default select-none border border-transparent py-[.25%] pl-[1.5%] pr-0 font-bold'}
-				>
+				<span class={`${baseSpanClass} ${yearClass}`}>
 					{yesterdayYear}
 				</span>
 				<span class="text-size-3 py-[.25%] font-bold">...</span>
@@ -280,7 +285,7 @@
 				<button
 					onclick={() => setCheck('weekday')}
 					class={`${currentCheck == 'weekday' ? 'outline-4' : 'outline-2'}
-            ${selectedWeekday == todayWeekday ? weekdayBackgrounds[todayWeekday] : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
+            ${selectedWeekday == todayWeekday ? weekdayBackgrounds[todayWeekday] : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass} ${weekdayClass}`}
 				>
 					<span class="z-0 text-transparent">
 						{longestWeekday}
@@ -302,19 +307,27 @@
 				<button
 					onclick={() => setCheck('month')}
 					class={`${currentCheck == 'month' ? 'outline-4' : 'outline-2'}
-            ${selectedMonth == todayMonth ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
+            ${selectedMonth == todayMonth ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass} ${monthClass}`}
 				>
-					<span class="z-0 text-transparent">
-						{longestMonth}
-					</span>
-					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
+					<img
+						src={`/months/${todayMonth}.png`}
+						alt={todayMonth}
+						class="m-0 h-[2.5rem] rounded-full p-0"
+						onerror={(e) => {
+							(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+						}}
+					/>
+					<div class="z-2 relative flex h-full w-full items-center justify-center rounded-full">
+						<span class=" z-0 text-transparent">
+							{longestMonth}
+						</span>
 						{#if selectedMonth == todayMonth}
-							<span class={`${currentCheck == 'month' ? 'font-extrabold' : 'font-bold'}`}>
+							<span class={`${currentCheck == 'month' ? 'font-extrabold' : 'font-bold'} absolute`}>
 								{todayMonth}
 							</span>
 						{:else}
 							<span
-								class={`${currentCheck == 'month' ? 'font-bold' : 'font-light'} italic text-gray-400`}
+								class={`${currentCheck == 'month' ? 'font-bold' : 'font-light'} absolute italic text-gray-400`}
 							>
 								Month
 							</span>
@@ -324,7 +337,7 @@
 				<button
 					onclick={() => setCheck('day')}
 					class={`${currentCheck == 'day' ? 'outline-4' : 'outline-2'}
-            ${selectedDay == todayDay ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
+            ${selectedDay == todayDay ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass} ${dayClass}`}
 				>
 					<span class="z-0 text-transparent"> Day, </span>
 					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
@@ -344,7 +357,7 @@
 				<button
 					onclick={() => setCheck('year')}
 					class={`${currentCheck == 'year' ? 'outline-4' : 'outline-2'}
-            ${selectedYear == todayYear ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass}`}
+            ${selectedYear == todayYear ? '' : 'bg-gray-100 hover:scale-110 active:scale-95'} ${baseBtnClass} ${yearClass}`}
 				>
 					<span class="z-0 text-transparent"> {todayYear} </span>
 					<div class="z-2 absolute flex h-full w-full items-center justify-center rounded-full">
