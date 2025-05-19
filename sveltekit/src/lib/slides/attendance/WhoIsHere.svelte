@@ -33,10 +33,7 @@
 		prompt = 'Click on a button!',
 		pageLeft = () => {},
 		pageRight = () => {},
-		updateClassDailySlide: updateClassDailySlide = async (
-			column: string,
-			partialClassDaily: Partial<ClassProps>
-		) => {}
+		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassProps>) => {}
 	}: WhoIsHereProps = $props();
 
 	const youtubeUrl = (person: Student | Teacher, embedded: boolean = true) => {
@@ -51,8 +48,10 @@
 
 	const updateCurrentPerson = (person?: Student | Teacher) => {
 		currentPerson = person;
-		const updatedProps = { currentPerson: person?.id };
-		updateClassDailySlide('attendance', updatedProps);
+		const partial = {
+			currentPerson: person?.id
+		};
+		updateClassDailySlide('attendance', partial);
 	};
 
 	let collectionNames: string[] = $state([]);

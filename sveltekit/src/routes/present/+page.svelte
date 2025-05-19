@@ -161,9 +161,9 @@
 		{teacherDailyMap}
 		{guestDailies}
 		{guestAvatarMap}
-		{updateClassDailySlide}
 		{slideLeft}
 		{slideRight}
+		{updateClassDailySlide}
 	/>
 {:else if slide === 1}
 	<Calendar
