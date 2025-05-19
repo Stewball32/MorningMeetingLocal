@@ -3,7 +3,7 @@
 	import type { Check, Month, Weekday } from './_types';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { updateSound } from '$lib/sounds';
-	import ResetSlide from './ResetSlide.svelte';
+	import ResetSlide from '$lib/slides/ResetSlide.svelte';
 
 	interface FindTheDateProps {
 		classDaily: ClassDaily;
@@ -23,6 +23,7 @@
 		yearGuesses?: number[];
 		startWithSunday?: boolean;
 		weekdayBackgrounds: Record<Weekday, string>;
+		weekdayTextColors: Record<Weekday, string>;
 		pageLeft: () => void;
 		pageRight: () => void;
 		updateClassDailySlide: (
@@ -49,6 +50,7 @@
 		yearGuesses = [],
 		startWithSunday = $bindable(false),
 		weekdayBackgrounds,
+		weekdayTextColors,
 		pageLeft = () => {},
 		pageRight = () => {},
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {}
@@ -168,7 +170,54 @@
 
 	const baseBtnClass =
 		'btn preset-outlined-surface-500 text-size-4 select-none relative mx-[1%] rounded-full px-[1.5%] py-0';
+
+	function onKeydown(event: KeyboardEvent) {
+		let correctAnswers = [
+			selectedWeekday == todayWeekday,
+			selectedMonth == todayMonth,
+			selectedDay == todayDay,
+			selectedYear == todayYear
+		];
+		let checkOrder: Check[] = ['weekday', 'month', 'day', 'year'];
+		if (event.key === 'ArrowRight') {
+			event.preventDefault();
+			if (!currentCheck) return (currentCheck = 'weekday');
+			if (correctAnswers.every((answer) => answer)) return pageRight();
+			for (var i = 0; i < correctAnswers.length; i++) {
+				if (correctAnswers[i]) continue;
+				if (currentCheck != checkOrder[i]) {
+					currentCheck = checkOrder[i];
+					updateClassDailySlide('calendar', { currentCheck });
+					break;
+				} else {
+					switch (currentCheck) {
+						case 'weekday':
+							updateWeekday(todayWeekday);
+							break;
+						case 'month':
+							updateMonth(todayMonth);
+							break;
+						case 'day':
+							updateDay(todayDay);
+							break;
+						case 'year':
+							updateYear(todayYear);
+							break;
+						default:
+							pageRight();
+							break;
+					}
+					break;
+				}
+			}
+		} else if (event.key === 'ArrowLeft') {
+			event.preventDefault();
+			pageLeft();
+		}
+	}
 </script>
+
+<svelte:window on:keydown={onKeydown} />
 
 <ResetSlide onclick={resetGuesses} />
 
@@ -316,8 +365,8 @@
 					<button
 						onclick={() => updateWeekday(weekday)}
 						disabled={selectedWeekday == todayWeekday ? false : weekdayGuesses.includes(weekday)}
-						class={`${weekday == selectedWeekday && selectedWeekday == todayWeekday ? 'font-black outline-8' : 'font-bold outline-2'}
-              ${selectedWeekday == todayWeekday ? '' : 'hover:scale-110 active:scale-95'} ${weekdayBackgrounds[weekday]}
+						class={`${weekday == selectedWeekday && selectedWeekday == todayWeekday ? weekdayTextColors[weekday] + ' bg-black font-black outline-8' : weekdayBackgrounds[weekday] + ' font-bold outline-2'}
+              ${selectedWeekday == todayWeekday ? '' : 'hover:scale-110 active:scale-95'}
               btn preset-outlined-surface-500 text-size-4 select-none rounded-full`}
 					>
 						<span class="select-none">
@@ -328,15 +377,15 @@
 			</div>
 		{:else if currentCheck == 'month'}
 			<!--Month Buttons-->
-			<div class="grid h-full w-full grid-cols-2">
-				<div class="flex h-full w-full select-none flex-col items-center justify-center gap-[2%]">
-					{#each ['January', 'February', 'March', 'April', 'May', 'June'] as Month[] as month}
+			<div class="grid h-full w-full grid-cols-3">
+				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
+					{#each ['January', 'February', 'March', 'April'] as Month[] as month}
 						<button
 							onclick={() => updateMonth(month)}
 							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
-							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'font-black outline-8' : 'font-bold outline-2'}
+							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
                 ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
-                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full px-[1%] py-0 `}
+                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
 						>
 							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
 							<span class="select-none">
@@ -345,14 +394,30 @@
 						</button>
 					{/each}
 				</div>
-				<div class="flex h-full w-full select-none flex-col items-center justify-center gap-[2%]">
-					{#each ['July', 'August', 'September', 'October', 'November', 'December'] as Month[] as month}
+				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
+					{#each ['May', 'June', 'July', 'August'] as Month[] as month}
 						<button
 							onclick={() => updateMonth(month)}
 							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
-							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'font-black outline-8' : 'font-bold outline-2'}
+							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
                 ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
-                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full px-[1%] py-0 `}
+                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
+						>
+							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
+							<span class="select-none">
+								{month}
+							</span>
+						</button>
+					{/each}
+				</div>
+				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
+					{#each ['September', 'October', 'November', 'December'] as Month[] as month}
+						<button
+							onclick={() => updateMonth(month)}
+							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
+							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
+                ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
+                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
 						>
 							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
 							<span class="select-none">
@@ -369,7 +434,7 @@
 					<button
 						onclick={() => updateDay(day + 1)}
 						disabled={selectedDay == todayDay ? false : dayGuesses.includes(day + 1)}
-						class={` ${day + 1 == selectedDay && selectedDay == todayDay ? 'font-black outline-8' : 'font-bold outline-2'}
+						class={` ${day + 1 == selectedDay && selectedDay == todayDay ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
               ${selectedDay == todayDay ? '' : 'hover:scale-110 active:scale-95'}
               btn preset-tonal-surface m-[5%] select-none rounded-3xl`}
 					>
@@ -386,7 +451,7 @@
 					<button
 						onclick={() => updateYear(year)}
 						disabled={selectedYear == todayYear ? false : yearGuesses.includes(year)}
-						class={` ${year == selectedYear && selectedYear == todayYear ? 'font-black outline-8' : 'font-bold outline-2'}
+						class={` ${year == selectedYear && selectedYear == todayYear ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
               ${selectedYear == todayYear ? '' : 'hover:scale-110 active:scale-95'}
               btn preset-outlined-surface-500 text-size-7 select-none rounded-full`}
 					>
