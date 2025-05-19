@@ -11,9 +11,9 @@ export interface MathClassProps {
 	showHintOne?: boolean;
 	showHintTwo?: boolean;
 	showHintResult?: boolean;
-	oneOptions?: string[];
-	twoOptions?: string[];
-	resultOptions?: string[];
+	oneOptDist?: number; // between 0 - 1
+	twoOptDist?: number; // between 0 - 1
+	resultOptDist?: number; // between 0 - 1
 	oneGuesses?: number[];
 	twoGuesses?: number[];
 	resultGuesses?: number[];
@@ -30,9 +30,6 @@ export interface MathPersonProps {
 	oneGuess?: number;
 	twoGuess?: number;
 	resultGuess?: number;
-	oneOptions?: string[];
-	twoOptions?: string[];
-	resultOptions?: string[];
 }
 
 export interface StudentProps extends PersonProps {}

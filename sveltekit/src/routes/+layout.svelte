@@ -8,7 +8,7 @@
 	<title>Morning Meeting</title>
 </svelte:head>
 
-<div class="absolute right-0 top-0 z-10 text-xl text-blue-600">
+<div class="absolute left-0 top-0 z-10 text-xl text-blue-600">
 	<p class="block sm:hidden">XS</p>
 	<p class="hidden sm:block md:hidden">SM</p>
 	<p class="hidden md:block lg:hidden">MD</p>
