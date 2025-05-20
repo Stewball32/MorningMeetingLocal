@@ -215,6 +215,14 @@
 			pageLeft();
 		}
 	}
+	let monthImg = (month: string) => {
+		const img = new Image();
+		img.src = `/months/${month}.png`;
+		img.onerror = () => {
+			img.src = '/months/default.png';
+		};
+		return img;
+	};
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -357,7 +365,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="h-[70%] w-[99%] select-none">
+	<div class="flex h-[70%] w-[99%] select-none justify-center p-[1%]">
 		{#if currentCheck === 'weekday'}
 			<!--Weekday Buttons-->
 			<div class="flex h-full w-full flex-col items-center justify-center gap-[1%]">
@@ -377,55 +385,28 @@
 			</div>
 		{:else if currentCheck == 'month'}
 			<!--Month Buttons-->
-			<div class="grid h-full w-full grid-cols-3">
-				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
-					{#each ['January', 'February', 'March', 'April'] as Month[] as month}
-						<button
-							onclick={() => updateMonth(month)}
-							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
-							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
+			<div class="h-11/12 grid w-11/12 select-none grid-cols-3 items-center gap-[2%]">
+				{#each ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as Month[] as month}
+					<button
+						onclick={() => updateMonth(month)}
+						disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
+						class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
                 ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
-                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
-						>
-							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
-							<span class="select-none">
-								{month}
-							</span>
-						</button>
-					{/each}
-				</div>
-				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
-					{#each ['May', 'June', 'July', 'August'] as Month[] as month}
-						<button
-							onclick={() => updateMonth(month)}
-							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
-							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
-                ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
-                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
-						>
-							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
-							<span class="select-none">
-								{month}
-							</span>
-						</button>
-					{/each}
-				</div>
-				<div class="flex h-full w-full select-none flex-col items-center justify-evenly gap-[2%]">
-					{#each ['September', 'October', 'November', 'December'] as Month[] as month}
-						<button
-							onclick={() => updateMonth(month)}
-							disabled={selectedMonth == todayMonth ? false : monthGuesses.includes(month)}
-							class={` ${month == selectedMonth && selectedMonth == todayMonth ? 'bg-black font-black text-white outline-8' : 'font-bold outline-2'}
-                ${selectedMonth == todayMonth ? '' : 'hover:scale-110 active:scale-95'}
-                btn preset-outlined-surface-500 text-size-5 select-none gap-[1%] rounded-full p-[2%] `}
-						>
-							<img src="/months/default.png" alt={month} class="m-0 h-[2rem] p-0 xl:h-[3rem]" />
-							<span class="select-none">
-								{month}
-							</span>
-						</button>
-					{/each}
-				</div>
+                btn preset-outlined-surface-500 text-size-5 flex select-none gap-[1%] overflow-clip rounded-full p-[2%] `}
+					>
+						<img
+							src={`/months/${month}.png`}
+							alt={month}
+							class="m-0 h-[3rem] rounded-full p-0"
+							onerror={(e) => {
+								(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+							}}
+						/>
+						<span class="flex-grow select-none truncate">
+							{month}
+						</span>
+					</button>
+				{/each}
 			</div>
 		{:else if currentCheck == 'day'}
 			<!--Day Buttons-->
