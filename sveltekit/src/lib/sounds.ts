@@ -1,12 +1,13 @@
-
 /**
  * A map for sound effects used in the app.
  */
 export const soundMap = new Map<string, string>([
-	["present", "/sounds/yay.mp3"],
-	["absent", "/sounds/aww.mp3"],
-	["bonk", "/sounds/bonk.mp3"],
-])
+	['present', '/sounds/yay.mp3'],
+	['absent', '/sounds/aww.mp3'],
+	['bonk', '/sounds/bonk.mp3'],
+	['correct', '/sounds/correct.mp3'],
+	['incorrect', '/sounds/incorrect.mp3']
+]);
 
 // map of the sounds currently playing
 export const activeSoundMap = new Map<string, HTMLAudioElement>();
