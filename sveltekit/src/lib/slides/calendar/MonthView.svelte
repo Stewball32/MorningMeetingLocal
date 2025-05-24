@@ -2,6 +2,8 @@
 	import type { ClassDaily } from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import type { Weekday } from './_types';
+	import { updateSound } from '$lib/sounds';
+	import ResetSlide from '$lib/slides/ResetSlide.svelte';
 
 	interface MonthViewProps {
 		classDaily: ClassDaily;
@@ -59,12 +61,23 @@
 	let selectedCalendar: number | undefined = $derived(calendarGuesses[0]);
 	const updateCalendar = async (value: number) => {
 		if (selectedCalendar == todayDay) return;
-		let updatedCalendarGuesses = classDaily?.calendar?.calendarGuesses ?? [];
+		let updatedCalendarGuesses = calendarGuesses ?? [];
 		updatedCalendarGuesses.unshift(value);
 		calendarGuesses = updatedCalendarGuesses;
 		let partial = {
 			...classDaily.calendar,
 			calendarGuesses: updatedCalendarGuesses
+		};
+		let sound = selectedCalendar == todayDay ? 'correct' : 'incorrect';
+		updateSound('find-calendar', sound);
+		await updateClassDailySlide('calendar', partial);
+	};
+
+	const resetCalendar = async () => {
+		calendarGuesses = [];
+		let partial = {
+			...classDaily.calendar,
+			calendarGuesses: calendarGuesses
 		};
 		await updateClassDailySlide('calendar', partial);
 	};
@@ -129,7 +142,20 @@
 	const hoverWeekday = (weekday: number | null) => {
 		currentHovverWeekday = weekday;
 	};
+
+	const onKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'ArrowLeft') {
+			pageLeft();
+		} else if (event.key === 'ArrowRight') {
+			if (selectedCalendar != todayDay) return updateCalendar(todayDay);
+			pageRight();
+		}
+	};
 </script>
+
+<svelte:window on:keydown={onKeydown} />
+
+<ResetSlide onclick={resetCalendar} />
 
 <div class="h-full w-full">
 	<div class="flex h-[15%] items-center justify-center">
@@ -176,8 +202,9 @@
             ${dayBorders(day)} btn relative cursor-pointer select-auto rounded-none border `}
 				>
 					<span
-						class={`${currentHoverDay == day ? 'font-bold' : ''} text-size-2 absolute right-[1%] top-0`}
-						>{day}</span
+						class={`${currentHoverDay == day ? 'font-bold' : ''}
+              ${day == selectedCalendar && selectedCalendar == todayDay ? 'bg-black text-white' : ''}
+              text-size-2 absolute right-[0%] top-0 rounded-bl-xl`}>{day}</span
 					>
 				</button>
 			{/each}
@@ -191,7 +218,7 @@
 	<div class="flex h-[10%] w-full items-center justify-center">
 		{#if selectedCalendar == todayDay}
 			<span class="text-size-5 text-center font-bold"
-				>Today is {weekdays[startDay + (selectedCalendar % 7)]},
+				>Today is {weekdays[(selectedCalendar + startDay - 1) % 7]},
 				{monthNames[currentMonth]}
 				{todayDay}, {currentYear}!</span
 			>

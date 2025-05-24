@@ -78,6 +78,16 @@
 		Saturday: 'bg-violet-300'
 	};
 
+	let weekdayTextColors = {
+		Sunday: 'text-red-300',
+		Monday: 'text-orange-300',
+		Tuesday: 'text-yellow-300',
+		Wednesday: 'text-green-300',
+		Thursday: 'text-blue-300',
+		Friday: 'text-indigo-300',
+		Saturday: 'text-violet-300'
+	};
+
 	let totalSlides = 2; // total number of slides
 	const pageLeft = () => {
 		if (page > 0) {
@@ -123,6 +133,7 @@
 		{dayGuesses}
 		{startWithSunday}
 		{weekdayBackgrounds}
+		{weekdayTextColors}
 		{pageLeft}
 		{pageRight}
 		{updateClassDailySlide}

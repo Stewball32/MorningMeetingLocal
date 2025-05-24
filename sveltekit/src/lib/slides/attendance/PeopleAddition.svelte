@@ -9,6 +9,8 @@
 	import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
 	import type { ClassProps, MathClassProps } from './_types';
 	import GuestButton from '$lib/buttons/GuestButton.svelte';
+	import { updateSound } from '$lib/sounds';
+	import ResetSlide from '$lib/slides/ResetSlide.svelte';
 
 	interface PeopleMathProps {
 		from?: 'left' | 'right';
@@ -50,48 +52,128 @@
 		.filter((p1) => !peopleTwo.some((p2) => p2.id === p1.id))
 		.concat(peopleTwo);
 
-	const totalAnswers: number = 4;
+	const optionsPerQuestion: number = 4;
 
-	const getStartNumber = (correctNumber: number) => {
-		const startNumber =
-			Math.floor(Math.random() * totalAnswers) + (correctNumber - totalAnswers + 1);
-		return startNumber < 0 ? 0 : startNumber;
-	};
-
-	const oneStart = getStartNumber(peopleOne.length);
-	const oneAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => oneStart + i);
-
-	const twoStart = getStartNumber(peopleTwo.length);
-	const twoAnswerOptions: number[] = Array.from({ length: totalAnswers }, (_, i) => twoStart + i);
-
-	const resultStart = getStartNumber(peopleResult.length);
-	const resultAnswerOptions: number[] = Array.from(
-		{ length: totalAnswers },
-		(_, i) => resultStart + i
+	let oneAnswer = $derived(peopleOne.length);
+	let oneOptDist = $state(mathProps?.oneOptDist ?? 0);
+	let oneAnsIndex = $derived(Math.round(oneOptDist * (optionsPerQuestion - 1)));
+	let oneStart = $derived(oneAnswer - oneAnsIndex > 0 ? oneAnswer - oneAnsIndex : 0);
+	let oneOptions: number[] = $derived(
+		Array.from({ length: optionsPerQuestion }, (_, i) => oneStart + i)
 	);
 
-	let oneGuesses: number[] = $state(mathProps?.oneGuesses ?? []);
-	let twoGuesses: number[] = $state(mathProps?.twoGuesses ?? []);
-	let resultGuesses: number[] = $state(mathProps?.resultGuesses ?? []);
-	let oneGuess: number | undefined = $derived(oneGuesses[0] ?? undefined);
-	let twoGuess: number | undefined = $derived(twoGuesses[0] ?? undefined);
-	let resultGuess: number | undefined = $derived(resultGuesses[0] ?? undefined);
+	let twoAnswer = $derived(peopleTwo.length);
+	let twoOptDist = $state(mathProps?.twoOptDist ?? 0);
+	let twoAnsIndex = $derived(Math.round(twoOptDist * (optionsPerQuestion - 1)));
+	let twoStart = $derived(twoAnswer - twoAnsIndex > 0 ? twoAnswer - twoAnsIndex : 0);
+	let twoOptions: number[] = $derived(
+		Array.from({ length: optionsPerQuestion }, (_, i) => twoStart + i)
+	);
+
+	let resultAnswer = $derived(peopleResult.length);
+	let resultOptDist = $state(mathProps?.resultOptDist ?? 0);
+	let resultAnsIndex = $derived(Math.round(resultOptDist * (optionsPerQuestion - 1)));
+	let resultStart = $derived(resultAnswer - resultAnsIndex > 0 ? resultAnswer - resultAnsIndex : 0);
+	let resultOptions: number[] = $derived(
+		Array.from({ length: optionsPerQuestion }, (_, i) => resultStart + i)
+	);
+
 	let showHintOne = $state(mathProps?.showHintOne ?? true);
 	let showHintTwo = $state(mathProps?.showHintTwo ?? true);
 	let showHintResult = $state(mathProps?.showHintResult ?? false);
 
+	onMount(async () => {
+		let partial: Partial<ClassProps> = {};
+		partial[mathPropsName] = { ...mathProps };
+		let updatePartial = false;
+		if (!oneOptDist) {
+			oneOptDist = Math.floor(Math.random() * 100) / 100;
+			partial[mathPropsName].oneOptDist = oneOptDist;
+			updatePartial = true;
+			console.log('partialOne', partial);
+		}
+		if (!twoOptDist) {
+			twoOptDist = Math.floor(Math.random() * 100) / 100;
+			partial[mathPropsName].twoOptDist = twoOptDist;
+			updatePartial = true;
+			console.log('partialTwo', partial);
+		}
+		if (!resultOptDist) {
+			resultOptDist = Math.floor(Math.random() * 100) / 100;
+			partial[mathPropsName].resultOptDist = resultOptDist;
+			updatePartial = true;
+			console.log('partialResult', partial);
+		}
+		if (updatePartial) {
+			await updateClassDailySlide('attendance', partial);
+		}
+	});
+
+	let oneGuesses: number[] = $state(mathProps?.oneGuesses ?? []);
+	let oneSelected: number | undefined = $derived(oneGuesses[0] ?? undefined);
 	let openStateOne = $state(false);
 	function popoverOneClose() {
 		openStateOne = false;
 	}
+	const updateOne = async (value: number) => {
+		if (oneSelected == oneAnswer) return;
+		let updatedOneGuesses = oneGuesses ?? [];
+		updatedOneGuesses.unshift(value);
+		oneGuesses = updatedOneGuesses;
+		let partial: Partial<ClassProps> = {};
+		partial[mathPropsName] = {
+			...mathProps,
+			oneGuesses: updatedOneGuesses
+		};
+		let sound = oneSelected == oneAnswer ? 'correct' : 'incorrect';
+		updateSound('one-guess', sound);
+		popoverOneClose();
+		await updateClassDailySlide('attendance', partial);
+	};
+
+	let twoGuesses: number[] = $state(mathProps?.twoGuesses ?? []);
+	let twoSelected: number | undefined = $derived(twoGuesses[0] ?? undefined);
 	let openStateTwo = $state(false);
 	function popoverTwoClose() {
 		openStateTwo = false;
 	}
+	const updateTwo = async (value: number) => {
+		if (twoSelected == twoAnswer) return;
+		let updatedTwoGuesses = twoGuesses ?? [];
+		updatedTwoGuesses.unshift(value);
+		twoGuesses = updatedTwoGuesses;
+		let partial: Partial<ClassProps> = {};
+		partial[mathPropsName] = {
+			...mathProps,
+			twoGuesses: updatedTwoGuesses
+		};
+		let sound = twoSelected == twoAnswer ? 'correct' : 'incorrect';
+		updateSound('two-guess', sound);
+		popoverTwoClose();
+		await updateClassDailySlide('attendance', partial);
+	};
+
+	let resultGuesses: number[] = $state(mathProps?.resultGuesses ?? []);
+	let resultSelected: number | undefined = $derived(resultGuesses[0] ?? undefined);
 	let openStateResult = $state(false);
 	function popoverResultClose() {
 		openStateResult = false;
 	}
+	const updateResult = async (value: number) => {
+		if (resultSelected == resultAnswer) return;
+		let updatedResultGuesses = resultGuesses ?? [];
+		updatedResultGuesses.unshift(value);
+		resultGuesses = updatedResultGuesses;
+		let partial: Partial<ClassProps> = {};
+		partial[mathPropsName] = {
+			...mathProps,
+			resultGuesses: updatedResultGuesses
+		};
+		let sound = resultSelected == resultAnswer ? 'correct' : 'incorrect';
+		updateSound('result-guess', sound);
+		popoverResultClose();
+		await updateClassDailySlide('attendance', partial);
+	};
 
 	onMount(() => {});
 
@@ -137,9 +219,9 @@
 			result: resultGuesses
 		};
 		const allNums = {
-			one: oneGuess,
-			two: twoGuess,
-			result: resultGuess
+			one: oneSelected,
+			two: twoSelected,
+			result: resultSelected
 		};
 		const guesses = allGuesses[result];
 		const correctAnswer = correctAnswers[result];
@@ -187,36 +269,54 @@
 		updateClassDailySlide('attendance', attendanceProps);
 	};
 
+	const resetAllGuesses = async () => {
+		oneGuesses = [];
+		twoGuesses = [];
+		resultGuesses = [];
+		let partial: Partial<ClassProps> = {};
+		partial[mathPropsName] = {
+			...mathProps,
+			oneGuesses: [],
+			twoGuesses: [],
+			resultGuesses: []
+		};
+		await updateClassDailySlide('attendance', partial);
+	};
+
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'ArrowLeft') {
 			event.preventDefault();
 			if (
-				[resultGuess === undefined, twoGuess === undefined, resultGuess === undefined].every(
-					(e) => e
-				)
+				[
+					resultSelected === undefined,
+					twoSelected === undefined,
+					resultSelected === undefined
+				].every((e) => e)
 			)
 				return pageLeft();
-			else if (resultGuess === correctAnswers.result) resultGuess = undefined;
-			else if (twoGuess === correctAnswers.two) twoGuess = undefined;
-			else if (oneGuess === correctAnswers.one) oneGuess = undefined;
+			else if (resultSelected === correctAnswers.result) resultSelected = undefined;
+			else if (twoSelected === correctAnswers.two) twoSelected = undefined;
+			else if (oneSelected === correctAnswers.one) oneSelected = undefined;
 		} else if (event.key === 'ArrowRight') {
 			event.preventDefault();
 			if (
 				[
-					resultGuess === correctAnswers.one,
-					twoGuess === correctAnswers.two,
-					resultGuess === correctAnswers.result
+					resultSelected === correctAnswers.one,
+					twoSelected === correctAnswers.two,
+					resultSelected === correctAnswers.result
 				].every((e) => e)
 			)
 				return pageRight();
-			else if (oneGuess !== correctAnswers.one) oneGuess = correctAnswers.one;
-			else if (twoGuess !== correctAnswers.two) twoGuess = correctAnswers.two;
-			else if (resultGuess !== correctAnswers.result) resultGuess = correctAnswers.result;
+			else if (oneSelected !== correctAnswers.one) oneSelected = correctAnswers.one;
+			else if (twoSelected !== correctAnswers.two) twoSelected = correctAnswers.two;
+			else if (resultSelected !== correctAnswers.result) resultSelected = correctAnswers.result;
 		}
 	}
 </script>
 
-<svelte:window on:keydown|preventDefault={onKeydown} />
+<ResetSlide onclick={resetAllGuesses} />
+
+<svelte:window on:keydown={onKeydown} />
 
 <div class="h-full w-full">
 	<div class="flex h-[20%] w-full items-center justify-center">
@@ -244,8 +344,8 @@
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
 					<h1 class="text-size-10 font-black">
-						{#if oneGuess === correctAnswers.one}
-							{oneGuess}
+						{#if oneSelected === correctAnswers.one}
+							{oneSelected}
 						{:else}
 							?
 						{/if}
@@ -274,8 +374,8 @@
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
 					<h1 class="text-size-10 font-black">
-						{#if twoGuess === correctAnswers.two}
-							{twoGuess}
+						{#if twoSelected === correctAnswers.two}
+							{twoSelected}
 						{:else}
 							?
 						{/if}
@@ -309,8 +409,8 @@
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
 					<h1 class="text-size-10 font-black">
-						{#if resultGuess === correctAnswers.result}
-							{resultGuess}
+						{#if resultSelected === correctAnswers.result}
+							{resultSelected}
 						{:else}
 							?
 						{/if}
@@ -343,31 +443,22 @@
 				open={openStateOne}
 				onOpenChange={(e) => (openStateOne = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('one', oneGuess)}
+				classes={getAnswerClass('one', oneSelected)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{oneGuess ?? '?'}
+					{oneSelected ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-2 gap-2 md:gap-4">
-						{#each oneAnswerOptions as answer}
+						{#each oneOptions as answer}
 							<button
 								class={getOptionClass('one', answer)}
 								disabled={disableGuess('one', answer)}
-								onclick={() => {
-									if (oneGuess === answer) {
-										oneGuesses = [];
-										oneGuess = undefined;
-									} else {
-										oneGuesses.push(answer);
-										oneGuess = answer;
-									}
-									popoverOneClose();
-								}}
+								onclick={() => updateOne(answer)}
 							>
 								{answer}
 							</button>
@@ -401,31 +492,22 @@
 				open={openStateTwo}
 				onOpenChange={(e) => (openStateTwo = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('two', twoGuess)}
+				classes={getAnswerClass('two', twoSelected)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{twoGuess ?? '?'}
+					{twoSelected ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-2 gap-2 md:gap-4">
-						{#each twoAnswerOptions as answer}
+						{#each twoOptions as answer}
 							<button
 								class={getOptionClass('two', answer)}
 								disabled={disableGuess('two', answer)}
-								onclick={() => {
-									if (twoGuess === answer) {
-										twoGuesses = [];
-										twoGuess = undefined;
-									} else {
-										twoGuesses.push(answer);
-										twoGuess = answer;
-									}
-									popoverTwoClose();
-								}}
+								onclick={() => updateTwo(answer)}
 							>
 								{answer}
 							</button>
@@ -460,31 +542,22 @@
 				open={openStateResult}
 				onOpenChange={(e) => (openStateResult = e.open)}
 				positioning={{ placement: 'top' }}
-				classes={getAnswerClass('result', resultGuess)}
+				classes={getAnswerClass('result', resultSelected)}
 				triggerBase="btn text-size-8 font-black w-full h-full"
 				contentBase="preset-filled-surface-300-700 max-w-[600px] rounded-2xl p-4"
 				arrow
 				arrowBase="preset-filled-surface-300-700"
 			>
 				{#snippet trigger()}
-					{resultGuess ?? '?'}
+					{resultSelected ?? '?'}
 				{/snippet}
 				{#snippet content()}
 					<div class="grid grid-cols-2 gap-2 md:gap-4">
-						{#each resultAnswerOptions as answer}
+						{#each resultOptions as answer}
 							<button
 								class={getOptionClass('result', answer)}
 								disabled={disableGuess('result', answer)}
-								onclick={() => {
-									if (resultGuess === answer) {
-										resultGuesses = [];
-										resultGuess = undefined;
-									} else {
-										resultGuesses.push(answer);
-										resultGuess = answer;
-									}
-									popoverResultClose();
-								}}
+								onclick={() => updateResult(answer)}
 							>
 								{answer}
 							</button>
