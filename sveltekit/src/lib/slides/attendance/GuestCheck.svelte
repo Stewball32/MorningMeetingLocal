@@ -115,7 +115,7 @@
 
 	const avatarURL = (avatarId: string) => {
 		let avatar = guestAvatarMap.get(avatarId);
-		if (!avatar) return '/default_guest_avatar.png';
+		if (!avatar) return '/defaults/avatar.png';
 		let url = getPbImageUrl(avatar.collectionId, avatar.id, avatar.image);
 		console.log('Avatar URL', url);
 		return url;

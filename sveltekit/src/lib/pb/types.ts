@@ -56,3 +56,13 @@ export interface GuestDaily extends DailyRecord {
 	avatar: string; // GuestAvatar.id
 	pronoun?: 'he' | 'she';
 }
+
+export interface CalendarObservances extends RecordModel {
+	name: string;
+	description: string;
+	is_active: boolean;
+	dates: string[]; // Array of dates in YYYY-MM-DD format
+	image: string; // Image URL
+	exceptions: JSON; // TODO: Define a more specific type if needed
+	school_day: boolean; // Whether this observance is a school day
+}
