@@ -43,14 +43,26 @@ export interface TeacherDaily extends DailyRecord {
 	attendance: TeacherAttendanceProps;
 }
 
-export interface GuestAvatar extends RecordModel {
+export interface IconRecord extends RecordModel {
 	name: string;
 	emoji: string; // emoji
 	image: string; // image url
+	for_avatar: boolean; // for avatar
+	for_calendar: boolean; // for calendar
 }
 
 export interface GuestDaily extends DailyRecord {
 	name: string;
 	avatar: string; // GuestAvatar.id
 	pronoun?: 'he' | 'she';
+}
+
+export interface CalendarObservances extends RecordModel {
+	name: string;
+	description: string;
+	is_active: boolean;
+	dates: string[]; // Array of dates in YYYY-MM-DD format
+	image: string; // Image URL
+	exceptions: JSON; // TODO: Define a more specific type if needed
+	school_day: boolean; // Whether this observance is a school day
 }

@@ -49,6 +49,7 @@
 	"dependencies": {
 		"@fontsource/abeezee": "^5.2.5",
 		"@lucide/svelte": "^0.488.0",
+		"date-holidays": "^3.24.3",
 		"pocketbase": "^0.25.2"
 	}
 }

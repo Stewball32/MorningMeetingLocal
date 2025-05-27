@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { GuestAvatar, GuestDaily } from '$lib/pb/types';
+	import type { IconRecord, GuestDaily } from '$lib/pb/types';
 	import { onMount } from 'svelte';
 	import type { ClassProps } from './_types';
 	import { Combobox, Modal, Popover } from '@skeletonlabs/skeleton-svelte';
@@ -15,7 +15,7 @@
 		hasGuests?: boolean;
 		guestDailies?: GuestDaily[];
 		welcomeGuests?: boolean;
-		guestAvatarMap?: Map<string, GuestAvatar>;
+		guestAvatarMap?: Map<string, IconRecord>;
 		pageLeft: () => void;
 		pageRight: () => void;
 		updateClassDailySlide: (
@@ -34,7 +34,7 @@
 		hasGuests = $bindable(undefined),
 		guestDailies = $bindable([]),
 		welcomeGuests = $bindable(false),
-		guestAvatarMap = $bindable(new Map<string, GuestAvatar>()),
+		guestAvatarMap = $bindable(new Map<string, IconRecord>()),
 		pageLeft = () => {},
 		pageRight = () => {},
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassProps>) => {}
@@ -115,7 +115,7 @@
 
 	const avatarURL = (avatarId: string) => {
 		let avatar = guestAvatarMap.get(avatarId);
-		if (!avatar) return '/default_guest_avatar.png';
+		if (!avatar) return '/defaults/avatar.png';
 		let url = getPbImageUrl(avatar.collectionId, avatar.id, avatar.image);
 		console.log('Avatar URL', url);
 		return url;
