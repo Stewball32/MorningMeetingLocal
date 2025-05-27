@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { GuestAvatar, GuestDaily, Student, Teacher } from '$lib/pb/types';
+	import type { IconRecord, GuestDaily, Student, Teacher } from '$lib/pb/types';
 	import PersonButton from '$lib/buttons/PersonButton.svelte';
 	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
 
@@ -23,7 +23,7 @@
 		mathPropsName: 'studentMath' | 'peopleMath';
 		title?: string;
 		subtitle?: string;
-		guestAvatarMap?: Map<string, GuestAvatar>;
+		guestAvatarMap?: Map<string, IconRecord>;
 		pageLeft?: () => void;
 		pageRight?: () => void;
 		updateClassDailySlide: (

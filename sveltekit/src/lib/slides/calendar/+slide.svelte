@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type {
 		ClassDaily,
-		GuestAvatar,
+		IconRecord,
 		GuestDaily,
 		Student,
 		StudentDaily,
@@ -20,7 +20,7 @@
 		studentDailyMap: Map<string, StudentDaily>;
 		teacherDailyMap: Map<string, TeacherDaily>;
 		guestDailies: GuestDaily[];
-		guestAvatarMap: Map<string, GuestAvatar>;
+		guestAvatarMap: Map<string, IconRecord>;
 		slideLeft: () => void;
 		slideRight: () => void;
 		updateClassDailySlide: (
@@ -36,7 +36,7 @@
 		studentDailyMap = $bindable(new Map<string, StudentDaily>()),
 		teacherDailyMap = $bindable(new Map<string, TeacherDaily>()),
 		guestDailies = $bindable([]),
-		guestAvatarMap = $bindable(new Map<string, GuestAvatar>()),
+		guestAvatarMap = $bindable(new Map<string, IconRecord>()),
 		slideLeft = () => {},
 		slideRight = () => {},
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {}

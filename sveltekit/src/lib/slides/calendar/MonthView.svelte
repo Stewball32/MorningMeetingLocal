@@ -4,6 +4,8 @@
 	import type { Weekday } from './_types';
 	import { updateSound } from '$lib/sounds';
 	import ResetSlide from '$lib/slides/ResetSlide.svelte';
+	import { getHolidayMap } from '$lib/pb/calendar';
+	import type { Holiday } from '$lib/pb/calendar';
 
 	interface MonthViewProps {
 		classDaily: ClassDaily;
@@ -32,14 +34,23 @@
 		updateClassDailySlide = async (column: string, partialClassDaily: Partial<ClassDaily>) => {}
 	}: MonthViewProps = $props();
 
-	let currentMonth = today.getMonth();
-	let currentYear = today.getFullYear();
-	let daysInMonth: number[] = $state([]);
-	let startDay = $state(0);
-
 	const getDaysInMonth = (month: number, year: number): number => {
 		return new Date(year, month + 1, 0).getDate();
 	};
+
+	const currentMonth = today.getMonth();
+	const lastMonth = (currentMonth + 11) % 12;
+	const nextMonth = (currentMonth + 1) % 12;
+	const currentYear = today.getFullYear();
+	const daysInMonth: number = $state(getDaysInMonth(currentMonth, currentYear));
+	let daysInLastMonth: number = $state(
+		getDaysInMonth(lastMonth, lastMonth == 11 ? currentYear - 1 : currentYear)
+	);
+	let daysInNextMonth: number = $state(
+		getDaysInMonth(nextMonth, nextMonth == 0 ? currentYear + 1 : currentYear)
+	);
+	let startDay = $state(0);
+	let holidayMap: Map<number, Holiday[]> = $state(new Map());
 
 	let weekdays: Weekday[] = startWithSunday
 		? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -52,10 +63,12 @@
 			: (jsDay + 6) % 7; // remap so Mon = 0, Tue = 1, ..., Sun = 6
 	};
 
-	const generateCalendar = () => {
-		const numDays = getDaysInMonth(currentMonth, currentYear);
+	const generateCalendar = async () => {
+		// const numDays = getDaysInMonth(currentMonth, currentYear);
 		startDay = getStartDayOfMonth(currentMonth, currentYear);
-		daysInMonth = Array.from({ length: numDays }, (_, i) => i + 1);
+		const newHolidayMap = await getHolidayMap(currentYear, currentMonth);
+		holidayMap = newHolidayMap;
+		console.log('Holiday Map:', holidayMap);
 	};
 
 	let selectedCalendar: number | undefined = $derived(calendarGuesses[0]);
@@ -102,7 +115,7 @@
 
 	const gridRows = () => {
 		type Rows = 4 | 5 | 6;
-		let rows = Math.ceil((daysInMonth.length + startDay) / 7);
+		let rows = Math.ceil((daysInMonth + startDay) / 7);
 		const gridRows = {
 			4: 'grid-rows-[12%_repeat(4,_1fr)]',
 			5: 'grid-rows-[12%_repeat(5,_1fr)]',
@@ -127,7 +140,7 @@
 		if (day + startDay > 7) dayClass += ' border-t-2';
 		if ((day + startDay) % 7 != 1) dayClass += ' border-l-2';
 		if ((day + startDay) % 7 != 0) dayClass += ' border-r-2';
-		let weekRow = Math.floor((daysInMonth.length + startDay) / 7);
+		let weekRow = Math.floor((daysInMonth + startDay) / 7);
 		if (day / 7 > 0) dayClass += ' border-t-2 ';
 		return dayClass;
 	};
@@ -159,11 +172,23 @@
 
 <div class="h-full w-full">
 	<div class="flex h-[15%] items-center justify-center">
+		<img
+			src={`/months/${monthNames[currentMonth]}.png`}
+			alt={monthNames[currentMonth]}
+			class="h-11/12 m-0 rounded-full p-0"
+			onerror={(e) => {
+				(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
+			}}
+		/>
 		<h2 class="text-size-7 font-bold">{monthNames[currentMonth]} {currentYear}</h2>
 	</div>
-	<div class="flex h-[74%] items-center justify-center">
+	<div
+		role="presentation"
+		onmouseleave={() => hoverWeekday(null)}
+		class="flex h-[74%] items-center justify-center"
+	>
 		<div class={`grid h-full w-[6%] ${gridRows()}  py-[.5%] text-center font-bold`}>
-			{#each [null, null, ...Array(Math.ceil((daysInMonth.length + startDay) / 7) - (startDay > 0 ? 1 : 0)).keys()] as i}
+			{#each [null, null, ...Array(Math.ceil((daysInMonth + startDay) / 7) - (startDay > 0 ? 1 : 0)).keys()] as i}
 				{#if i == null}
 					<div class=""></div>
 				{:else}
@@ -175,8 +200,6 @@
 			{/each}
 		</div>
 		<div
-			onmouseleave={() => hoverWeekday(null)}
-			role="presentation"
 			class={`grid h-full w-[93%] grid-cols-7 ${gridRows()} rounded-4xl overflow-clip border-4 bg-white text-center`}
 		>
 			{#each weekdayAbrs as dayName, i}
@@ -189,28 +212,89 @@
 					{dayName}
 				</div>
 			{/each}
-			{#each Array(startDay).fill(null) as _}
-				<div class="border bg-gray-400"></div>
+			{#each Array(startDay).fill(null) as _, i}
+				<div
+					class="relative flex select-none items-center justify-center overflow-hidden border bg-gray-200"
+				>
+					<span class={`text-size-0 absolute right-[0%] top-0 rounded-bl-xl italic text-gray-500`}>
+						{daysInLastMonth - startDay + i + 1}
+					</span>
+
+					<span
+						class="text-size-0 absolute top-[25%] w-full truncate text-center italic text-gray-500"
+					>
+						{monthNames[lastMonth]}
+					</span>
+					<img
+						src={`/months/${monthNames[lastMonth]}.png`}
+						alt={monthNames[lastMonth]}
+						class="disabled m-0 h-full rounded-full p-0 opacity-15"
+						onerror={(e) => {
+							(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
+						}}
+					/>
+				</div>
 			{/each}
-			{#each daysInMonth as day}
+			{#each Array.from({ length: daysInMonth }, (_, i) => i + 1) as day}
 				<button
 					onmouseenter={() => hoverDay(day)}
 					onmouseleave={() => hoverDay(0)}
 					onclick={() => updateCalendar(day)}
 					disabled={selectedCalendar == todayDay ? false : calendarGuesses.includes(day)}
 					class={` ${day == selectedCalendar && selectedCalendar == todayDay ? 'z-2 outline-3 font-black' : ''}
-            ${dayBorders(day)} btn relative cursor-pointer select-auto rounded-none border `}
+            ${dayBorders(day)} btn relative h-full cursor-pointer select-auto overflow-hidden rounded-none border `}
 				>
 					<span
 						class={`${currentHoverDay == day ? 'font-bold' : ''}
               ${day == selectedCalendar && selectedCalendar == todayDay ? 'bg-black text-white' : ''}
-              text-size-2 absolute right-[0%] top-0 rounded-bl-xl`}>{day}</span
+              text-size-1 absolute right-[0%] top-0 rounded-bl-xl`}
 					>
+						{day}
+					</span>
+					{#if holidayMap.has(day)}
+						<img
+							src={holidayMap.get(day)![0].image}
+							alt={monthNames[currentMonth]}
+							class={` ${todayDay <= day ? 'opacity-75' : 'opacity-25'} m-0 max-h-full rounded-full p-0`}
+							onerror={(e) => {
+								(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
+							}}
+						/>
+						<div class="absolute flex h-full w-full flex-col items-end justify-center">
+							{#each holidayMap.get(day)! as holiday}
+								<span class="text-size-1 absolute bottom-[.25%] w-full truncate text-center">
+									{holiday.name}
+								</span>
+							{/each}
+						</div>
+					{/if}
 				</button>
 			{/each}
-			{#if (startDay + daysInMonth.length) % 7 != 0}
-				{#each Array(7 - ((daysInMonth.length + startDay) % 7)).fill(null) as _}
-					<div class="border bg-gray-400"></div>
+			{#if (startDay + daysInMonth) % 7 != 0}
+				{#each Array(7 - ((daysInMonth + startDay) % 7)).fill(null) as _, i}
+					<div
+						class="relative flex select-none items-center justify-center overflow-hidden border bg-gray-200"
+					>
+						<span
+							class={`text-size-0 absolute right-[0%] top-0 rounded-bl-xl italic text-gray-500`}
+						>
+							{daysInNextMonth - startDay + i + 1}
+						</span>
+
+						<span
+							class="text-size-0 absolute top-[25%] w-full truncate text-center italic text-gray-500"
+						>
+							{monthNames[nextMonth]}
+						</span>
+						<img
+							src={`/months/${monthNames[lastMonth]}.png`}
+							alt={monthNames[lastMonth]}
+							class="disabled m-0 h-full rounded-full p-0 opacity-15"
+							onerror={(e) => {
+								(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
+							}}
+						/>
+					</div>
 				{/each}
 			{/if}
 		</div>
