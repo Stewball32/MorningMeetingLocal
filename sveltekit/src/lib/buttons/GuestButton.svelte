@@ -61,7 +61,7 @@
 	let imageUrl = $derived(
 		avatarRecord
 			? `${PUBLIC_POCKETBASE_URL}/api/files/${avatarRecord.collectionId}/${avatarRecord.id}/${avatarRecord.image}`
-			: '/default_guest_avatar.png'
+			: '/defaults/avatar.png'
 	);
 	let text = $derived(`${guest.title || ''} ${guest.name}`.trimStart());
 	let imgAlt = $derived(`${guest.title || ''} ${guest.name}`.trimStart());

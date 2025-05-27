@@ -1,5 +1,5 @@
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
-import PocketBase, { type RecordSubscription } from 'pocketbase';
+import PocketBase from 'pocketbase';
 import type {
 	ClassDaily,
 	DailyRecord,

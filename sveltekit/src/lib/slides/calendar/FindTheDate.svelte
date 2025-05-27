@@ -257,7 +257,7 @@
 						alt={yesterdayMonth}
 						class="m-0 h-[2.5rem] rounded-full p-0"
 						onerror={(e) => {
-							(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+							(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
 						}}
 					/>
 					<div class={longestClass}>
@@ -314,7 +314,7 @@
 						alt={todayMonth}
 						class="m-0 h-[2.5rem] rounded-full p-0"
 						onerror={(e) => {
-							(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+							(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
 						}}
 					/>
 					<div class="z-2 relative flex h-full w-full items-center justify-center rounded-full">
@@ -412,7 +412,7 @@
 							alt={month}
 							class="m-0 h-[3rem] rounded-full p-0"
 							onerror={(e) => {
-								(e.currentTarget as HTMLImageElement).src = '/months/default.png';
+								(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
 							}}
 						/>
 						<span class="flex-grow select-none truncate">
