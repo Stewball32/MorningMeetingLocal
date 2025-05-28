@@ -1,16 +1,45 @@
 import { getPbImageUrl, pb } from '$lib/pb';
-import type { CalendarObservances } from '$lib/pb/types';
-import Holidays from 'date-holidays';
+import type { CalendarObservance } from '$lib/pb/types';
+import Holidays, { type HolidaysTypes } from 'date-holidays';
 
-export interface Holiday {
-	name: string;
-	description?: string;
-	date: Date;
-	local?: string;
-	image?: string;
-	school_day: boolean;
-	type?: string;
+export interface Holiday extends HolidaysTypes.Holiday {
+	description: string;
+	dateObj: Date;
+	image: string;
+	local: string;
+	school: CalendarObservance['school'];
 }
+
+const createHoliday = (HolidayRecord: CalendarObservance, year: number, month: number) => {
+	const customHolidays = new Holidays();
+	for (const date of HolidayRecord.dates) {
+		console.log(
+			`Adding custom holiday: ${HolidayRecord.name} on ${date} (${HolidayRecord.school})`
+		);
+		customHolidays.setHoliday(date, {
+			name: HolidayRecord.name,
+			type: 'school',
+			description: HolidayRecord.description ?? '',
+			image: HolidayRecord.image
+				? getPbImageUrl(HolidayRecord.collectionId, HolidayRecord.id, HolidayRecord.image)
+				: '',
+			local: 'local',
+			school: HolidayRecord.school ?? 'full'
+		});
+	}
+	return (
+		customHolidays
+			.getHolidays(year)
+			.filter((h) => !h.substitute && new Date(h.date).getMonth() === month)
+			.map(
+				(h) =>
+					({
+						...h,
+						dateObj: new Date(h.date)
+					}) as Holiday
+			) ?? []
+	);
+};
 
 export const getHolidayMap = async (year: number, month: number) => {
 	const newHMap = new Map<number, Holiday[]>();
@@ -24,46 +53,51 @@ export const getHolidayMap = async (year: number, month: number) => {
 			.getHolidays(year)
 			.filter((h) => !h.substitute && new Date(h.date).getMonth() === month)
 			.filter((h) => !ignoredHolidays.includes(h.name))
-			.map((h) => ({
-				...h,
-				description: '',
-				date: new Date(h.date),
-				local: 'federal',
-				image: '',
-				school_day: h.type != 'public'
-			})) ?? [];
+			.map(
+				(h) =>
+					({
+						...h,
+						description: '',
+						dateObj: new Date(h.date),
+						image: '',
+						local: 'federal',
+						school: h.type !== 'public' ? 'full' : 'none'
+					}) as Holiday
+			) ?? [];
 
 	// 2. Get state holidays
-	const stateHolidays = new Holidays('US', 'CA')
-		.getHolidays(year)
-		.filter(
-			(h) =>
-				!h.substitute &&
-				new Date(h.date).getMonth() === month &&
-				!holidays.some((f) => f.name === h.name && f.date.toISOString() === h.date)
-		)
-		.filter((h) => !ignoredHolidays.includes(h.name))
-		.map((h) => ({
-			...h,
-			description: '',
-			date: new Date(h.date),
-			local: 'state',
-			image: '',
-			school_day: h.type != 'public'
-		}));
+	const stateHolidays =
+		new Holidays('US', 'CA')
+			.getHolidays(year)
+			.filter(
+				(h) =>
+					!h.substitute &&
+					new Date(h.date).getMonth() === month &&
+					!holidays.some((f) => f.name === h.name)
+			)
+			.filter((h) => !ignoredHolidays.includes(h.name))
+			.map(
+				(h) =>
+					({
+						...h,
+						description: '',
+						dateObj: new Date(h.date),
+						image: '',
+						local: 'federal',
+						school: h.type !== 'public' ? 'full' : 'none'
+					}) as Holiday
+			) ?? [];
 
 	//3. Merge federal and state holidays
 	holidays = [...holidays, ...stateHolidays];
 
 	// 4. Get local holidays from PocketBase
-	const pbRecords = await pb.collection('calendar_observances').getFullList<CalendarObservances>({
+	const pbRecords = await pb.collection('calendar_observances').getFullList<CalendarObservance>({
 		filter: 'is_active = true'
 	});
 
-	console.log('pbRecords', pbRecords);
-
 	// 5. Merge PocketBase records with matching federal and state holidays
-	const customHolidays = new Holidays();
+	const localHolidays: Holiday[] = [];
 	for (const record of pbRecords) {
 		if (!record.dates || record.dates.length === 0) {
 			// Try to match with federal by name
@@ -73,54 +107,17 @@ export const getHolidayMap = async (year: number, month: number) => {
 				holidays[holidayIndex] = {
 					...holidays[holidayIndex],
 					description: record.description ?? '',
-					school_day: record.school_day ?? holidays[holidayIndex].school_day,
+					school: record.school ?? holidays[holidayIndex].school,
 					image: record.image
 						? getPbImageUrl(record.collectionId, record.id, record.image)
 						: holidays[holidayIndex].image
 				};
 			}
 		} else {
-			// Explicit dates from PocketBase
-			for (const date of record.dates) {
-				customHolidays.setHoliday(date, {
-					name: record.name,
-					description: record.description ?? '',
-					image: record.image ? getPbImageUrl(record.collectionId, record.id, record.image) : '',
-					school_day: record.school_day ?? true,
-					local: 'local',
-					type: 'school'
-				});
-			}
-		}
-	}
-
-	const localHolidays =
-		customHolidays
-			.getHolidays(year)
-			.filter((h) => !h.substitute && new Date(h.date).getMonth() === month)
-			.map((h) => ({
-				...h,
-				description: '',
-				date: new Date(h.date),
-				local: 'local',
-				image: '',
-				school_day: h.type != 'public'
-			})) ?? [];
-
-	for (const record of pbRecords) {
-		if (!record.dates || record.dates.length === 0) continue; // Skip if no dates provided
-		// Check if this record has explicit dates
-		const holidayIndex = localHolidays.findIndex((f) => f.name === record.name);
-		if (holidayIndex !== -1) {
-			// Merge local holiday with PocketBase record
-			localHolidays[holidayIndex] = {
-				...localHolidays[holidayIndex],
-				description: record.description ?? '',
-				school_day: record.school_day ?? localHolidays[holidayIndex].school_day,
-				image: record.image ? getPbImageUrl(record.collectionId, record.id, record.image) : '',
-				local: 'local',
-				type: 'school'
-			};
+			let newCustomHolidays = createHoliday(record, year, month);
+			newCustomHolidays.forEach((h) => {
+				localHolidays.push(h);
+			});
 		}
 	}
 
@@ -128,7 +125,7 @@ export const getHolidayMap = async (year: number, month: number) => {
 	holidays = [...holidays, ...localHolidays];
 
 	for (const h of holidays) {
-		const day = h.date.getDate();
+		const day = h.dateObj.getDate();
 		if (!newHMap.has(day)) newHMap.set(day, []);
 		newHMap.get(day)!.push(h);
 	}

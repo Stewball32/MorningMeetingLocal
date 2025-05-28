@@ -6,6 +6,7 @@
 	import ResetSlide from '$lib/slides/ResetSlide.svelte';
 	import { getHolidayMap } from '$lib/pb/calendar';
 	import type { Holiday } from '$lib/pb/calendar';
+	import DayInMonth from './DayInMonth.svelte';
 
 	interface MonthViewProps {
 		classDaily: ClassDaily;
@@ -131,12 +132,12 @@
 		return wkdyClass;
 	};
 
-	const dayBorders = (day: number) => {
+	const getDayClass = (day: number) => {
 		let dayClass = ' ';
 		let weekdayNum = (day - 1 + startDay) % 7;
 		// hover background
 		dayClass +=
-			weekdayNum == currentHovverWeekday ? weekdayBackgrounds[weekdays[weekdayNum]] : 'bg-gray-200';
+			weekdayNum == currentHoverWeekday ? weekdayBackgrounds[weekdays[weekdayNum]] : 'bg-gray-200';
 		if (day + startDay > 7) dayClass += ' border-t-2';
 		if ((day + startDay) % 7 != 1) dayClass += ' border-l-2';
 		if ((day + startDay) % 7 != 0) dayClass += ' border-r-2';
@@ -151,9 +152,9 @@
 		currentHoverDay = day;
 	};
 
-	let currentHovverWeekday: number | null = $state(null);
+	let currentHoverWeekday: number | null = $state(null);
 	const hoverWeekday = (weekday: number | null) => {
-		currentHovverWeekday = weekday;
+		currentHoverWeekday = weekday;
 	};
 
 	const onKeydown = (event: KeyboardEvent) => {
@@ -236,39 +237,21 @@
 				</div>
 			{/each}
 			{#each Array.from({ length: daysInMonth }, (_, i) => i + 1) as day}
-				<button
-					onmouseenter={() => hoverDay(day)}
-					onmouseleave={() => hoverDay(0)}
-					onclick={() => updateCalendar(day)}
-					disabled={selectedCalendar == todayDay ? false : calendarGuesses.includes(day)}
-					class={` ${day == selectedCalendar && selectedCalendar == todayDay ? 'z-2 outline-3 font-black' : ''}
-            ${dayBorders(day)} btn relative h-full cursor-pointer select-auto overflow-hidden rounded-none border `}
-				>
-					<span
-						class={`${currentHoverDay == day ? 'font-bold' : ''}
-              ${day == selectedCalendar && selectedCalendar == todayDay ? 'bg-black text-white' : ''}
-              text-size-1 absolute right-[0%] top-0 rounded-bl-xl`}
-					>
-						{day}
-					</span>
-					{#if holidayMap.has(day)}
-						<img
-							src={holidayMap.get(day)![0].image}
-							alt={monthNames[currentMonth]}
-							class={` ${todayDay <= day ? 'opacity-75' : 'opacity-25'} m-0 max-h-full rounded-full p-0`}
-							onerror={(e) => {
-								(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
-							}}
-						/>
-						<div class="absolute flex h-full w-full flex-col items-end justify-center">
-							{#each holidayMap.get(day)! as holiday}
-								<span class="text-size-1 absolute bottom-[.25%] w-full truncate text-center">
-									{holiday.name}
-								</span>
-							{/each}
-						</div>
-					{/if}
-				</button>
+				<DayInMonth
+					{day}
+					month={monthNames[currentMonth]}
+					holidays={holidayMap.get(day) ?? []}
+					{currentHoverDay}
+					inPast={todayDay < day}
+					inCurrentMonth={currentMonth == today.getMonth()}
+					wasSelected={selectedCalendar == day}
+					isToday={day == todayDay}
+					todayChosen={selectedCalendar == todayDay}
+					isDisabled={selectedCalendar != todayDay && calendarGuesses.includes(day)}
+					onHover={hoverDay}
+					onClick={updateCalendar}
+					{getDayClass}
+				/>
 			{/each}
 			{#if (startDay + daysInMonth) % 7 != 0}
 				{#each Array(7 - ((daysInMonth + startDay) % 7)).fill(null) as _, i}
