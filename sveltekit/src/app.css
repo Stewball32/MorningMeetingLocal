@@ -53,8 +53,12 @@
 		/* @reference xl:text-10xl 2xl:text-11xl; */
 	}
 
+	.text-size-00 {
+		@apply 3xl:text-xl text-xs sm:text-xs md:text-xs lg:text-sm xl:text-base 2xl:text-lg;
+	}
+
 	.text-size-0 {
-		@apply 3xl:text-2xl text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl;
+		@apply 3xl:text-2xl text-xs sm:text-xs md:text-sm lg:text-base xl:text-lg 2xl:text-xl;
 	}
 
 	.text-size-1 {
