@@ -35,14 +35,14 @@
 	}: DayInMonthProps = $props();
 
 	let baseBtnClass =
-		'btn relative h-full cursor-pointer select-auto overflow-hidden rounded-none border ';
+		'btn relative h-full p-0 cursor-pointer select-auto overflow-hidden rounded-none border ';
 	let buttonTodayChosenClass = $derived(isToday && todayChosen ? 'z-2 outline-3 ' : '');
 	let buttonClass = $derived(`${getDayClass(day)} ${buttonTodayChosenClass} ${baseBtnClass}`);
 
-	let baseDayClass = 'text-size-1 leading-7 absolute right-[0%] top-0 rounded-bl-xl';
+	let baseDayClass = 'text-size-1 pl-[2%] leading-none absolute right-[0%] top-0 rounded-bl-lg';
 	let dayHoverClass = $derived(currentHoverDay == day ? 'font-bold' : '');
 	let dayTodayChosenClass = $derived(
-		isToday && todayChosen ? 'bg-black text-white font-black' : ''
+		isToday && todayChosen ? 'bg-black text-white font-black' : 'bg-white text-black font-normal '
 	);
 	let dayClass = $derived(`${baseDayClass} ${dayHoverClass} ${dayTodayChosenClass}`);
 
@@ -80,11 +80,6 @@
 		{day}
 	</span>
 	{#if holidays && holidays.length > 0}
-		{#if !holidays.every((h) => !h.school || h.school == 'full')}
-			<span class="text-size-00 z-3 absolute bottom-[.05%] truncate px-[1%] font-thin">
-				({holidays.some((h) => h.school === 'none') ? 'No School!' : 'Short Day!'})
-			</span>
-		{/if}
 		<img
 			src={holidays[index]?.image}
 			alt={holidays[index].name}
@@ -93,10 +88,17 @@
 				(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
 			}}
 		/>
-		<span
-			class="text-size-1 absolute bottom-[20%] line-clamp-2 w-full text-pretty text-center leading-9"
-		>
-			{holidays[index].name}
-		</span>
+		<div class="absolute flex h-full w-[98%] flex-col items-center justify-center p-0">
+			<span
+				class="text-size-1 absolute line-clamp-2 w-full text-pretty text-center leading-none max-lg:pb-[1%]"
+			>
+				{holidays[index].name}
+			</span>
+		</div>
+		{#if !holidays.every((h) => !h.school || h.school == 'full')}
+			<span class="text-size-00 z-3 absolute bottom-0 truncate px-[2%] font-thin leading-none">
+				({holidays.some((h) => h.school === 'none') ? 'No School!' : 'Short Day!'})
+			</span>
+		{/if}
 	{/if}
 </button>

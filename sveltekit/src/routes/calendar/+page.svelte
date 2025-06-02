@@ -18,7 +18,7 @@
 		let holidaysInYear: Array<string[]> = [];
 
 		holidays.forEach((holiday) => {
-			const date = new Date(holiday.dateObj);
+			const date = new Date(holiday.date);
 			// add a leading zero to month and day if needed
 			const month = (date.getMonth() + 1).toString().padStart(2, '0');
 			const day = date.getDate().toString().padStart(2, '0');
