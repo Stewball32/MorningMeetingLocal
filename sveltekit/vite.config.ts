@@ -5,6 +5,11 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+
+  preview: {
+    host: '0.0.0.0',
+    allowedHosts: ['meet.lan']
+  },
 	test: {
 		workspace: [
 			{
