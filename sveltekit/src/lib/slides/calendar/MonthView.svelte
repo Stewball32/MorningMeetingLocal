@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { ClassDaily } from '$lib/pb/types';
 	import { onMount } from 'svelte';
-	import type { Weekday } from './_types';
+	import type { Weekday, AstronomyData } from './_types';
 	import { updateSound } from '$lib/sounds';
 	import ResetSlide from '$lib/slides/ResetSlide.svelte';
 	import { getHolidayMap } from '$lib/pb/calendar';
 	import type { Holiday } from '$lib/pb/calendar';
 	import DayInMonth from './DayInMonth.svelte';
+	import { MoonPhase } from 'astronomy-engine';
 
 	interface MonthViewProps {
 		classDaily: ClassDaily;
@@ -64,6 +65,55 @@
 			: (jsDay + 6) % 7; // remap so Mon = 0, Tue = 1, ..., Sun = 6
 	};
 
+	// object, Key: day of the month, Value: MoonPhaseData
+	const astronomyData: Record<number, AstronomyData[]> = $state({});
+
+	function getPhaseIndex(rawAngle: number): number {
+		const normalized = ((rawAngle % 360) + 360) % 360; // in case of negative angles
+		const idx = Math.round(normalized / 45) % 8;
+		return idx;
+	}
+	const updateMoonChanges = () => {
+		const moonImgDir = `/moons/`;
+		const moonPhaseArray = [
+			['New Moon', 'new-moon.png'],
+			['Waxing Crescent', 'waxing-crescent.png'],
+			['First Quarter', 'first-quarter.png'],
+			['Waxing Gibbous', 'waxing-gibbous.png'],
+			['Full Moon', 'full-moon.png'],
+			['Waning Gibbous', 'waning-gibbous.png'],
+			['Last Quarter', 'last-quarter.png'],
+			['Waning Crescent', 'waning-crescent.png']
+		];
+		// If you don’t want to compare day 1 to the previous month's last day, start at day = 2:
+		for (let day = 1; day <= daysInMonth; day++) {
+			const today = new Date(currentYear, currentMonth, day);
+			const todayAngle = MoonPhase(today);
+			const phaseIndex = getPhaseIndex(todayAngle);
+
+			// If day > 1, compare to yesterday in *this same month*; otherwise skip
+			if (day > 1) {
+				const yesterday = new Date(currentYear, currentMonth, day - 1);
+				const yesterdayIndex = getPhaseIndex(MoonPhase(yesterday));
+				if (phaseIndex === yesterdayIndex) {
+					continue; // no change in phase from yesterday → skip
+				}
+			}
+			// (Optional) If you really want to record a change on day 1 vs. the *previous* month,
+			// you can remove the `day > 1` check and always compare.
+
+			const [phaseName, phaseImage] = moonPhaseArray[phaseIndex];
+			// console.log(`Day ${day} (${today.toDateString()}): ${phaseName} (${phaseImage})`);
+			const moonPhaseData: AstronomyData = {
+				name: phaseName,
+				imgSrc: moonImgDir + phaseImage
+			};
+			astronomyData[day] = astronomyData[day] ??= [];
+			astronomyData[day].push(moonPhaseData);
+		}
+		console.log('Astronomy Data:', astronomyData);
+	};
+
 	const generateCalendar = async () => {
 		// const numDays = getDaysInMonth(currentMonth, currentYear);
 		startDay = getStartDayOfMonth(currentMonth, currentYear);
@@ -71,6 +121,8 @@
 		holidayMap = newHolidayMap;
 		console.log('Holiday Map:', holidayMap);
 	};
+
+	updateMoonChanges();
 
 	let selectedCalendar: number | undefined = $derived(calendarGuesses[0]);
 	const updateCalendar = async (value: number) => {
@@ -189,7 +241,7 @@
 		class="flex h-[74%] items-center justify-center"
 	>
 		<div class={`grid h-full w-[6%] ${gridRows()}  py-[.5%] text-center font-bold`}>
-			{#each [null, null, ...Array(Math.ceil((daysInMonth + startDay) / 7) - (startDay > 0 ? 1 : 0)).keys()] as i}
+			{#each [...Array(startDay > 1 ? 2 : 1).fill(null), ...Array(Math.ceil((daysInMonth + startDay) / 7) - (startDay > 0 ? 1 : 0)).keys()] as i}
 				{#if i == null}
 					<div class=""></div>
 				{:else}
@@ -240,7 +292,9 @@
 				<DayInMonth
 					{day}
 					month={monthNames[currentMonth]}
+					year={currentYear}
 					holidays={holidayMap.get(day) ?? []}
+					astronomyData={astronomyData[day] ?? []}
 					{currentHoverDay}
 					inPast={todayDay < day}
 					inCurrentMonth={currentMonth == today.getMonth()}
@@ -259,9 +313,9 @@
 						class="relative flex select-none items-center justify-center overflow-hidden border bg-gray-200"
 					>
 						<span
-							class={`text-size-0 absolute right-[0%] top-0 rounded-bl-xl italic text-gray-500`}
+							class={`text-size-0 absolute right-[0%] top-0 rounded-bl-xl px-[2%] italic leading-none text-gray-500`}
 						>
-							{daysInNextMonth - startDay + i + 1}
+							{i + 1}
 						</span>
 
 						<span
