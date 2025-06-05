@@ -43,16 +43,12 @@ const createHoliday = (HolidayRecord: CalendarObservance, year: number, month: n
 
 export const getHolidayMap = async (year: number, month: number) => {
 	const newHMap = new Map<number, Holiday[]>();
-	console.log(`Fetching holidays for ${year}-${month + 1}`);
-
-	const ignoredHolidays = ['Malcolm X Day', 'Harvey Milk Day'];
 
 	// 1. Get federal holidays
 	let holidays =
 		new Holidays('US')
 			.getHolidays(year)
 			.filter((h) => !h.substitute && new Date(h.date).getMonth() === month)
-			.filter((h) => !ignoredHolidays.includes(h.name))
 			.map(
 				(h) =>
 					({
@@ -66,30 +62,30 @@ export const getHolidayMap = async (year: number, month: number) => {
 			) ?? [];
 
 	// 2. Get state holidays
-	const stateHolidays =
-		new Holidays('US', 'CA')
-			.getHolidays(year)
-			.filter(
-				(h) =>
-					!h.substitute &&
-					new Date(h.date).getMonth() === month &&
-					!holidays.some((f) => f.name === h.name)
-			)
-			.filter((h) => !ignoredHolidays.includes(h.name))
-			.map(
-				(h) =>
-					({
-						...h,
-						description: '',
-						dateObj: new Date(h.date),
-						image: '',
-						local: 'federal',
-						school: h.type !== 'public' ? 'full' : 'none'
-					}) as Holiday
-			) ?? [];
+	// const stateHolidays =
+	// 	new Holidays('US', 'CA')
+	// 		.getHolidays(year)
+	// 		.filter(
+	// 			(h) =>
+	// 				!h.substitute &&
+	// 				new Date(h.date).getMonth() === month &&
+	// 				!holidays.some((f) => f.name === h.name)
+	// 		)
+	// 		.filter((h) => !ignoredHolidays.includes(h.name))
+	// 		.map(
+	// 			(h) =>
+	// 				({
+	// 					...h,
+	// 					description: '',
+	// 					dateObj: new Date(h.date),
+	// 					image: '',
+	// 					local: 'federal',
+	// 					school: h.type !== 'public' ? 'full' : 'none'
+	// 				}) as Holiday
+	// 		) ?? [];
 
 	//3. Merge federal and state holidays
-	holidays = [...holidays, ...stateHolidays];
+	// holidays = [...holidays, ...stateHolidays];
 
 	// 4. Get local holidays from PocketBase
 	const pbRecords = await pb.collection('calendar_observances').getFullList<CalendarObservance>({

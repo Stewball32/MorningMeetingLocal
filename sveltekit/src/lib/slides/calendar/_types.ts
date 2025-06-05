@@ -32,6 +32,7 @@ export type Weekday =
 	| 'Thursday'
 	| 'Friday'
 	| 'Saturday';
+
 export type Month =
 	| 'January'
 	| 'February'
@@ -45,3 +46,9 @@ export type Month =
 	| 'October'
 	| 'November'
 	| 'December';
+
+export interface AstronomyData {
+	name: string;
+	description?: string;
+	imgSrc: string;
+}

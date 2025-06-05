@@ -1,11 +1,16 @@
 <script lang="ts">
 	import type { Holiday } from '$lib/pb/calendar';
+	import type { AstronomyData } from './_types';
+	import { MoonPhase } from 'astronomy-engine';
 	import { onDestroy, onMount } from 'svelte';
+	import MonthView from './MonthView.svelte';
 
 	interface DayInMonthProps {
 		day: number;
 		month?: string;
+		year: number;
 		holidays: Holiday[];
+		astronomyData: AstronomyData[];
 		currentHoverDay?: number;
 		inPast?: boolean;
 		inCurrentMonth?: boolean;
@@ -21,7 +26,9 @@
 	let {
 		day,
 		month = '',
+		year = new Date().getFullYear(),
 		holidays = [],
+		astronomyData = [],
 		currentHoverDay = 0,
 		inPast = false,
 		inCurrentMonth = true,
@@ -46,26 +53,35 @@
 	);
 	let dayClass = $derived(`${baseDayClass} ${dayHoverClass} ${dayTodayChosenClass}`);
 
-	let baseImageClass = 'm-0 h-full rounded-full p-0';
 	let inPastClass = $derived(inPast ? 'opacity-75' : 'opacity-25');
-	let imageClass = $derived(`${baseImageClass} ${inPastClass}`);
 
-	let index = $state(0);
-	let timer: ReturnType<typeof setInterval>;
+	let baseHolidayClass = 'm-0 h-full rounded-full p-0';
+	let holidayClass = $derived(`${baseHolidayClass} ${inPastClass}`);
+
+	const baseAstronomyClass = 'flex absolute left-[2%] top-0 h-[25%] overflow-hidden';
+	let astronomyClass = $derived(`${baseAstronomyClass} ${inPastClass}`);
+
+	let holidayIndex = $state(0);
+	let holidayTimer: ReturnType<typeof setInterval>;
 
 	$effect(() => {
-		if (holidays.length < 2) return clearInterval(timer);
-		console.log('DayInMonth effect', day, holidays);
-		console.log(holidays.some((h) => h.school === 'none') ? 'No School' : 'Short Day');
-		timer = setInterval(() => {
-			let oldIndex = index;
-			index = (index + 1) % holidays.length;
-			console.log(oldIndex, index);
+		if (holidays.length < 2) return clearInterval(holidayTimer);
+		holidayTimer = setInterval(() => {
+			holidayIndex = (holidayIndex + 1) % holidays.length;
+		}, 3000);
+	});
+
+	let astronomyIndex = $state(0);
+	let astronomyTimer: ReturnType<typeof setInterval>;
+	$effect(() => {
+		if (astronomyData.length < 2) return clearInterval(astronomyTimer);
+		astronomyTimer = setInterval(() => {
+			astronomyIndex = (astronomyIndex + 1) % astronomyData.length;
 		}, 3000);
 	});
 
 	onDestroy(() => {
-		clearInterval(timer);
+		clearInterval(holidayTimer);
 	});
 </script>
 
@@ -76,14 +92,24 @@
 	disabled={isDisabled}
 	class={buttonClass}
 >
+	{#if astronomyData && astronomyData.length > 0}
+		<img
+			src={astronomyData[astronomyIndex].imgSrc}
+			alt={astronomyData[astronomyIndex].name}
+			class={astronomyClass}
+			onerror={(e) => {
+				(e.currentTarget as HTMLImageElement).src = '/defaults/astronomy.png';
+			}}
+		/>
+	{/if}
 	<span class={dayClass}>
 		{day}
 	</span>
 	{#if holidays && holidays.length > 0}
 		<img
-			src={holidays[index]?.image}
-			alt={holidays[index].name}
-			class={imageClass}
+			src={holidays[holidayIndex]?.image}
+			alt={holidays[holidayIndex].name}
+			class={holidayClass}
 			onerror={(e) => {
 				(e.currentTarget as HTMLImageElement).src = '/defaults/calendar.png';
 			}}
@@ -92,7 +118,7 @@
 			<span
 				class="text-size-1 absolute line-clamp-2 w-full text-pretty text-center leading-none max-lg:pb-[1%]"
 			>
-				{holidays[index].name}
+				{holidays[holidayIndex].name}
 			</span>
 		</div>
 		{#if !holidays.every((h) => !h.school || h.school == 'full')}
