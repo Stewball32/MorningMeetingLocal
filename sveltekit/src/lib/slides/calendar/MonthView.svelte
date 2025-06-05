@@ -111,7 +111,6 @@
 			astronomyData[day] = astronomyData[day] ??= [];
 			astronomyData[day].push(moonPhaseData);
 		}
-		console.log('Astronomy Data:', astronomyData);
 	};
 
 	const generateCalendar = async () => {
@@ -296,7 +295,7 @@
 					holidays={holidayMap.get(day) ?? []}
 					astronomyData={astronomyData[day] ?? []}
 					{currentHoverDay}
-					inPast={todayDay < day}
+					inPast={todayDay <= day + 1}
 					inCurrentMonth={currentMonth == today.getMonth()}
 					wasSelected={selectedCalendar == day}
 					isToday={day == todayDay}
