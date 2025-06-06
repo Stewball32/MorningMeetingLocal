@@ -4,7 +4,7 @@
 	import type { Weekday, AstronomyData } from './_types';
 	import { updateSound } from '$lib/sounds';
 	import ResetSlide from '$lib/slides/ResetSlide.svelte';
-	import { getHolidayMap } from '$lib/pb/calendar';
+	import { getHolidayMap as getObservationMap } from '$lib/pb/calendar';
 	import type { Holiday } from '$lib/pb/calendar';
 	import DayInMonth from './DayInMonth.svelte';
 	import { MoonPhase } from 'astronomy-engine';
@@ -66,62 +66,103 @@
 	};
 
 	// object, Key: day of the month, Value: MoonPhaseData
-	const astronomyData: Record<number, AstronomyData[]> = $state({});
+	let astronomyData: Record<number, AstronomyData[]> = $state({});
+	const moonImgDir = `/moons/`;
+	// Lookup table: index 0 = New Moon, 1 = Waxing Crescent, …, 7 = Waning Crescent
+	const moonPhaseArray = [
+		['New Moon', 'new-moon.png'],
+		['Waxing Crescent', 'waxing-crescent.png'],
+		['First Quarter', 'first-quarter.png'],
+		['Waxing Gibbous', 'waxing-gibbous.png'],
+		['Full Moon', 'full-moon.png'],
+		['Waning Gibbous', 'waning-gibbous.png'],
+		['Last Quarter', 'last-quarter.png'],
+		['Waning Crescent', 'waning-crescent.png']
+	];
+	const lastDayofZodiac = [19, 18, 20, 20, 21, 21, 22, 22, 21, 22, 21, 20, 19];
+	const zodiacDir = '/zodiac/';
+	const zodiacArray = [
+		['Capricorn', 'capricorn.png'],
+		['Aquarius', 'aquarius.png'],
+		['Pisces', 'pisces.png'],
+		['Aries', 'aries.png'],
+		['Taurus', 'taurus.png'],
+		['Gemini', 'gemini.png'],
+		['Cancer', 'cancer.png'],
+		['Leo', 'leo.png'],
+		['Virgo', 'virgo.png'],
+		['Libra', 'libra.png'],
+		['Scorpio', 'scorpio.png'],
+		['Sagittarius', 'sagittarius.png']
+	];
 
-	function getPhaseIndex(rawAngle: number): number {
-		const normalized = ((rawAngle % 360) + 360) % 360; // in case of negative angles
-		const idx = Math.round(normalized / 45) % 8;
-		return idx;
-	}
-	const updateMoonChanges = () => {
-		const moonImgDir = `/moons/`;
-		const moonPhaseArray = [
-			['New Moon', 'new-moon.png'],
-			['Waxing Crescent', 'waxing-crescent.png'],
-			['First Quarter', 'first-quarter.png'],
-			['Waxing Gibbous', 'waxing-gibbous.png'],
-			['Full Moon', 'full-moon.png'],
-			['Waning Gibbous', 'waning-gibbous.png'],
-			['Last Quarter', 'last-quarter.png'],
-			['Waning Crescent', 'waning-crescent.png']
-		];
-		// If you don’t want to compare day 1 to the previous month's last day, start at day = 2:
+	const updateAstronomy = () => {
+		const newAstronomyData: Record<number, AstronomyData[]> = {};
+
+		const getPhaseIndex = (rawAngle: number) => {
+			// Normalize angle into [0, 360), then bucket into one of 8 octants
+			const normalized = ((rawAngle % 360) + 360) % 360;
+			return Math.round(normalized / 45) % 8;
+		};
+
+		const getZodiacSign = (date: Date) => {
+			const month = date.getMonth();
+			const day = date.getDate();
+			const idx = day > lastDayofZodiac[month] ? month + (1 % 12) : month;
+			return zodiacArray[idx];
+		};
+
+		// 1) Compute the phase index of the last day of the previous month:
+		const lastOfPrevMonth = new Date(currentYear, currentMonth, 0); // day 0 = last day of previous month
+		let prevMoonIdx = getPhaseIndex(MoonPhase(lastOfPrevMonth));
+		let prevZodiacSign = getZodiacSign(lastOfPrevMonth);
+
+		// 2) Loop through each day of the current month, compute phase index, and record if it changes
 		for (let day = 1; day <= daysInMonth; day++) {
-			const today = new Date(currentYear, currentMonth, day);
-			const todayAngle = MoonPhase(today);
-			const phaseIndex = getPhaseIndex(todayAngle);
+			const loopDate = new Date(currentYear, currentMonth, day);
+			const loopMoonIdx = getPhaseIndex(MoonPhase(loopDate));
+			if (loopMoonIdx !== prevMoonIdx) {
+				// We have a phase transition on "day"
+				const [phaseName, fileName] = moonPhaseArray[loopMoonIdx];
+				const entry: AstronomyData = {
+					name: phaseName,
+					imgSrc: moonImgDir + fileName
+				};
 
-			// If day > 1, compare to yesterday in *this same month*; otherwise skip
-			if (day > 1) {
-				const yesterday = new Date(currentYear, currentMonth, day - 1);
-				const yesterdayIndex = getPhaseIndex(MoonPhase(yesterday));
-				if (phaseIndex === yesterdayIndex) {
-					continue; // no change in phase from yesterday → skip
+				if (!newAstronomyData[day]) {
+					newAstronomyData[day] = [];
 				}
+				newAstronomyData[day].push(entry);
 			}
-			// (Optional) If you really want to record a change on day 1 vs. the *previous* month,
-			// you can remove the `day > 1` check and always compare.
+			prevMoonIdx = loopMoonIdx;
 
-			const [phaseName, phaseImage] = moonPhaseArray[phaseIndex];
-			// console.log(`Day ${day} (${today.toDateString()}): ${phaseName} (${phaseImage})`);
-			const moonPhaseData: AstronomyData = {
-				name: phaseName,
-				imgSrc: moonImgDir + phaseImage
-			};
-			astronomyData[day] = astronomyData[day] ??= [];
-			astronomyData[day].push(moonPhaseData);
+			const loopZodiacSign = getZodiacSign(loopDate);
+			if (loopZodiacSign[0] !== prevZodiacSign[0]) {
+				// We have a zodiac sign change on "day"
+				const entry: AstronomyData = {
+					name: loopZodiacSign[0],
+					imgSrc: zodiacDir + loopZodiacSign[1]
+				};
+
+				if (!newAstronomyData[day]) {
+					newAstronomyData[day] = [];
+				}
+				newAstronomyData[day].push(entry);
+			}
+			prevZodiacSign = loopZodiacSign;
 		}
+
+		astronomyData = newAstronomyData;
 	};
 
 	const generateCalendar = async () => {
 		// const numDays = getDaysInMonth(currentMonth, currentYear);
 		startDay = getStartDayOfMonth(currentMonth, currentYear);
-		const newHolidayMap = await getHolidayMap(currentYear, currentMonth);
+		const newHolidayMap = await getObservationMap(currentYear, currentMonth);
 		holidayMap = newHolidayMap;
-		console.log('Holiday Map:', holidayMap);
 	};
 
-	updateMoonChanges();
+	updateAstronomy();
 
 	let selectedCalendar: number | undefined = $derived(calendarGuesses[0]);
 	const updateCalendar = async (value: number) => {
