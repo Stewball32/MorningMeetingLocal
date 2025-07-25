@@ -18,4 +18,4 @@
 	onMount(() => {});
 </script>
 
-<h1>Calendar Slide</h1>
+<h1>Weather Slide</h1>

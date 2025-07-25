@@ -17,28 +17,18 @@ import type {
 // Slide specific configuration and data types
 export type SlideConfigType = Record<string, any> & {
 	// Record for Slide.config
-	title?: string; // Title of the slide
-	subtitle?: string; // Subtitle of the slide
-	paragraph?: string; // Main content of the slide
-	roster?: string[]; // List of names or identifiers for persons
-	pQuestion?: string; // Question to ask about attendance
-	pHereString?: string; // Option for marking presence
-	pAbsentString?: string; // Option for marking absence
-	pIsHereString?: string; // String for marking presence
-	pIsAbsentString?: string; // String for marking absence
 };
 
-export type SlideDataType = Record<string, any> & {};
+export type SlideDataType = Record<string, any> & {
+	// Record for Slide.data
+};
 
 export type ClassActivityDataType = Record<string, any> & {
-	currentPersonId?: string; // ID of the current person
-	hereIds?: string[]; // IDs of persons who are present
-	absentIds?: string[]; // IDs of persons who are absent
+	// Record for ClassActivity.data
 };
 
 export type PersonActivityDataType = Record<string, any> & {
-	hereVotes: string[]; // Answers to questions or activities
-	absentVotes: string[]; // Answers to questions or activities
+	// Record for PersonActivity.data
 };
 
 export type StudentActivityDataType = PersonActivityDataType & {
