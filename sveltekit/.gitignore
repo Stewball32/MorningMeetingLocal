@@ -1,3 +1,4 @@
+test-results
 node_modules
 
 # Output
@@ -23,4 +24,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Testing Pages
-/src/routes/(test)/**
+/src/routes/((tests))/

@@ -1,13 +1,9 @@
 <script lang="ts">
-	import type { ClassDaily } from '$lib/pb/types';
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowLeft from '@lucide/svelte/icons/circle-chevron-left';
+	import ArrowRight from '@lucide/svelte/icons/circle-chevron-right';
 
 	interface NavArrowProps {
-		classDaily: ClassDaily;
-		page: number;
-		totalSlides: number;
-		positionClass?: string;
+		class?: string;
 		leftDisabled?: boolean;
 		rightDisabled?: boolean;
 		pageLeft: () => void;
@@ -15,17 +11,15 @@
 	}
 
 	let {
-		classDaily,
-		page = 0,
-		totalSlides = 1,
-		positionClass = 'right-1 bottom-1',
+		class: positionClass = '',
 		leftDisabled = $bindable(false),
 		rightDisabled = $bindable(false),
 		pageLeft = () => {},
 		pageRight = () => {}
 	}: NavArrowProps = $props();
 
-	const baseClass = 'h-1/12 absolute z-10 grid grid-cols-2 w-[8%] items-center justify-center';
+	const baseClass =
+		'h-1/12 absolute z-10 right-5 bottom-5 grid grid-cols-2 w-[8%] items-center justify-center';
 </script>
 
 <div class={`${baseClass} ${positionClass}`}>

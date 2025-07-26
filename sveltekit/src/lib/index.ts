@@ -1,26 +1,6 @@
 // place files you want to import through the `$lib` alias in this folder.
 
-import type { Student, Teacher } from './pb/types';
-
-export const makeSearchParams = (
-	obj: Record<string, string | number | (string | number)[] | null | undefined>
-): URLSearchParams => {
-	const entries: [string, string][] = [];
-
-	for (const [key, value] of Object.entries(obj)) {
-		if (value === undefined || value === null) continue;
-
-		if (Array.isArray(value)) {
-			for (const v of value) {
-				entries.push([key, String(v)]);
-			}
-		} else {
-			entries.push([key, String(value)]);
-		}
-	}
-
-	return new URLSearchParams(entries);
-};
+import type { Guest, Student, Teacher } from './pb/objects';
 
 /**
  * Checks if a ISO string is in the format YYYY-MM-DD.
@@ -59,163 +39,43 @@ export const getCurrentISOString = () => {
 	return `${year}-${month}-${day}`;
 };
 
-/**
- * Returns a full set of pronouns based on the input. Undefined input defaults to "they".
- *
- * @param input - A string or Student/Teacher object.
- * @returns  - a pronoun object.
- */
-export const getAllPronouns = (input?: string | Student | Teacher) => {
-	const pronoun = typeof input === 'string' ? input : input?.pronoun || 'they';
-	switch (pronoun) {
-		case 'he':
-			return {
-				subject: 'He',
-				object: 'Him',
-				possessive: 'His',
-				reflexive: 'Himself',
-				present: 'is',
-				past: 'was'
-			};
-		case 'she':
-			return {
-				subject: 'She',
-				object: 'Her',
-				possessive: 'Her',
-				reflexive: 'Herself',
-				present: 'is',
-				past: 'was'
-			};
-		default:
-			return {
-				subject: 'They',
-				object: 'Them',
-				possessive: 'Their',
-				reflexive: 'Themselves',
-				present: 'are',
-				past: 'were'
-			};
+export const assertInstanceOf = <T>(x: unknown): asserts x is T => {
+	if (!x) throw new Error('Assertion failed');
+};
+
+export const transformStringWithPerson = (
+	str: string,
+	person: Student | Teacher | Guest
+): string => {
+	if (!str || !person) return str;
+
+	// Replacements that are inserted exactly as-is
+	const literalReplacements: Record<string, string> = {
+		'{name}': person.name || '',
+		'{Name}': person.name || ''
+	};
+
+	for (const [key, value] of Object.entries(literalReplacements)) {
+		str = str.replace(new RegExp(key, 'g'), value);
 	}
+
+	// Replacements that need capitalization
+	const pronounReplacements: Record<string, string> = {
+		pronoun: person.pronounSubject || 'they',
+		subject: person.pronounSubject || 'they',
+		object: person.pronounObject || 'them',
+		independent: person.pronounIndependentPossessive || 'their',
+		dependent: person.pronounDependentPossessive || 'their'
+	};
+
+	for (const [key, value] of Object.entries(pronounReplacements)) {
+		const lowerKey = `{${key}}`;
+		const upperKey = `{${key.charAt(0).toUpperCase() + key.slice(1)}}`;
+		const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+
+		str = str.replace(new RegExp(lowerKey, 'g'), value);
+		str = str.replace(new RegExp(upperKey, 'g'), capitalized);
+	}
+
+	return str;
 };
-
-/**
- * Returns the subject pronoun (e.g. "him", "her", "them") based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The subject pronoun.
- */
-export const getPronounSubject = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.subject;
-};
-
-/**
- * Returns the object pronoun (e.g. "his", "her", "them") based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The object pronoun.
- */
-export const getPronounObject = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.object;
-};
-
-/**
- * Returns the possessive pronoun (e.g. "his", "her", "their") based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The possessive pronoun.
- */
-export const getPronounPossessive = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.possessive;
-};
-
-/**
- * Returns the reflexive pronoun (e.g. "himself", "herself", "themselves") based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The reflexive pronoun.
- */
-export const getPronounReflexive = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.reflexive;
-};
-
-/**
- * Returns the present tense form of the verb "to be" based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The present tense form of "to be".
- */
-export const getPronounPresent = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.present;
-};
-
-/**
- * Returns the past tense form of the verb "to be" based on input.
- *
- * @param input - A string or Student/Teacher object.
- * @returns The past tense form of "to be".
- */
-export const getPronounPast = (input?: string | Student | Teacher) => {
-	const pronouns = getAllPronouns(input);
-	return pronouns.past;
-};
-
-// Easier formatting for slideStyle (below)
-const slideStyleArray = [
-	'relative',
-	'aspect-[15/9]',
-	'max-w-full',
-	'rounded-r-[1rem]',
-	'overflow-hidden',
-	// Mobile
-	'w-[294px]',
-	'ml-6',
-	'mr-1',
-	'mt-[1.5px]',
-	'rounded-r-[10px]',
-	// Small
-	'sm:w-[590px]',
-	'sm:ml-12',
-	'sm:mr-1',
-	'mt-[1.5px]',
-	'sm:rounded-r-[1.4rem]',
-	// Medium
-	'md:w-[710px]',
-	'md:ml-14',
-	'md:mr-1',
-	'md:mt-[1.5px]',
-	'md:rounded-r-[1.6rem]',
-	// Large
-	'lg:w-[944px]',
-	'lg:ml-19',
-	'lg:mr-0',
-	'lg:mt-[1.7px]',
-	'lg:rounded-r-[2rem]',
-	// Extra Large
-	'xl:w-[1178px]',
-	'xl:ml-24',
-	'xl:mr-2',
-	'xl:mt-1',
-	'xl:rounded-r-[2.4rem]',
-	// 2 Extra Large
-	'2xl:w-[1400px]',
-	'2xl:ml-28',
-	'2xl:mr-2',
-	'2xl:mt-1',
-	'2xl:rounded-r-[3rem]',
-	// 3 Extra Large
-	'3xl:w-[1645px]',
-	'3xl:ml-34',
-	'3xl:mr-2',
-	'3xl:rounded-r-[4rem]'
-];
-
-/**
- * Styling meant for each slide that needs to be
- * displayed on the "lined paper" background.
- */
-export const slideStyle = ' ' + slideStyleArray.join(' ') + ' ';
