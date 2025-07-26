@@ -21,95 +21,51 @@
 }
 
 @theme {
-	/* default breakpoints
-	--breakpoint-sm: 40rem;
-	--breakpoint-md: 48rem;
-	--breakpoint-lg: 64rem;
-	--breakpoint-xl: 80rem;
-	--breakpoint-2xl: 96rem;
-	*/
-	--breakpoint-3xl: 112rem;
-
 	--text-10xl: 10rem;
-	--text-10xl--line-height: 1;
+	--text-10xl--line-height: 1.2;
 	--text-11xl: 12rem;
-	--text-11xl--line-height: 1;
+	--text-11xl--line-height: 1.2;
 	--text-12xl: 14rem;
-	--text-12xl--line-height: 1;
-	--text-13xl: 16rem;
-	--text-13xl--line-height: 1;
+	--text-12xl--line-height: 1.2;
 }
-
-@custom-variant smh   (@media (min-width: 640px)  and (min-height: 360px));
-@custom-variant mdh   (@media (min-width: 768px)  and (min-height: 432px));
-@custom-variant lgh   (@media (min-width: 1024px) and (min-height: 576px));
-@custom-variant xlh   (@media (min-width: 1280px) and (min-height: 720px));
-@custom-variant 2xlh  (@media (min-width: 1536px) and (min-height: 864px));
-@custom-variant 3xlh  (@media (min-width: 1920px) and (min-height: 1080px));
-
-@layer utilities {
-	.text-size-10 font-black {
-		@apply text-6xl font-black sm:text-7xl md:text-8xl lg:text-9xl;
-		/* @reference xl:text-10xl 2xl:text-11xl; */
-	}
-
-	.text-size-00 {
-		@apply 3xl:text-xl text-xs sm:text-xs md:text-xs lg:text-sm xl:text-base 2xl:text-lg;
-	}
-
-	.text-size-0 {
-		@apply 3xl:text-2xl text-xs sm:text-xs md:text-sm lg:text-base xl:text-lg 2xl:text-xl;
-	}
-
-	.text-size-1 {
-		@apply 3xl:text-3xl text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl;
-	}
-
-	.text-size-2 {
-		@apply 3xl:text-4xl text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl;
-	}
-
-	.text-size-3 {
-		@apply 3xl:text-5xl text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl;
-	}
-
-	.text-size-4 {
-		@apply 3xl:text-6xl text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl;
-	}
-
-	.text-size-5 {
-		@apply 3xl:text-7xl text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl;
-	}
-
-	.text-size-6 {
-		@apply 3xl:text-8xl text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
-	}
-
-	.text-size-7 {
-		@apply 3xl:text-9xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl;
-	}
-
-	.text-size-8 {
-		@apply 3xl:text-10xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl;
-	}
-
-	.text-size-9 {
-		@apply 2xl:text-10xl 3xl:text-11xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl;
-	}
-
-	.text-size-10 {
-		@apply xl:text-10xl 2xl:text-11xl 3xl:text-12xl text-6xl sm:text-7xl md:text-8xl lg:text-9xl;
-	}
-
-	.text-nav-arrows {
-		@apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
-	}
-}
-
+/*
 html,
 body {
 	@apply bg-gradient-to-br from-blue-400 to-blue-600;
 	transform: translateZ(0);
+}
+*/
+
+@layer {
+	.slide-flex-col {
+		@apply flex h-full w-full flex-col items-center justify-center;
+	}
+}
+
+h1 {
+	@apply h1 text-12xl;
+}
+h2 {
+	@apply h2 text-11xl;
+}
+h3 {
+	@apply h3 text-10xl;
+}
+h4 {
+	@apply h4 text-9xl;
+}
+h5 {
+	@apply h5 text-8xl;
+}
+h6 {
+	@apply h6 text-7xl;
+}
+
+p {
+	@apply text-4xl;
+}
+a {
+	@apply text-4xl;
 }
 
 @layer utilities {
