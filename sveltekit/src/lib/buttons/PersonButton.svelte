@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
-	import type { Student, StudentDaily, Teacher, TeacherDaily } from '$lib/pb/types';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
+	import type { Student, Teacher, Guest } from '$lib/pb/objects';
+
 	import Button from './+button.svelte';
 
 	interface Props {
-		person: Student | Teacher;
+		person: Student | Teacher | Guest;
 		orientation?: 'horizontal' | 'vertical';
-		buttonClass?: string;
-		avatarClass?: string;
-		nameClass?: string;
+		class?: string;
+		overrideClass?: string;
 		showAvatar?: boolean;
 		showName?: boolean;
 		buttonPreset?:
@@ -19,52 +20,64 @@
 			| 'warning'
 			| 'error'
 			| 'surface';
-		overrideButtonClass?: boolean;
-		overrideAvatarClass?: boolean;
-		overrideNameClass?: boolean;
 		disableButton?: boolean;
-		onClick?: () => void;
+		draggable?: boolean;
+		onclick?: () => void;
 	}
 
 	const {
 		person,
+		class: btnClass = '',
+		overrideClass = 'rounded-full border-2',
 		orientation = 'horizontal',
-		buttonClass = '',
-		avatarClass = '',
-		nameClass = '',
 		showAvatar = true,
 		showName = true,
-		buttonPreset,
-		overrideButtonClass,
-		overrideAvatarClass,
-		overrideNameClass,
+		buttonPreset = 'surface',
 		disableButton,
-		onClick
+		draggable = true,
+		onclick = () => {}
 	}: Props = $props();
 
-	let imageUrl = $derived(
-		person.avatar
-			? `${PUBLIC_POCKETBASE_URL}/api/files/${person.collectionId}/${person.id}/${person.avatar}`
-			: ''
+	const presets = {
+		primary: 'preset-tonal-primary border-primary-700-300',
+		secondary: 'preset-tonal-secondary border-secondary-700-300',
+		tertiary: 'preset-tonal-tertiary border-tertiary-700-300',
+		success: 'preset-tonal-success border-success-700-300',
+		warning: 'preset-tonal-warning border-warning-700-300',
+		error: 'preset-tonal-error border-error-700-300',
+		surface: 'preset-tonal-surface border-surface-700-300'
+	};
+
+	const buttonClass = $derived(
+		`btn flex select-all items-center justify-center overflow-hidden cursor-pointer pointer-none disabled:pointer-not-allowed hover:scale-105 active:scale-95 ${presets[buttonPreset] ?? ''}  ${orientation === 'horizontal' ? 'flex-row' : 'flex-col'} ${overrideClass} ${btnClass}`
 	);
-	let text = $derived(`${person.title || ''} ${person.name}`.trimStart());
-	let imgAlt = $derived(`${person.title || ''} ${person.name}`.trimStart());
 </script>
 
-<Button
-	{imageUrl}
-	{text}
-	{imgAlt}
-	{orientation}
-	{buttonPreset}
-	{buttonClass}
-	imageClass={avatarClass}
-	textClass={nameClass}
-	{overrideButtonClass}
-	showImage={showAvatar}
-	overrideImageClass={overrideAvatarClass}
-	showText={showName}
-	overrideTextClass={overrideNameClass}
-	disable={disableButton}
-	{onClick}
-/>
+<button {draggable} class={buttonClass} disabled={disableButton} {onclick}>
+	{#if showAvatar && person.avatarUrl}
+		<Avatar
+			src={person.avatarUrl}
+			name={person.name}
+			base=""
+			background=""
+			size="h-full"
+			font="abeezee"
+			border=""
+			rounded=""
+			shadow=""
+			classes=""
+			imageBase=""
+			imageClasses="aspect-auto h-full w-auto select-none"
+			fallbackBase=""
+			fallbackClasses=""
+		/>
+		<!-- <img
+			class="aspect-auto h-full w-auto select-none"
+			src={person.avatarUrl}
+			alt={person.name || 'Person Avatar'}
+		/> -->
+	{/if}
+	{#if showName}
+		<span class=" select-none">{person.name}</span>
+	{/if}
+</button>
