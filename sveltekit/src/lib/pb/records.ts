@@ -21,7 +21,7 @@ import type {
 	ActivityBasePB,
 	ActivityClassroomPB,
 	ActivityGuestPB
-} from './types';
+} from './schema';
 import { getCurrentISOString, isISOString } from '$lib';
 
 const COLLECTION_NAMES = {

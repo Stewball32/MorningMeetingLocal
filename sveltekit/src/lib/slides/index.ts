@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import type { ActivityBasePB, ActivityClassroomPB, DeckSlidePB } from '$lib/pb/types';
+import type { ActivityBasePB, ActivityClassroomPB, DeckSlidePB } from '$lib/pb/schema';
 import type {
 	BaseActivityObject,
 	Classroom,
