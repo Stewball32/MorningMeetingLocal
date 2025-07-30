@@ -35,7 +35,7 @@ import type {
 	ActivityGuestPB,
 	ActivityTeacherPB,
 	ActivityClassroomPB
-} from '$lib/pb/types';
+} from '$lib/pb/schema';
 import {
 	getClassSlideComponents,
 	getStudentInteractComponents,

@@ -1,5 +1,5 @@
 import { getPbImageUrl, pb } from '$lib/pb/records';
-import type { CalendarOccasionPB } from '$lib/pb/types';
+import type { CalendarOccasionPB } from '$lib/pb/schema';
 import Holidays, { type HolidaysTypes } from 'date-holidays';
 
 export interface Holiday extends HolidaysTypes.Holiday, CalendarOccasionPB {
