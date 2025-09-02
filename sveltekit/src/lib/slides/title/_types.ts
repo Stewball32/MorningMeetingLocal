@@ -1,4 +1,4 @@
-import { Slide, ClassroomActivity, StudentActivity, BaseActivityObject } from '$lib/pb/objects';
+import { Slide, PresentationActivity, StudentActivity, BaseActivityObject } from '$lib/pb/objects';
 import type { ActivityBasePB } from '$lib/pb/schema';
 import type {
 	SlideComponentProps,
@@ -42,7 +42,7 @@ export class SlideWrapper extends Slide {
 	}
 }
 
-export class ClassroomActivityWrapper extends ClassroomActivity {
+export class ClassroomActivityWrapper extends PresentationActivity {
 	constructor(data: any) {
 		super(data);
 	}
