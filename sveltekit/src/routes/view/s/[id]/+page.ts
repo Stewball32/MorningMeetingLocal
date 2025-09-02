@@ -9,25 +9,25 @@ import type {
 } from '$lib/slides';
 import {
 	Classroom,
-	ClassroomActivity,
+	PresentationActivity,
 	GuestActivity,
 	Presentation,
 	Slide,
 	StudentActivity,
 	TeacherActivity,
-	SchoolBuilder
+	ClassroomBuilder
 } from '$lib/pb/objects';
 import { getCurrentISOString } from '$lib';
 
 export const load = (async ({ params, url }) => {
-	const classroom: Classroom = await SchoolBuilder.getClassroom('Caseys Class');
+	const classroom: Classroom = await ClassroomBuilder.getClassroom('Caseys Class');
 	const studentId = params.id;
 
 	const [deck, teachers, students, guests] = await Promise.all([
-		SchoolBuilder.getDeck('Morning Meeting'),
-		SchoolBuilder.getClassTeachers(classroom.id),
-		SchoolBuilder.getClassStudents(classroom.id),
-		SchoolBuilder.getClassGuests(classroom.id)
+		ClassroomBuilder.getDeck('Morning Meeting'),
+		ClassroomBuilder.getClassTeachers(classroom.id),
+		ClassroomBuilder.getClassStudents(classroom.id),
+		ClassroomBuilder.getClassGuests(classroom.id)
 	]);
 
 	const student = students.find((s) => s.id === studentId);
@@ -48,15 +48,17 @@ export const load = (async ({ params, url }) => {
 	const classroomActivityPromises = deck.resolveIndividualActivityRecords(
 		presentation.id,
 		classroom.record
-	) as Promise<ClassroomActivity[]>;
+	) as Promise<PresentationActivity[]>;
 
 	const studentActivityPromises = student.resolvePresentationActivityRecords(
 		presentation.id,
 		deck.slidesIds
 	) as Promise<StudentActivity[]>;
 
-	const [classroomActivityArray, studentActivityArray]: [ClassroomActivity[], StudentActivity[]] =
-		await Promise.all([classroomActivityPromises, studentActivityPromises]);
+	const [classroomActivityArray, studentActivityArray]: [
+		PresentationActivity[],
+		StudentActivity[]
+	] = await Promise.all([classroomActivityPromises, studentActivityPromises]);
 
 	return {
 		classroom,
