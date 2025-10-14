@@ -3,7 +3,7 @@
 	import '../app.css';
 	import type { Snippet } from 'svelte';
 	import { navTiles, navFooter } from './nav';
-	import { Navigation } from '@skeletonlabs/skeleton-svelte';
+	import { Avatar, Navigation } from '@skeletonlabs/skeleton-svelte';
 	import { onNavigate } from '$app/navigation';
 	import IconHome from '@lucide/svelte/icons/home';
 	import IconMenu from '@lucide/svelte/icons/menu';
@@ -44,7 +44,7 @@
 		<Navigation.Rail expanded={isExpansed} classes="hidden md:flex h-full overflow-y-auto ">
 			{#snippet header()}
 				<Navigation.Tile
-					classes="h-10  w-full flex items-center justify-center"
+					classes="h-10 w-full flex items-center justify-center"
 					expandedClasses="h-10  w-full flex items-center justify-center"
 					onclick={toggleExpanded}
 				>
@@ -92,6 +92,21 @@
 						<tile.icon />
 					</Navigation.Tile>
 				{/each}
+				<Navigation.Tile
+					base="block"
+					labelExpanded={'Size'}
+					labelExpandedBase={'text-2xl'}
+					expandedClasses={'mt-4'}
+					title={'Size'}
+					id={'size'}
+				>
+					<Avatar classes="hidden 2xl:block text-xl" name="2 Extra Large">2XL</Avatar>
+					<Avatar classes="hidden xl:block 2xl:hidden text-xl" name="Extra Large">XL</Avatar>
+					<Avatar classes="hidden lg:block xl:hidden text-xl" name="Large">LG</Avatar>
+					<Avatar classes="hidden md:block lg:hidden text-xl" name="Medium">MD</Avatar>
+					<Avatar classes="hidden sm:block md:hidden text-xl" name="Small">SM</Avatar>
+					<Avatar classes="block sm:hidden text-xl" name="Mobile">MB</Avatar>
+				</Navigation.Tile>
 			{/snippet}
 		</Navigation.Rail>
 	{/if}
@@ -116,6 +131,21 @@
 					<tile.icon />
 				</Navigation.Tile>
 			{/each}
+			<Navigation.Tile
+				base="block"
+				labelExpanded={'Size'}
+				labelExpandedBase={'text-2xl'}
+				expandedClasses={'mt-4'}
+				title={'Size'}
+				id={'size'}
+			>
+				<Avatar classes="hidden 2xl:block text-xl" name="2 Extra Large">2XL</Avatar>
+				<Avatar classes="hidden xl:block 2xl:hidden text-xl" name="Extra Large">XL</Avatar>
+				<Avatar classes="hidden lg:block xl:hidden text-xl" name="Large">LG</Avatar>
+				<Avatar classes="hidden md:block lg:hidden text-xl" name="Medium">MD</Avatar>
+				<Avatar classes="hidden sm:block md:hidden text-xl" name="Small">SM</Avatar>
+				<Avatar classes="block sm:hidden text-xl" name="Mobile">MB</Avatar>
+			</Navigation.Tile>
 		</Navigation.Bar>
 	{/if}
 </div>

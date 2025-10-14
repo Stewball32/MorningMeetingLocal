@@ -47,12 +47,49 @@ export interface PersonPB extends RecordModel {
 	avatar?: string; // Avatar URL
 	name: string;
 	role: 'teacher' | 'student'; // Role of the person (only for guests)
-	classrooms_active: string[]; // Array of Classroom.id where the person is active
-	classrooms_guest: string[]; // Array of Classroom.id where the person is inactive
+	classrooms: string[]; // Array of Classroom.id where the person is active
+	guestrooms: string[]; // Array of Classroom.id where the person is inactive
 	title?: string; // Title of the person (only for teachers)
 	pronoun?: 'he' | 'she'; // assume they if not set
-	config?: Record<string, any>; // Additional configuration for the person
-	data?: Record<string, any>; // Additional data for the person
+	config?: PersonConfig; // Additional configuration for the person
+	data?: PersonData; // Additional data for the person
+}
+
+export interface PersonConfig extends Record<string, any> {
+	emotions: string[]; // Emotion.id
+	poll: {
+		num?: PersonQuestionNumber;
+		str?: PersonQuestionString;
+	};
+	quiz: {
+		num?: PersonQuestionNumber;
+		str?: PersonQuestionString;
+	};
+	rating: PersonRating;
+	video: {
+		id: string;
+		start?: number;
+		end?: number;
+	};
+}
+
+interface PersonRating {
+	type: 'smileys' | 'thumbs' | 'yesno' | 'scale';
+	options?: number;
+}
+
+interface PersonQuestionNumber {
+	type: 'multi' | 'numpad';
+	options?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+}
+
+interface PersonQuestionString {
+	type: 'multi' | 'abc' | 'qwerty';
+	options?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+}
+
+export interface PersonData extends Record<string, any> {
+	lastDay: string;
 }
 
 export interface ActivityPersonPB extends ActivityBasePB {
