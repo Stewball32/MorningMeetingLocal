@@ -411,7 +411,7 @@ export const getPeopleRecordsByClassroom = async <PersonPB>(
 	options = {
 		sort: 'name',
 		...options,
-		filter: `classrooms_active ~ "${classroomId}" || classrooms_guest ~ "${classroomId}"`
+		filter: `classrooms ~ "${classroomId}" || guestrooms ~ "${classroomId}"`
 	};
 	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
 };
@@ -423,7 +423,7 @@ export const getRosterRecordsByClassroom = async (
 	options = {
 		sort: 'name',
 		...options,
-		filter: `classrooms_active ~ "${classroomId}"`
+		filter: `classrooms ~ "${classroomId}"`
 	};
 	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
 };
@@ -435,7 +435,7 @@ export const getGuestRecordsByClassroom = async (
 	options = {
 		sort: 'name',
 		...options,
-		filter: `classrooms_guest ~ "${classroomId}"`
+		filter: `guestrooms ~ "${classroomId}"`
 	};
 	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
 };

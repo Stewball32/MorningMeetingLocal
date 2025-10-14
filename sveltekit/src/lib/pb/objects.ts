@@ -29,7 +29,8 @@ import type {
 	PresentationPB,
 	ActivityBasePB,
 	ActivityPresentation,
-	ActivityPersonPB
+	ActivityPersonPB,
+	PersonConfig
 } from '$lib/pb/schema';
 import {
 	getClassSlideComponents,
@@ -321,12 +322,20 @@ export class Person extends BaseObject<PersonPB> {
 		return this.record.title || '';
 	}
 
+	get classroomIds() {
+		return this.record.classrooms || [];
+	}
+
+	get guestroomIds() {
+		return this.record.guestrooms || [];
+	}
+
 	get pronoun() {
 		return this.record.pronoun || 'they';
 	}
 
 	get config() {
-		return this.record.config || {};
+		return this.record.config || ({} as PersonConfig);
 	}
 
 	get data() {

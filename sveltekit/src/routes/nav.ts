@@ -54,12 +54,12 @@ export let navTiles: NavTileProps[] = [
 ];
 
 export let navFooter: NavTileProps[] = [
-	{
-		label: 'Settings',
-		labelExpanded: 'Settings',
-		href: '/settings',
-		icon: IconSettings,
-		bar: true,
-		rail: true
-	}
+	// {
+	// 	label: 'Settings',
+	// 	labelExpanded: 'Settings',
+	// 	href: '/settings',
+	// 	icon: IconSettings,
+	// 	bar: true,
+	// 	rail: true
+	// }
 ];
