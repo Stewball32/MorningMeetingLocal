@@ -1,31 +1,29 @@
-import IconMenu from '@lucide/svelte/icons/menu';
-import IconSchool from '@lucide/svelte/icons/school';
-import IconPeople from '@lucide/svelte/icons/users';
-import IconPresentation from '@lucide/svelte/icons/presentation';
-import IconImage from '@lucide/svelte/icons/image';
-import IconSettings from '@lucide/svelte/icons/settings';
+import {
+	type Icon,
+	SchoolIcon,
+	UsersIcon,
+	PresentationIcon,
+	LayersIcon,
+	LaughIcon,
+	ImageIcon
+} from '@lucide/svelte';
 
 interface NavTileProps {
 	label: string;
 	labelExpanded: string;
 	href: string;
-	icon: typeof IconMenu;
+	icon: typeof Icon;
 	bar?: boolean;
 	rail?: boolean;
 	railExpanded?: boolean;
 }
-
-// Unused for now, tile headers are static in +layout.svelte
-// export let navHeaders: NavTileProps[] = [
-// 	{ label: 'Home', labelExpanded: 'Home', icon: IconHome, href: '/', bar: true, rail: true }
-// ];
 
 export let navTiles: NavTileProps[] = [
 	{
 		label: 'Classrooms',
 		labelExpanded: 'My Classrooms',
 		href: '/classrooms',
-		icon: IconSchool,
+		icon: SchoolIcon,
 		bar: true,
 		rail: true
 	},
@@ -33,14 +31,14 @@ export let navTiles: NavTileProps[] = [
 		label: 'People',
 		labelExpanded: 'My People',
 		href: '/people',
-		icon: IconPeople,
+		icon: UsersIcon,
 		railExpanded: true
 	},
 	{
 		label: 'Presentations',
 		labelExpanded: 'My Presentations',
 		href: '/presentations',
-		icon: IconPresentation,
+		icon: PresentationIcon,
 		bar: true,
 		rail: true
 	},
@@ -48,7 +46,14 @@ export let navTiles: NavTileProps[] = [
 		label: 'Slides',
 		labelExpanded: 'My Slides',
 		href: '/slides',
-		icon: IconImage,
+		icon: LayersIcon,
+		railExpanded: true
+	},
+	{
+		label: 'Images',
+		labelExpanded: 'My Images',
+		href: '/images',
+		icon: ImageIcon,
 		railExpanded: true
 	}
 ];

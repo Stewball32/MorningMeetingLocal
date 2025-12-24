@@ -1,91 +1,82 @@
 # Morning Meeting
 
-**Morning Meeting** is a local-network "web" app for running interactive classroom presentations, tracking attendance, and showcasing student/teacher info. Built with modern tools for easy local hosting and fast iteration.
+Morning Meeting is a local-network web app for interactive classroom presentations, attendance, and people profiles. It uses a SvelteKit frontend and a PocketBase backend for data storage.
 
-## 🧱 Tech Stack
+## Tech Stack
 
-- **Frontend:** [SvelteKit 5](https://kit.svelte.dev/) + [Skeleton UI v3](https://www.skeleton.dev/) + Tailwind CSS
-- **Backend:** [PocketBase](https://pocketbase.io/)
-- **Local Dev:** Runs on Raspberry Pi or other local hardware
-- **Current Enviroment**: Currently supporting Node/NPM LTS (currently 22.14.0)
+- SvelteKit 5 + Skeleton UI + Tailwind CSS
+- PocketBase
+- Node/NPM LTS (tested with 22.14.0)
 
-## 📦 Project Structure
+## Repo Layout
 
-- `/animotion/`: Main SvelteKit project ("Animotion") for presentation frontend
-- `/pocketbase/`: PocketBase backend for storing and managing student/teacher data
+- `sveltekit/`: SvelteKit application
+- `pocketbase/`: PocketBase binaries, data, hooks, and migrations
+- `setup.sh`: Convenience script for local setup
+- `setup.env`: Config used by `setup.sh`
+- `llm/`, `notes/`: Internal docs and experiments
 
-## 🚀 Getting Started
+## Getting Started
 
-### 1. Clone the Repo
+1) Clone the repo
 
 ```bash
 git clone https://github.com/Stewball32/MorningMeetingLocal.git
 cd MorningMeetingLocal
 ```
 
-### 2. Run Setup Script
+2) Run the setup script (bash required)
 
 ```bash
 ./setup.sh
 ```
 
-This script will:
-- Download the correct PocketBase binary based on your OS/architecture
-- Optionally restore sample data to `pb_data/`
-- Create `.env` file in `sveltekit/` if it doesn't exist
-- Run `npm install` in `sveltekit/`
+The setup script will:
+- Download the PocketBase binary for your OS/arch
+- Optionally copy `sample_pb_data/` into `pb_data/` (backing up any existing data)
+- Create `sveltekit/.env` from `.env.example` if needed
+- Install SvelteKit dependencies
 
-Config options can be modified in `setup.env` before running the script.
+If you do not want to run the script, see `sveltekit/README.md` and `pocketbase/README.md` for manual steps.
 
-### 3. Dev Scripts
+## Development
 
-After setup:
-- Start the frontend in dev mode:
-  ```bash
-  cd animotion
-  npm run dev
-  ```
+Start PocketBase:
 
-- Start the frontend in production preview mode:
-  ```bash
-  npm run build
-  npm run preview
-  ```
-	- Test/Run on network by adding `host` at the end:
-	  ```bash
-	  npm run devhost
-	  npm run previewhost
-	  ```
+```bash
+cd pocketbase
+./pocketbase serve
+```
 
-- Start PocketBase manually:
-  ```bash
-  cd pocketbase
-  ./pocketbase serve
-  ```
+Start SvelteKit:
 
-	- Test/Run on Network by adding --http or --https (0.0.0.0 will accept all connections)
-	  ```bash
-	  ./pocketbase serve --http=0.0.0.0:8090
-	  ```
+```bash
+cd sveltekit
+npm run dev
+```
 
-### 4. Use the PocketBase UI
+LAN testing:
 
-Visit: [http://127.0.0.1:8090/_/](http://127.0.0.1:8090/_/)
-- Create an admin account
-- Add `students` and `teachers` in their respective tables
-	- setup scripts will add sample teachers and students if you said yes.
+```bash
+cd pocketbase
+./pocketbase serve --http=0.0.0.0:8090
+```
 
-## 🧠 Future Plans
+```bash
+cd sveltekit
+npm run devhost
+```
 
-- Custom UI for managing student data
-- More interactivity for slides
-- Remote control / cast view mode
+PocketBase admin UI:
 
-## 📜 License
+```
+http://127.0.0.1:8090/_/
+```
 
-This project is licensed under the [MIT License](LICENSE).
+## License
+
+MIT - see `LICENSE`.
 
 ---
 
 Push the Elevator!
-
