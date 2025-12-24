@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 	import { Avatar } from '@skeletonlabs/skeleton-svelte';
-	import type { Student, Teacher, Guest } from '$lib/pb/objects';
-
-	import Button from './+button.svelte';
+	import type { Person } from '$lib/pb';
 
 	interface Props {
-		person: Student | Teacher | Guest;
+		person: Person;
 		orientation?: 'horizontal' | 'vertical';
 		class?: string;
 		overrideClass?: string;
@@ -54,9 +51,9 @@
 </script>
 
 <button {draggable} class={buttonClass} disabled={disableButton} {onclick}>
-	{#if showAvatar && person.avatarUrl}
+	{#if showAvatar && person.avatarPath}
 		<Avatar
-			src={person.avatarUrl}
+			src={person.avatarPath}
 			name={person.name}
 			base=""
 			background=""
@@ -73,7 +70,7 @@
 		/>
 		<!-- <img
 			class="aspect-auto h-full w-auto select-none"
-			src={person.avatarUrl}
+			src={person.avatarPath}
 			alt={person.name || 'Person Avatar'}
 		/> -->
 	{/if}

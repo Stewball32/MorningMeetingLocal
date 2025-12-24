@@ -1,6 +1,6 @@
 // place files you want to import through the `$lib` alias in this folder.
 
-import type { Guest, Student, Teacher } from './pb/objects';
+import type { Person } from './pb';
 
 /**
  * Checks if a ISO string is in the format YYYY-MM-DD.
@@ -45,7 +45,7 @@ export const assertInstanceOf = <T>(x: unknown): asserts x is T => {
 
 export const transformStringWithPerson = (
 	str: string,
-	person: Student | Teacher | Guest
+	person: Person
 ): string => {
 	if (!str || !person) return str;
 
@@ -60,12 +60,18 @@ export const transformStringWithPerson = (
 	}
 
 	// Replacements that need capitalization
+	const pronouns = person.pronounTypes ?? {
+		subject: 'they',
+		object: 'them',
+		dependentPossessive: 'their',
+		independentPossessive: 'theirs'
+	};
 	const pronounReplacements: Record<string, string> = {
-		pronoun: person.pronounSubject || 'they',
-		subject: person.pronounSubject || 'they',
-		object: person.pronounObject || 'them',
-		independent: person.pronounIndependentPossessive || 'their',
-		dependent: person.pronounDependentPossessive || 'their'
+		pronoun: pronouns.subject || 'they',
+		subject: pronouns.subject || 'they',
+		object: pronouns.object || 'them',
+		independent: pronouns.independentPossessive || 'their',
+		dependent: pronouns.dependentPossessive || 'their'
 	};
 
 	for (const [key, value] of Object.entries(pronounReplacements)) {

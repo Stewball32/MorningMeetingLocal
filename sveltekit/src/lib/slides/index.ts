@@ -1,26 +1,24 @@
 import type { Component } from 'svelte';
-import type { ActivityBasePB, ActivityPresentation, SlidePB } from '$lib/pb/schema';
+import type { ActivityBasePB, SlidePB } from '$lib/pb/schema/index';
 import type {
 	BaseActivityObject,
 	Classroom,
 	PresentationActivity,
 	Deck,
-	Guest,
+	Person,
 	Presentation,
 	Slide,
-	Student,
-	StudentActivity,
-	Teacher
-} from '$lib/pb/objects';
+	StudentActivity
+} from '$lib/pb';
 
 export interface SlideComponentProps {
 	classroom: Classroom;
 	deck: Deck;
 	presentation: Presentation;
 	slide: Slide;
-	students: Student[];
-	teachers: Teacher[];
-	guests: Guest[];
+	students: Person[];
+	teachers: Person[];
+	guests: Person[];
 	classroomActivity: PresentationActivity;
 	personActivityMap?: Map<string, BaseActivityObject<ActivityBasePB>>;
 }
@@ -30,9 +28,9 @@ export interface StudentViewComponentProps {
 	deck: Deck;
 	presentation: Presentation;
 	slide: Slide;
-	students: Student[];
-	teachers: Teacher[];
-	guests: Guest[];
+	students: Person[];
+	teachers: Person[];
+	guests: Person[];
 	classroomActivity: PresentationActivity;
 	studentActivity?: StudentActivity;
 }
