@@ -1,35 +1,27 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import '../app.css';
-	import type { Snippet } from 'svelte';
-	import { navTiles, navFooter } from './nav';
+	import { ArrowLeftRightIcon, BikeIcon, BookIcon, HouseIcon, TreePalmIcon } from '@lucide/svelte';
 	import { Navigation } from '@skeletonlabs/skeleton-svelte';
-	import { onNavigate } from '$app/navigation';
-	import IconHome from '@lucide/svelte/icons/home';
-	import IconMenu from '@lucide/svelte/icons/menu';
 
-	let { data, children, pathname }: { data: LayoutData; children: Snippet; pathname: string } =
-		$props();
+	const links = [
+		{ label: 'Home', href: '#', icon: HouseIcon },
+		{ label: 'Entertainment', href: '#', icon: BookIcon },
+		{ label: 'Recreation', href: '#', icon: BikeIcon },
+		{ label: 'Relaxation', href: '#', icon: TreePalmIcon }
+	];
 
-	let showMenu = $state(data.showMenu ?? true);
-	const noMenuPaths = $state(data.noMenuPaths ?? []);
-	onNavigate((e) => {
-		showMenu = !noMenuPaths.some((path) => e.to?.url.pathname.startsWith(path));
-		pathname = e.to?.url.pathname ?? '';
-	});
+	const windowWidth = $state(1920); //px
 
-	let isExpansed = $state(false);
+	const buttonClasses = 'btn hover:preset-tonal';
+	let anchorRail = `${buttonClasses} aspect-square w-full max-w-[84px] flex flex-col items-center gap-0.5`;
+	let anchorSidebar = `${buttonClasses} justify-start px-2 w-full`;
 
-	function toggleExpanded() {
-		isExpansed = !isExpansed;
+	let layoutRail = $state(true);
+
+	function toggleLayout() {
+		layoutRail = !layoutRail;
 	}
-
-	let gridClass = $derived(
-		showMenu
-			? 'grid grid-rows-[1fr_auto] border-[1px] md:grid-cols-[auto_1fr] md:grid-rows-none'
-			: ''
-	);
-	let bgClass = $state('bg-gradient-to-br from-blue-400 to-blue-600');
 </script>
 
 <svelte:head>
@@ -37,85 +29,58 @@
 </svelte:head>
 
 <div
-	class={`card border-surface-100-900 h-screen w-screen
-          ${gridClass} ${bgClass}`}
+	class="grid h-screen w-screen grid-rows-[1fr_auto] overflow-hidden border-[1px] md:grid-cols-[auto_1fr] md:grid-rows-none"
 >
-	{#if showMenu}
-		<Navigation.Rail expanded={isExpansed} classes="hidden md:flex h-full overflow-y-auto ">
-			{#snippet header()}
-				<Navigation.Tile
-					classes="h-10  w-full flex items-center justify-center"
-					expandedClasses="h-10  w-full flex items-center justify-center"
-					onclick={toggleExpanded}
-				>
-					<IconMenu />
-				</Navigation.Tile>
-				<Navigation.Tile
-					labelExpanded="Home"
-					labelExpandedBase="text-2xl h-10"
-					href="/"
-					title="Home"
-					id="/"
-					selected={pathname === '/'}
-				>
-					<IconHome />
-				</Navigation.Tile>
-			{/snippet}
-
-			{#snippet tiles()}
-				{#each navTiles.filter((tile) => tile.rail || tile.railExpanded === isExpansed) as tile}
-					<Navigation.Tile
-						labelExpanded={tile.labelExpanded}
-						labelExpandedBase={tile.rail ? 'text-lg' : 'text-xs'}
-						expandedClasses={tile.rail ? 'mt-4 h-10' : 'pl-10 my-0 py-0 h-10'}
-						href={tile.href}
-						title={tile.label}
-						id={tile.href}
-						selected={pathname === tile.href}
-					>
-						<tile.icon />
-					</Navigation.Tile>
+	<Navigation
+		layout={layoutRail ? 'bar' : 'sidebar'}
+		class={layoutRail
+			? ''
+			: 'border-1  grid grid-rows-[1fr_auto] gap-4 overflow-hidden border-purple-500'}
+	>
+		<Navigation.Header>
+			<button type="button" class={layoutRail ? anchorRail : anchorSidebar} onclick={toggleLayout}>
+				<ArrowLeftRightIcon class={layoutRail ? 'size-5' : 'size-4'} />
+				{#if !layoutRail}<span>Resize</span>{/if}
+			</button>
+		</Navigation.Header>
+		<Navigation.Content class="border border-green-400">
+			<Navigation.Menu class="border border-amber-400">
+				{#each links as link (link)}
+					{@const Icon = link.icon}
+					<a href={link.href} class={layoutRail ? anchorRail : anchorSidebar}>
+						<Icon class={layoutRail ? 'size-5' : 'size-4'} />
+						<span class={layoutRail ? 'text-[10px]' : ''}>{link.label}</span>
+					</a>
 				{/each}
-			{/snippet}
-
-			{#snippet footer()}
-				{#each navFooter.filter((tile) => tile.rail || tile.railExpanded === isExpansed) as tile}
-					<Navigation.Tile
-						labelExpanded={tile.labelExpanded}
-						labelExpandedBase={tile.rail ? 'text-2xl' : 'text-lg'}
-						expandedClasses={tile.rail ? 'mt-4' : 'pl-10 my-0 py-0'}
-						href={tile.href}
-						title={tile.label}
-						id={tile.href}
-						selected={pathname === tile.href}
-					>
-						<tile.icon />
-					</Navigation.Tile>
-				{/each}
-			{/snippet}
-		</Navigation.Rail>
-	{/if}
-
-	<div class="flex h-full w-full flex-col overflow-y-auto">
-		{@render children()}
+			</Navigation.Menu>
+		</Navigation.Content>
+	</Navigation>
+	<div
+		class=" flex items-center justify-center overflow-auto bg-gradient-to-br from-blue-300 to-red-300"
+	>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
+		<pre class="pre">Layout: {layoutRail ? 'Rail' : 'Sidebar'}</pre>
 	</div>
-
-	{#if showMenu}
-		<Navigation.Bar classes="md:hidden overflow-x-auto">
-			<Navigation.Tile label="Home" href="/" title="Home" id="/" selected={pathname === '/'}>
-				<IconHome />
-			</Navigation.Tile>
-			{#each [...navTiles, ...navFooter].filter((tile) => tile.bar) as tile}
-				<Navigation.Tile
-					label={tile.label}
-					href={tile.href}
-					title={tile.label}
-					id={tile.href}
-					selected={pathname === tile.href}
-				>
-					<tile.icon />
-				</Navigation.Tile>
-			{/each}
-		</Navigation.Bar>
-	{/if}
 </div>

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import PersonButton from '$lib/buttons/PersonButton.svelte';
+	import PersonButton from '$lib/slideAssets/buttons/PersonButton.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-	let { classroom, students } = $derived(data);
+	let { pathname, students } = data;
 
 	const studentUrl = async (studentId: string) => {
-		await goto(`/student/${studentId}`);
+		await goto(`${pathname}/${studentId}`);
 	};
 </script>
 

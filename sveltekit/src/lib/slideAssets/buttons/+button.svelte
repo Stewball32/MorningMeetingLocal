@@ -75,8 +75,8 @@
 		<img draggable={false} src={imageUrl} alt={imgAlt} class={imageClassDerived} />
 	{/if}
 	{#if showText}
-		<h3 class={TextClassDerived}>
+		<h3-slide class={TextClassDerived}>
 			{text}
-		</h3>
+		</h3-slide>
 	{/if}
 </button>

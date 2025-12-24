@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { SlideComponentPropsWrapper } from './_types';
-	import Banner from '$lib/decorations/Banner.svelte';
-	import Underline from '$lib/decorations/Underline.svelte';
-	import Star from '$lib/decorations/Star.svelte';
-	import RainCloud from '$lib/decorations/RainCloud.svelte';
-	import RainDrop from '$lib/decorations/RainDrop.svelte';
+	import Banner from '$lib/slideAssets/decorations/Banner.svelte';
+	import Underline from '$lib/slideAssets/decorations/Underline.svelte';
+	import Star from '$lib/slideAssets/decorations/Star.svelte';
+	import RainCloud from '$lib/slideAssets/decorations/RainCloud.svelte';
+	import RainDrop from '$lib/slideAssets/decorations/RainDrop.svelte';
 
 	let {
 		classroom,

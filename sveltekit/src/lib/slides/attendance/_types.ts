@@ -1,6 +1,6 @@
 import {
 	Slide,
-	ClassroomActivity,
+	PresentationActivity,
 	StudentActivity,
 	BaseActivityObject,
 	TeacherActivity
@@ -62,7 +62,7 @@ export class SlideWrapper extends Slide {
 	}
 }
 
-export class ClassroomActivityWrapper extends ClassroomActivity {
+export class ClassroomActivityWrapper extends PresentationActivity {
 	constructor(data: any) {
 		super(data);
 	}

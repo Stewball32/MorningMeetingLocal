@@ -1,40 +1,36 @@
 import { getCurrentISOString } from '$lib';
 import {
-	getAllClassIcons,
-	getGuestRecordsByClassroom,
+	getAllIcons,
 	getSlideRecordsByClassroom,
-	getStudentRecordsByClassroom,
-	getTeacherRecordsByClassroom,
 	getSlideRecordsOrdered,
 	getIconRecord,
-	resolveClassPresentationRecord,
 	getPbImageUrl,
 	getClassroomRecordByName,
 	getClassroomRecordById,
 	getDeckRecordByName,
 	getDeckRecordById,
-	resolveIndividualPresentationActivityRecords,
-	updateClassPresentationRecord,
+	updatePresentationRecord,
 	pbUpdateRecord,
-	pbSubscribeToRecord
+	pbSubscribeToRecord,
+	getAllClassroomRecords,
+	getAllDeckRecords,
+	getAllSlideRecords,
+	getPeopleRecordsByClassroom,
+	getRosterRecordsByClassroom,
+	getGuestRecordsByClassroom,
+	getAllPeopleRecords
 } from '$lib/pb/records';
 import type {
 	ClassroomPB,
-	ClassIconPB,
-	PersonBasePB,
-	GuestPB,
-	RosteredPB,
-	DeckSlidePB,
+	IconPB,
+	PersonPB,
+	SlidePB,
 	DeckPB,
-	TeacherPB,
-	StudentPB,
-	ClassPresentationPB,
+	PresentationPB,
 	ActivityBasePB,
-	allActivityCollections,
-	ActivityStudentPB,
-	ActivityGuestPB,
-	ActivityTeacherPB,
-	ActivityClassroomPB
+	ActivityPresentation,
+	ActivityPersonPB,
+	PersonConfig
 } from '$lib/pb/schema';
 import {
 	getClassSlideComponents,
@@ -47,7 +43,7 @@ import {
 import type { RecordModel, RecordSubscription, UnsubscribeFunc } from 'pocketbase';
 import type { Component } from 'svelte';
 
-export class SchoolBuilder {
+export class ClassroomBuilder {
 	static async getClassroom(nameOrId: string): Promise<Classroom> {
 		let record: ClassroomPB | null = null;
 		record = (await getClassroomRecordByName(nameOrId)) ?? (await getClassroomRecordById(nameOrId));
@@ -62,34 +58,44 @@ export class SchoolBuilder {
 		return new Deck(record);
 	}
 
-	static async getDeckSlides(deck: DeckPB | Deck): Promise<DeckSlidePB[]> {
+	static async getSlidesInDeck(deck: DeckPB | Deck): Promise<SlidePB[]> {
 		return await getSlideRecordsOrdered(deck.slidesIds);
 	}
 
-	static async getClassStudents(classroomId: string): Promise<Student[]> {
-		const studentRecords = await getStudentRecordsByClassroom(classroomId);
-		return studentRecords.map((record) => new Student(record));
-	}
-
-	static async getClassTeachers(classroomId: string): Promise<Teacher[]> {
-		const teacherRecords = await getTeacherRecordsByClassroom(classroomId);
-		return teacherRecords.map((record) => new Teacher(record));
-	}
-
-	static async getClassGuests(classroomId: string): Promise<Guest[]> {
-		const guestRecords = await getGuestRecordsByClassroom(classroomId);
-		const guestIcons: (ClassIconPB | null)[] = [];
-		for (const record of guestRecords) {
-			guestIcons.push(await getIconRecord(record.icon, `${record.id}-icon`));
-		}
-		return guestRecords.map(
-			(record, index) => new Guest(record, guestIcons[index] ? new Icon(guestIcons[index]) : null)
+	static async getAllPeopleInClassroom(classroomId: string): Promise<Person[]> {
+		return (await getPeopleRecordsByClassroom<PersonPB>(classroomId)).map(
+			(record) => new Person(record)
 		);
 	}
 
+	static async getActivePeopleInClassroom(classroomId: string): Promise<Person[]> {
+		return (await getRosterRecordsByClassroom(classroomId)).map((record) => new Person(record));
+	}
+
+	static async getGuestsInClassroom(classroomId: string): Promise<Person[]> {
+		return (await getGuestRecordsByClassroom(classroomId)).map((record) => new Person(record));
+	}
+
 	static async getClassIcons(classroomId: string): Promise<Icon[]> {
-		const iconRecords = await getAllClassIcons(classroomId);
-		return iconRecords.map((record) => new Icon(record));
+		return (await getAllIcons(classroomId)).map((record) => new Icon(record));
+	}
+}
+
+export class SchoolBuilder {
+	static async getAllClassrooms(): Promise<Classroom[]> {
+		return (await getAllClassroomRecords()).map((record) => new Classroom(record));
+	}
+
+	static async getAllDecks(): Promise<Deck[]> {
+		return (await getAllDeckRecords()).map((record) => new Deck(record));
+	}
+
+	static async getAllSlides(): Promise<Slide[]> {
+		return (await getAllSlideRecords()).map((record) => new Slide(record));
+	}
+
+	static async getAllPeople(): Promise<Person[]> {
+		return (await getAllPeopleRecords()).map((record) => new Person(record));
 	}
 }
 
@@ -143,8 +149,8 @@ abstract class BaseObject<T extends RecordModel> {
 	}
 }
 
-class Icon extends BaseObject<ClassIconPB> {
-	constructor(public record: ClassIconPB) {
+class Icon extends BaseObject<IconPB> {
+	constructor(public record: IconPB) {
 		super(record);
 	}
 
@@ -166,7 +172,7 @@ class Icon extends BaseObject<ClassIconPB> {
 }
 
 export class Deck extends BaseObject<DeckPB> {
-	private _slideRecords: DeckSlidePB[] | null = null;
+	private _slideRecords: SlidePB[] | null = null;
 	private _slides: Slide[] | null = null;
 	constructor(public record: DeckPB) {
 		super(record);
@@ -177,22 +183,6 @@ export class Deck extends BaseObject<DeckPB> {
 
 	get slidesIds() {
 		return this.record.slides;
-	}
-
-	async getPresentation(classId: string, isoString: string): Promise<ClassPresentationPB> {
-		return await resolveClassPresentationRecord(classId, this.id, isoString);
-	}
-
-	async resolveIndividualActivityRecords(
-		presentationId: string,
-		personOrClassroom: ClassroomPB | StudentPB | TeacherPB | GuestPB
-	): Promise<ClassroomActivity[]> {
-		const activityRecords = await resolveIndividualPresentationActivityRecords(
-			presentationId,
-			this.slidesIds,
-			personOrClassroom
-		);
-		return activityRecords.map((record) => new ClassroomActivity(record as ActivityClassroomPB));
 	}
 
 	async getSlides(): Promise<Slide[]> {
@@ -206,7 +196,7 @@ export class Deck extends BaseObject<DeckPB> {
 		return this._slides;
 	}
 
-	async getSlideRecords(): Promise<DeckSlidePB[]> {
+	async getSlideRecords(): Promise<SlidePB[]> {
 		if (this._slideRecords) return this._slideRecords;
 		this._slideRecords = await getSlideRecordsOrdered(this.slidesIds);
 		return this._slideRecords;
@@ -231,9 +221,6 @@ export class Classroom extends BaseObject<ClassroomPB> {
 	constructor(public record: ClassroomPB) {
 		super(record);
 	}
-	get id() {
-		return this.record.id;
-	}
 	get name() {
 		return this.record.name;
 	}
@@ -241,19 +228,11 @@ export class Classroom extends BaseObject<ClassroomPB> {
 	get config() {
 		return this.record.config || {};
 	}
-
-	async getPresentation(deckId: string, isoString: string): Promise<Presentation> {
-		const presentationPB = await resolveClassPresentationRecord(this.id, deckId, isoString);
-		return new Presentation(presentationPB);
-	}
 }
 
-export class Presentation extends BaseObject<ClassPresentationPB> {
-	constructor(public record: ClassPresentationPB) {
+export class Presentation extends BaseObject<PresentationPB> {
+	constructor(public record: PresentationPB) {
 		super(record);
-	}
-	get id() {
-		return this.record.id;
 	}
 	get classroomId() {
 		return this.record.classroom;
@@ -273,7 +252,7 @@ export class Presentation extends BaseObject<ClassPresentationPB> {
 
 	async moveSlide(totalSlides: number, slideAdjustment: number): Promise<void> {
 		const newSlideIndex = Math.max(Math.min(totalSlides - 1, this.slideIndex + slideAdjustment), 0);
-		const partial: Partial<ClassPresentationPB> = {
+		const partial: Partial<PresentationPB> = {
 			id: this.id,
 			slide: newSlideIndex
 		};
@@ -281,8 +260,8 @@ export class Presentation extends BaseObject<ClassPresentationPB> {
 	}
 }
 
-export class Slide extends BaseObject<DeckSlidePB> {
-	constructor(public record: DeckSlidePB) {
+export class Slide extends BaseObject<SlidePB> {
+	constructor(public record: SlidePB) {
 		super(record);
 	}
 	get id() {
@@ -304,7 +283,7 @@ export class Slide extends BaseObject<DeckSlidePB> {
 		return this.record.data || {};
 	}
 
-	updateConfig(partial: Partial<DeckSlidePB['config']>): Promise<boolean> {
+	updateConfig(partial: Partial<SlidePB['config']>): Promise<boolean> {
 		const recordConfig = {
 			...this.config,
 			...partial
@@ -312,224 +291,83 @@ export class Slide extends BaseObject<DeckSlidePB> {
 		return this.updateRecord({ config: recordConfig });
 	}
 
-	async updateData(partial: Partial<DeckSlidePB>): Promise<boolean> {
+	async updateData(partial: Partial<SlidePB>): Promise<boolean> {
 		const recordData = {
 			...this.data,
 			...partial
-		} as DeckSlidePB;
+		} as SlidePB;
 		return this.updateRecord({ data: recordData });
 	}
 }
 
-abstract class Person extends BaseObject<PersonBasePB> {
-	protected extraVideoParams: string = '?rel=0&enablejsapi=1&autoplay=0';
-
-	constructor(public record: PersonBasePB) {
-		super(record);
-	}
-	get id() {
-		return this.record.id;
-	}
-	get name() {
-		return this.record.name;
-	}
-	get classroomId() {
-		return this.record.classroom;
-	}
-	get pronoun() {
-		return this.record.pronoun || 'they';
-	}
-	get pronounSubject() {
-		const subjects = {
-			he: 'he',
-			she: 'she',
-			they: 'they'
-		};
-		return subjects[this.pronoun];
-	}
-	get pronounObject() {
-		const objects = {
-			he: 'him',
-			she: 'her',
-			they: 'them'
-		};
-		return objects[this.pronoun] || 'them';
-	}
-	get pronounDependentPossessive() {
-		const possessives = {
-			he: 'his',
-			she: 'her',
-			they: 'their'
-		};
-		return possessives[this.pronoun] || 'their';
-	}
-	get pronounIndependentPossessive() {
-		const possessives = {
-			he: 'his',
-			she: 'hers',
-			they: 'theirs'
-		};
-		return possessives[this.pronoun] || 'theirs';
-	}
-	get pronounReflexive() {
-		const reflexives = {
-			he: 'himself',
-			she: 'herself',
-			they: 'themselves'
-		};
-		return reflexives[this.pronoun] || 'themselves';
-	}
-
-	get config() {
-		return {};
-	}
-	abstract get avatarUrl(): string;
-
-	abstract get videoId(): string;
-	abstract get videoStart(): number;
-	abstract get videoEnd(): number;
-
-	// abstract get videoEmbedUrl(): string;
-	// abstract get videoUrl(): string;
-
-	abstract resolvePresentationActivityRecords(
-		presentationId: string,
-		slidesIds: string[]
-	): Promise<BaseActivityObject<ActivityBasePB>[]>;
-}
-
-export class Guest extends Person {
-	constructor(
-		public record: GuestPB,
-		public icon: Icon | null = null
-	) {
+export class Person extends BaseObject<PersonPB> {
+	constructor(public record: PersonPB) {
 		super(record);
 	}
 
-	get avatarUrl() {
-		return this.icon?.url || '';
-	}
-	// Guests don't have a unique video ID, so we use a default
-	private get videoParams() {
-		const videoId = '0gzKRGcmnFs'; // Beauty and the Beast - Be Our Guest
-		const start = `&start=${206}`;
-		const end = `&end=${222}`;
-		let params = videoId + this.extraVideoParams + start + end;
-		return params;
-	}
-	get videoId() {
-		return '0gzKRGcmnFs'; // Beauty and the Beast - Be Our Guest
-	}
-	get videoStart() {
-		return 206; // Start at 3:26
-	}
-	get videoEnd() {
-		return 222; // End at 3:42
-	}
-	// get videoEmbedUrl() {
-	// 	return `https://www.youtube.com/embed/${this.videoParams}`;
-	// }
-	// get videoUrl() {
-	// 	return `https://www.youtube.com/watch?v=${this.videoParams}`;
-	// }
-
-	async resolvePresentationActivityRecords(
-		presentationId: string,
-		slidesIds: string[]
-	): Promise<GuestActivity[]> {
-		const activityRecords = await resolveIndividualPresentationActivityRecords(
-			presentationId,
-			slidesIds,
-			this.record
-		);
-		return activityRecords.map((record) => new GuestActivity(record as ActivityGuestPB));
-	}
-}
-
-abstract class PersonRostered extends Person {
-	constructor(public record: RosteredPB) {
-		super(record);
-	}
 	get avatarUrl() {
 		if (!this.record.avatar) return '';
 		return getPbImageUrl(this.record.collectionId, this.record.id, this.record.avatar);
 	}
 
-	get videoId() {
-		return this.record.video_id || '';
-	}
-	get videoStart() {
-		return this.record.video_start || 0;
-	}
-	get videoEnd() {
-		return this.record.video_end || 0;
+	get name() {
+		return this.record.name;
 	}
 
-	// private get videoParams() {
-	// 	if (!this.videoId) return '';
-	// 	let params = this.extraVideoParams;
-	// 	if (this.record.video_start) {
-	// 		params += `&start=${this.record.video_start}`;
-	// 	}
-	// 	if (this.record.video_end) {
-	// 		params += `&end=${this.record.video_end}`;
-	// 	}
-	// 	return params;
-	// }
-	// get videoEmbedUrl() {
-	// 	const params = this.videoParams;
-	// 	if (!params) return '';
-	// 	const url = `https://www.youtube.com/embed/${this.videoId}?${params}`;
-	// 	console.log(`Video Embed URL: ${url}`);
-	// 	return `https://www.youtube.com/embed/${this.videoId}?${params}?`;
-	// }
-	// get videoUrl() {
-	// 	const params = this.videoParams;
-	// 	if (!params) return '';
-	// 	return `https://www.youtube.com/watch?v=${this.videoId}&${params}`;
-	// }
-}
-
-export class Student extends PersonRostered {
-	constructor(public record: StudentPB) {
-		super(record);
+	get role() {
+		return this.record.role;
 	}
 
-	override get config() {
-		return this.record.config || {};
+	get title() {
+		return this.record.title || '';
 	}
 
-	async resolvePresentationActivityRecords(
-		presentationId: string,
-		slidesIds: string[]
-	): Promise<StudentActivity[]> {
-		const activityRecords = await resolveIndividualPresentationActivityRecords(
-			presentationId,
-			slidesIds,
-			this.record
-		);
-		const activities = activityRecords.map(
-			(record) => new StudentActivity(record as ActivityStudentPB)
-		);
-		return activities;
-	}
-}
-
-export class Teacher extends PersonRostered {
-	constructor(public record: TeacherPB) {
-		super(record);
+	get classroomIds() {
+		return this.record.classrooms || [];
 	}
 
-	async resolvePresentationActivityRecords(
-		presentationId: string,
-		slidesIds: string[]
-	): Promise<TeacherActivity[]> {
-		const activityRecords = await resolveIndividualPresentationActivityRecords(
-			presentationId,
-			slidesIds,
-			this.record
-		);
-		return activityRecords.map((record) => new TeacherActivity(record as ActivityTeacherPB));
+	get guestroomIds() {
+		return this.record.guestrooms || [];
+	}
+
+	get pronoun() {
+		return this.record.pronoun || 'they';
+	}
+
+	get config() {
+		return this.record.config || ({} as PersonConfig);
+	}
+
+	get data() {
+		return this.record.data || {};
+	}
+
+	private allPronouns = {
+		he: {
+			subject: 'he',
+			object: 'him',
+			dependentPossessive: 'his',
+			independentPossessive: 'his',
+			reflexive: 'himself'
+		},
+		she: {
+			subject: 'she',
+			object: 'her',
+			dependentPossessive: 'her',
+			independentPossessive: 'hers',
+			reflexive: 'herself'
+		},
+		they: {
+			subject: 'they',
+			object: 'them',
+			dependentPossessive: 'their',
+			independentPossessive: 'theirs',
+			reflexive: 'themselves'
+		}
+	};
+
+	get pronounTypes() {
+		return this.allPronouns[this.pronoun] || this.allPronouns['they'];
 	}
 }
 
@@ -546,7 +384,6 @@ export abstract class BaseActivityObject<T extends ActivityBasePB> extends BaseO
 	get data() {
 		return this.record.data || {};
 	}
-	abstract get personId(): string;
 
 	async updateData(partial: Partial<T>): Promise<boolean> {
 		const recordData = {
@@ -557,75 +394,24 @@ export abstract class BaseActivityObject<T extends ActivityBasePB> extends BaseO
 	}
 }
 
-export class ClassroomActivity extends BaseActivityObject<ActivityClassroomPB> {
-	constructor(public record: ActivityClassroomPB) {
+export class PresentationActivity extends BaseActivityObject<ActivityPresentation> {
+	constructor(public record: ActivityPresentation) {
 		super(record);
-	}
-	async updateData(partial: Partial<ActivityClassroomPB>): Promise<boolean> {
-		const recordData = {
-			...this.data,
-			...partial
-		} as ActivityClassroomPB;
-		return this.updateRecord({ data: recordData });
-	}
-	get personId() {
-		return '';
 	}
 }
 
-export class GuestActivity extends BaseActivityObject<ActivityGuestPB> {
-	constructor(public record: ActivityGuestPB) {
+export class StudentActivity extends BaseActivityObject<ActivityPersonPB> {
+	constructor(public record: ActivityPersonPB) {
 		super(record);
 	}
-	async updateData(partial: Partial<ActivityGuestPB>): Promise<boolean> {
+	get personId() {
+		return this.record.person;
+	}
+	async updateData(partial: Partial<ActivityPersonPB>): Promise<boolean> {
 		const recordData = {
 			...this.data,
 			...partial
-		} as ActivityGuestPB;
+		} as ActivityPersonPB;
 		return this.updateRecord({ data: recordData });
-	}
-	get guestId() {
-		return this.record.guest;
-	}
-	get personId() {
-		return this.guestId;
-	}
-}
-
-export class TeacherActivity extends BaseActivityObject<ActivityTeacherPB> {
-	constructor(public record: ActivityTeacherPB) {
-		super(record);
-	}
-	async updateData(partial: Partial<ActivityTeacherPB>): Promise<boolean> {
-		const recordData = {
-			...this.data,
-			...partial
-		} as ActivityTeacherPB;
-		return this.updateRecord({ data: recordData });
-	}
-	get teacherId() {
-		return this.record.teacher;
-	}
-	get personId() {
-		return this.teacherId;
-	}
-}
-
-export class StudentActivity extends BaseActivityObject<ActivityStudentPB> {
-	constructor(public record: ActivityStudentPB) {
-		super(record);
-	}
-	async updateData(partial: Partial<ActivityStudentPB>): Promise<boolean> {
-		const recordData = {
-			...this.data,
-			...partial
-		} as ActivityStudentPB;
-		return this.updateRecord({ data: recordData });
-	}
-	get studentId() {
-		return this.record.student;
-	}
-	get personId() {
-		return this.studentId;
 	}
 }

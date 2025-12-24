@@ -1,9 +1,9 @@
 import type { Component } from 'svelte';
-import type { ActivityBasePB, ActivityClassroomPB, DeckSlidePB } from '$lib/pb/schema';
+import type { ActivityBasePB, ActivityPresentation, SlidePB } from '$lib/pb/schema';
 import type {
 	BaseActivityObject,
 	Classroom,
-	ClassroomActivity,
+	PresentationActivity,
 	Deck,
 	Guest,
 	Presentation,
@@ -21,7 +21,7 @@ export interface SlideComponentProps {
 	students: Student[];
 	teachers: Teacher[];
 	guests: Guest[];
-	classroomActivity: ClassroomActivity;
+	classroomActivity: PresentationActivity;
 	personActivityMap?: Map<string, BaseActivityObject<ActivityBasePB>>;
 }
 
@@ -33,7 +33,7 @@ export interface StudentViewComponentProps {
 	students: Student[];
 	teachers: Teacher[];
 	guests: Guest[];
-	classroomActivity: ClassroomActivity;
+	classroomActivity: PresentationActivity;
 	studentActivity?: StudentActivity;
 }
 
@@ -81,7 +81,7 @@ const StudentInteractComponents = Object.fromEntries(
 	})
 ) as Record<string, Component<StudentInteractComponentProps>>;
 
-export function getClassSlideComponents(slides: DeckSlidePB[]): Component<SlideComponentProps>[] {
+export function getClassSlideComponents(slides: SlidePB[]): Component<SlideComponentProps>[] {
 	return slides.map((slide) => {
 		const comp = ClassSlideComponents[slide.component];
 		if (!comp) {
@@ -92,7 +92,7 @@ export function getClassSlideComponents(slides: DeckSlidePB[]): Component<SlideC
 }
 
 export function getStudentViewComponents(
-	slides: DeckSlidePB[]
+	slides: SlidePB[]
 ): Component<StudentViewComponentProps>[] {
 	return slides.map((slide) => {
 		const comp = StudentViewComponents[slide.component];
@@ -104,7 +104,7 @@ export function getStudentViewComponents(
 }
 
 export function getStudentInteractComponents(
-	slides: DeckSlidePB[]
+	slides: SlidePB[]
 ): Component<StudentInteractComponentProps>[] {
 	return slides.map((slide) => {
 		const comp = StudentInteractComponents[slide.component];
