@@ -16,6 +16,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Create pages for nav rail and bar.
   - Ability to view and edit Pocketbase records for non-activity data.
 
+## [0.2.0] - 2025-12-23
+
+### /pocketbase/
+
+- Added emotions, emotion overrides, and images collections with updated migrations.
+- Removed legacy guest/student activity collections from the schema.
+- Updated hooks, sample data, and stored assets to match the new schema.
+- Added PocketBase docs and refreshed ignore/setup config.
+
+### /sveltekit/
+
+- Refactored PocketBase client modules into per-domain files with barrel exports.
+- Moved People/Emotions logic into the Person model with overrides and caching.
+- Updated edit routes and slide assets to use the Person model and new imports.
+- Added config components, UI helpers, and refreshed static assets.
+
+### /
+
+- Updated repo docs and added local Skeleton UI reference material.
+
 ## [0.1.1] - 2025-07-05
 
 ### /pocketbase/

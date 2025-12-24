@@ -2,11 +2,9 @@
 	import { onMount } from 'svelte';
 	// import type { SlideConfig, ClassActivityRecord, PersonActivityRecord } from './types';
 	import { transformStringWithPerson } from '$lib';
-	import { PresentationActivity, type Guest, type Student, type Teacher } from '$lib/pb/objects';
+	import type { Person } from '$lib/pb';
 	import type { StudentInteractComponentPropsWrapper } from './_types';
-	import UndoIcon from '@lucide/svelte/icons/undo';
 	import Underline from '$lib/slideAssets/decorations/Underline.svelte';
-	import PersonButton from '$lib/slideAssets/buttons/PersonButton.svelte';
 	import Creature from '$lib/slideAssets/decorations/Creature.svelte';
 	import Squiggle from '$lib/slideAssets/decorations/Squiggle.svelte';
 
@@ -36,9 +34,9 @@
 
 	let { currentPersonId = '', hereIds = [], absentIds = [] } = $derived(classroomActivity.data);
 
-	let people = $state<(Student | Teacher | Guest)[]>([]);
-	let peopleRows = $state<(Student | Teacher | Guest)[][]>([]);
-	let currentPerson: Student | Teacher | Guest | undefined = $derived(
+	let people = $state<Person[]>([]);
+	let peopleRows = $state<Person[][]>([]);
+	let currentPerson: Person | undefined = $derived(
 		people.find((person) => person.id === currentPersonId)
 	);
 	let currentAttendance: string = $derived(
@@ -111,7 +109,7 @@
 	</h3>
 	<img
 		class="absolute bottom-[5%] left-[50%] z-20 h-[75%] translate-x-[-50%]"
-		src={currentPerson.avatarUrl || ''}
+		src={currentPerson.avatarPath || ''}
 		alt={currentPerson.name || 'Current Person Avatar'}
 	/>
 {/if}

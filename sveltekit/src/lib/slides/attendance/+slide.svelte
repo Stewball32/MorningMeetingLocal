@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { transformStringWithPerson } from '$lib';
 	import type { ClassActivityDataType, SlideComponentPropsWrapper } from './_types';
-	import { PresentationActivity, type Guest, type Student, type Teacher } from '$lib/pb/objects';
+	import type { Person } from '$lib/pb';
 	import UndoIcon from '@lucide/svelte/icons/undo';
 	import Underline from '$lib/slideAssets/decorations/Underline.svelte';
 	import PersonButton from '$lib/slideAssets/buttons/PersonButton.svelte';
@@ -39,9 +39,9 @@
 		absentIds = []
 	} = $derived(classroomActivity.data || {});
 
-	let people = $state<(Student | Teacher | Guest)[]>([]);
-	let peopleRows = $state<(Student | Teacher | Guest)[][]>([]);
-	let currentPerson: Student | Teacher | Guest | undefined = $derived(
+	let people = $state<Person[]>([]);
+	let peopleRows = $state<Person[][]>([]);
+	let currentPerson: Person | undefined = $derived(
 		people.find((person) => person.id === currentPersonId)
 	);
 	let currentAttendance: string = $derived(
@@ -52,16 +52,16 @@
 				: ''
 	);
 
-	let currentHereVotes: (Student | Teacher | Guest)[] = $state([]);
-	let currentAbsentVotes: (Student | Teacher | Guest)[] = $state([]);
+	let currentHereVotes: Person[] = $state([]);
+	let currentAbsentVotes: Person[] = $state([]);
 	$effect(() => {
 		if (!currentPerson) {
 			currentHereVotes = [];
 			currentAbsentVotes = [];
 			return;
 		}
-		let newHereVotes: (Student | Teacher | Guest)[] = [];
-		let newAbsentVotes: (Student | Teacher | Guest)[] = [];
+		let newHereVotes: Person[] = [];
+		let newAbsentVotes: Person[] = [];
 		personActivityMap?.entries().forEach(([personId, activity]) => {
 			if (activity.data?.hereVotes?.includes(currentPerson.id)) {
 				const person = people.find((p) => p.id === personId);
@@ -110,7 +110,7 @@
 					: 'h-32'
 	);
 
-	const updateCurrentPerson = async (person: Student | Teacher | Guest) => {
+	const updateCurrentPerson = async (person: Person) => {
 		const newCurrentPersonId = currentPersonId === person.id ? '' : person.id;
 		await classroomActivity.updateData({
 			currentPersonId: newCurrentPersonId
@@ -129,15 +129,24 @@
 		await classroomActivity.updateData(newData);
 	};
 
-	// const getYoutubeEmbedUrl = (person: Student | Teacher | Guest) => {
+	// const getYoutubeEmbedUrl = (person: Person) => {
 	// 	if (!person.videoEmbedUrl) return '';
 	// 	return person.videoEmbedUrl;
 	// };
 
-	const youtubeUrl = (person: Student | Teacher | Guest, embedded: boolean = true) => {
-		const videoId = person.videoId;
-		const start = person.videoStart ? `&start=${person.videoStart}` : '';
-		const end = person.videoEnd ? `&end=${person.videoEnd}` : '';
+	type PersonVideo = { id?: string; start?: number; end?: number };
+	const getPersonVideo = (person: Person): PersonVideo | undefined => {
+		const configVideo = (person.config as { video?: PersonVideo } | undefined)?.video;
+		const dataVideo = (person.data as { video?: PersonVideo } | undefined)?.video;
+		return configVideo ?? dataVideo;
+	};
+
+	const youtubeUrl = (person: Person, embedded: boolean = true) => {
+		const video = getPersonVideo(person);
+		const videoId = video?.id;
+		if (!videoId) return '';
+		const start = video?.start ? `&start=${video.start}` : '';
+		const end = video?.end ? `&end=${video.end}` : '';
 		const baseUrl = embedded
 			? 'https://www.youtube.com/embed/'
 			: 'https://www.youtube.com/watch?v=';
@@ -193,7 +202,7 @@
 			>
 				{#each currentHereVotes.slice(0, 7) as person}
 					<img
-						src={person.avatarUrl}
+						src={person.avatarPath}
 						alt={person.name}
 						class="aspect-auto h-full w-auto select-none"
 					/>
@@ -219,7 +228,7 @@
 			>
 				{#each currentAbsentVotes as person}
 					<img
-						src={person.avatarUrl}
+						src={person.avatarPath}
 						alt={person.name}
 						class="aspect-auto h-full w-auto select-none"
 					/>
@@ -247,7 +256,7 @@
 	{#if currentAttendance !== 'here'}
 		<img
 			class="translate-[-50%] absolute left-[50%] top-[48%] z-20 h-[55%]"
-			src={currentPerson.avatarUrl || ''}
+			src={currentPerson.avatarPath || ''}
 			alt={currentPerson.name || 'Current Person Avatar'}
 		/>
 	{:else}

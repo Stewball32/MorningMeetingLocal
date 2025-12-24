@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { StudentInteractComponentProps } from '$lib/slides';
-	import type { SlideConfig, PersonActivityData } from './types';
-	import type { Guest, Student, Teacher } from '$lib/pb/objects';
+	import type { PersonActivityData } from './types';
+	import type { Person } from '$lib/pb';
 	import { transformStringWithPerson } from '$lib';
 
 	let {
@@ -37,9 +37,9 @@
 
 	let { hereVotes = [], absentVotes = [] } = $derived(studentActivity?.data || {});
 
-	let people = $state<(Student | Teacher | Guest)[]>([]);
-	let peopleRows = $state<(Student | Teacher | Guest)[][]>([]);
-	let currentPerson: Student | Teacher | Guest | undefined = $derived(
+	let people = $state<Person[]>([]);
+	let peopleRows = $state<Person[][]>([]);
+	let currentPerson: Person | undefined = $derived(
 		people.find((person) => person.id === currentPersonId)
 	);
 	let currentAttendance: 'here' | 'absent' | '' = $derived(
@@ -104,10 +104,19 @@
 		await studentActivity?.updateData(newData);
 	};
 
-	const youtubeUrl = (person: Student | Teacher | Guest, embedded: boolean = true) => {
-		const videoId = person.videoId;
-		const start = person.videoStart ? `&start=${person.videoStart}` : '';
-		const end = person.videoEnd ? `&end=${person.videoEnd}` : '';
+	type PersonVideo = { id?: string; start?: number; end?: number };
+	const getPersonVideo = (person: Person): PersonVideo | undefined => {
+		const configVideo = (person.config as { video?: PersonVideo } | undefined)?.video;
+		const dataVideo = (person.data as { video?: PersonVideo } | undefined)?.video;
+		return configVideo ?? dataVideo;
+	};
+
+	const youtubeUrl = (person: Person, embedded: boolean = true) => {
+		const video = getPersonVideo(person);
+		const videoId = video?.id;
+		if (!videoId) return '';
+		const start = video?.start ? `&start=${video.start}` : '';
+		const end = video?.end ? `&end=${video.end}` : '';
 		const baseUrl = embedded
 			? 'https://www.youtube.com/embed/'
 			: 'https://www.youtube.com/watch?v=';
@@ -208,7 +217,7 @@
 	{#if currentAttendance !== 'here'}
 		<img
 			class="translate-[-50%] absolute left-[50%] top-[48%] z-20 h-[55%]"
-			src={currentPerson.avatarUrl || ''}
+			src={currentPerson.avatarPath || ''}
 			alt={currentPerson.name || 'Current Person Avatar'}
 		/>
 	{:else}
