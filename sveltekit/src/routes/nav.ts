@@ -5,7 +5,8 @@ import {
 	PresentationIcon,
 	LayersIcon,
 	LaughIcon,
-	ImageIcon
+	ImageIcon,
+	Calendar
 } from '@lucide/svelte';
 
 interface NavTileProps {
@@ -54,6 +55,20 @@ export let navTiles: NavTileProps[] = [
 		labelExpanded: 'My Images',
 		href: '/images',
 		icon: ImageIcon,
+		railExpanded: true
+	},
+	{
+		label: 'Emotions',
+		labelExpanded: 'My Emotions',
+		href: '/emotions',
+		icon: LaughIcon,
+		railExpanded: true
+	},
+	{
+		label: 'Calendar',
+		labelExpanded: 'My Calendar',
+		href: '/calendar',
+		icon: Calendar,
 		railExpanded: true
 	}
 ];
