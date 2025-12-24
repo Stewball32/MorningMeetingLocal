@@ -1,0 +1,89 @@
+https://www.skeleton.dev/docs/svelte/guides/mode.md
+last downloaded 2025-11-30
+
+# Dark Mode
+
+Learn how to use Tailwind's dark mode feature for your Skeleton project.
+
+Skeleton makes use of Tailwind's Dark Mode to enable multiple strategies to control the overall app or page mode, as well as Color Scheme to selectively toggle light or dark interfaces at any scope.
+
+## Dark Mode
+
+Tailwind [multiple strategies](https://tailwindcss.com/docs/dark-mode) for configuring Dark Mode.
+
+### Media Strategy
+
+Enable by default. Uses CSS's [prefers-color-scheme](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme) and sets the active mode based on operating system settings.
+
+### Selector Strategy
+
+Activates dark mode by adding or removing the `.dark` class to your application's `<html>` element.
+
+```css
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+```html
+<html class="dark">
+  <!-- ... -->
+</html>
+```
+
+### Data Attribute Strategy
+
+Uses a data attribute instead of a class to activate dark mode.
+
+```css
+@custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));
+```
+
+```html
+<html data-mode="dark">
+  <!-- ... -->
+</html>
+```
+
+### Using the Dark Variant
+
+Apply a base style, then with Tailwind's `dark:` variant.
+
+```html
+<!-- Light Mode: White | Dark Mode: Black -->
+<div class="bg-white dark:bg-black">...</div>
+```
+
+---
+
+## Color Scheme
+
+Skeleton now supports Tailwind's [Color Scheme](https://tailwindcss.com/docs/color-scheme) feature, which enables toggling light or dark interfaces at any scope. By default, the scheme matches the current Dark Mode setting. This feature is enabled by [Color Pairings](/docs/[framework]/design/colors#color-pairings), which implement the native CSS property [light-dark](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/light-dark).
+
+```html
+<div class="bg-primary-50-950">Light or Dark</div>
+
+<div class="scheme-light">
+  <div class="bg-primary-50-950">Always Light Scheme</div>
+</div>
+
+<div class="scheme-dark">
+  <div class="bg-primary-50-950">Always Dark Scheme</div>
+</div>
+```
+
+---
+
+## Light Switch
+
+Legacy versions of Skeleton offer a unique Light Switch component for controlling the Dark Mode `selector` strategy. Unfortunately this is no longer available due to the number of permutations required per framework and required feature capabilities, including:
+
+- Supporting one or more combinations of Dark Mode strategies.
+- Supporting the unique APIs of each meta-framework.
+- Handling state and persistence; ex: local vs remote vs account-based storage
+
+We now recommend you generate your own component following [Tailwind's best practices](https://tailwindcss.com/docs/dark-mode). To help you get started, we've provided a Cookbook recipe covering the basics.
+
+<figure class="linker bg-noise">
+  <a class="btn preset-filled" href={resolvePath(props.Astro, '/docs/[framework]/guides/cookbook/light-switch')}>
+    Light Switch Recipe →
+  </a>
+</figure>

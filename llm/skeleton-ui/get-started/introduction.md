@@ -1,0 +1,165 @@
+https://www.skeleton.dev/docs/svelte/get-started/introduction.md
+last downloaded 2025-11-30
+
+# Introduction
+
+Learn more about Skeleton and how it can serve you.
+
+Skeleton provides a uniform design language and structured framework for controlling the look and feel of your product and user experience. It serves as an opinionated design system that aims to greatly reduce the amount of time spent managing design elements and patterns, allowing you to more quickly build and manage your frontend interfaces at scale.
+
+<figure className="linker bg-noise">
+  <SkeletonBig className="aspect-square size-48 drop-shadow-md fill-current" />
+</figure>
+
+## In a Nutshell
+
+{
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Design System</h3>
+    	<p className="text-surface-800-200">
+    		This aims to augment Tailwind CSS. It provides themes, styled elements, and provides opinionated guardrails for integrating your fully
+    		featured design system.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Components</h3>
+    	<p className="text-surface-800-200">
+    		Turnkey components built atop the foundation of{' '}
+    		<a href="https://zagjs.com/" target="_blank" class="anchor">
+    			Zag.js
+    		</a>
+    		. These automatically adapt to the Skeleton design system out of the box. Currently available for Svelte and React.
+    	</p>
+    </div>
+  </div>
+
+}
+
+## Our Philosophy
+
+{
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Framework Agnostic</h3>
+    	<p className="text-surface-800-200">
+    		Skeleton's core features are framework agnostic, only requiring the use of{' '}
+    		<a className="anchor" href="https://tailwindcss.com/" target="_blank" rel="external">
+    			Tailwind CSS
+    		</a>
+    		. This provides full access to all design system features, while enabling you to standardize the design process for your framework of
+    		choice.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Native-First</h3>
+    	<p className="text-surface-800-200">
+    		We aim to embrace the interface of the web, not replace it. This is why Skeleton defaults to semantic HTML elements and native browser
+    		APIs. Beyond ease of use, we feel this offers a huge advantages to accessibility.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Simple Standards</h3>
+    	<p className="text-surface-800-200">
+    		We aim to standardize the design process, providing common conventions that are easy to learn and retain, whether you work alone or in
+    		a team environment. Covering common fixtures such as themes, colors, typography, spacing, and more.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Utility-First</h3>
+    	<p className="text-surface-800-200">
+    		Skeleton embraces the{' '}
+    		<a className="anchor" href="https://tailwindcss.com/docs/utility-first" target="_blank" rel="external">
+    			utility-first
+    		</a>{' '}
+    		methodology for styling, supporting all features provided by{' '}
+    		<a className="anchor" href="https://tailwindcss.com/" target="_blank" rel="external">
+    			Tailwind
+    		</a>
+    		, while extending its capabilities in meaningful ways. Providing full support for the encapsulated components of the modern web.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Opt-In by Default</h3>
+    	<p className="text-surface-800-200">
+    		Most features in Skeleton are modular and opt-in by default. Enabling interface features like buttons and typography via dedicated
+    		utility classes. This allows for a simple escape hatch when you need to draw outside the lines and generate custom interfaces.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Adaptive</h3>
+    	<p className="text-surface-800-200">
+    		Skeleton is intended to adapt to the design and aesthetic of your project, while still providing reasonable defaults. Providing a
+    		powerful{' '}
+    		<a className="anchor" href="https://themes.skeleton.dev/" target="_blank" rel="external">
+    			theme generator
+    		</a>{' '}
+    		for custom themes, while also supplying a curated set of themes for those less design savvy.
+    	</p>
+    </div>
+  </div>
+
+}
+
+## Additional Benefits
+
+{
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Open Source</h3>
+    	<p className="text-surface-800-200">
+    		Skeleton is provided as{' '}
+    		<a href="https://github.com/skeletonlabs/skeleton" target="_blank" class="anchor">
+    			free and open-source software (FOSS)
+    		</a>{' '}
+    		under the{' '}
+    		<a href="https://github.com/skeletonlabs/skeleton?tab=MIT-1-ov-file#readme" target="_blank" class="anchor">
+    			MIT License
+    		</a>
+    		.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">The Community</h3>
+    	<p className="text-surface-800-200">
+    		A vast community of users and contributors across{' '}
+    		<a href="https://github.com/skeletonlabs/skeleton" target="_blank" class="anchor">
+    			GitHub
+    		</a>
+    		,{' '}
+    		<a href="https://discord.gg/EXqV7W8MtY" target="_blank" class="anchor">
+    			Discord
+    		</a>
+    		, and{' '}
+    		<a href="https://bsky.app/profile/skeleton.dev" target="_blank" class="anchor">
+    			Bluesky
+    		</a>
+    		.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Frequent Updates</h3>
+    	<p className="text-surface-800-200">
+    		Skeleton has maintained a frequent release cadence over for years. Just take a look at our{' '}
+    		<a href="https://github.com/skeletonlabs/skeleton/releases" target="_blank" class="anchor">
+    			Releases
+    		</a>
+    		.
+    	</p>
+    </div>
+    <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
+    	<h3 className="h3">Community Tools</h3>
+    	<p className="text-surface-800-200">
+    		We promote community-based projects that help augment Skeleton and improve your productivity, such as the{' '}
+    		<a href="https://www.etesie.dev/figma" target="_blank" rel="noopener noreferrer" class="anchor">
+    			Figma UI Kit
+    		</a>
+    		.
+    	</p>
+    </div>
+  </div>
+
+}

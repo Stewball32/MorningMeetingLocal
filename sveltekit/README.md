@@ -1,38 +1,51 @@
-# sv
+# SvelteKit App
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Frontend for Morning Meeting. This app talks to PocketBase via `PUBLIC_POCKETBASE_URL`.
 
-## Creating a project
+## Requirements
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Node/NPM LTS (tested with 22.14.0)
+
+## Setup
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+cd sveltekit
+cp .env.example .env
+npm install
 ```
 
-## Developing
+Update `sveltekit/.env` as needed:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+```
+PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
+```
+
+## Development
 
 ```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+LAN dev server:
 
-To create a production version of your app:
+```bash
+npm run devhost
+```
+
+## Build and Preview
 
 ```bash
 npm run build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+LAN preview:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run previewhost
+```
+
+## Useful Scripts
+
+- `npm run lint`
+- `npm run test`

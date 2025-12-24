@@ -1,11 +1,5 @@
-import {
-	Slide,
-	PresentationActivity,
-	StudentActivity,
-	BaseActivityObject,
-	TeacherActivity
-} from '$lib/pb/objects';
-import type { ActivityBasePB } from '$lib/pb/schema';
+import { BaseActivityObject, PresentationActivity, Slide, StudentActivity } from '$lib/pb';
+import type { ActivityBasePB } from '$lib/pb/schema/index';
 import type {
 	SlideComponentProps,
 	StudentInteractComponentProps,
