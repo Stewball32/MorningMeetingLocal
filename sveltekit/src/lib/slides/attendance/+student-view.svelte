@@ -2,13 +2,13 @@
 	import { onMount } from 'svelte';
 	// import type { SlideConfig, ClassActivityRecord, PersonActivityRecord } from './types';
 	import { transformStringWithPerson } from '$lib';
-	import { ClassroomActivity, type Guest, type Student, type Teacher } from '$lib/pb/objects';
+	import { PresentationActivity, type Guest, type Student, type Teacher } from '$lib/pb/objects';
 	import type { StudentInteractComponentPropsWrapper } from './_types';
 	import UndoIcon from '@lucide/svelte/icons/undo';
-	import Underline from '$lib/decorations/Underline.svelte';
-	import PersonButton from '$lib/buttons/PersonButton.svelte';
-	import Creature from '$lib/decorations/Creature.svelte';
-	import Squiggle from '$lib/decorations/Squiggle.svelte';
+	import Underline from '$lib/slideAssets/decorations/Underline.svelte';
+	import PersonButton from '$lib/slideAssets/buttons/PersonButton.svelte';
+	import Creature from '$lib/slideAssets/decorations/Creature.svelte';
+	import Squiggle from '$lib/slideAssets/decorations/Squiggle.svelte';
 
 	let {
 		// classroom,

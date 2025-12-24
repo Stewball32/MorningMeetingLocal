@@ -10,36 +10,17 @@ import PocketBase, {
 } from 'pocketbase';
 import type {
 	ClassroomPB,
-	StudentPB,
-	TeacherPB,
-	GuestPB,
-	DeckSlidePB,
-	ClassIconPB,
+	SlidePB,
+	IconPB,
 	DeckPB,
-	ClassPresentationPB,
-	PersonBasePB,
+	PresentationPB,
 	ActivityBasePB,
-	ActivityClassroomPB,
-	ActivityGuestPB
+	ActivityPresentation,
+	PersonPB,
+	ActivityPersonPB
 } from './schema';
+import { COLLECTION_NAMES } from './schema';
 import { getCurrentISOString, isISOString } from '$lib';
-
-const COLLECTION_NAMES = {
-	Classrooms: 'classrooms',
-	Decks: 'decks',
-	Slides: 'deck_slides',
-	Presentations: 'class_presentations',
-	Icons: 'class_icons',
-	// People Collections
-	Guests: 'guests',
-	Students: 'students',
-	Teachers: 'teachers',
-	// Activities Collections
-	ClassActivities: 'classroom_activity',
-	StudentActivities: 'student_activity',
-	TeacherActivities: 'teacher_activity',
-	GuestActivities: 'guest_activity'
-} as const;
 
 function createInstance() {
 	return new PocketBase(PUBLIC_POCKETBASE_URL);
@@ -124,7 +105,9 @@ const pbGetFirst = async <T>(
  */
 const pbGetFullList = async <T>(collection: string, options?: RecordListOptions): Promise<T[]> => {
 	try {
-		return (await pb.collection(collection).getFullList(options)) as T[];
+		const records = (await pb.collection(collection).getFullList(options)) as T[];
+		console.log(records, options, collection);
+		return records;
 	} catch (error) {
 		handlePocketBaseError(error);
 		return [];
@@ -215,6 +198,17 @@ export const pbSubscribeToRecord = async <T extends RecordModel>(
 // === Classroom Record Functions ===
 // ==================================
 
+export const getAllClassroomRecords = async (
+	options?: RecordListOptions
+): Promise<ClassroomPB[]> => {
+	options = {
+		requestKey: `get-all-classrooms`,
+		...options
+	};
+	const result = await pbGetList<ClassroomPB>(COLLECTION_NAMES.Classrooms, options);
+	return result ? result.items : [];
+};
+
 export const getClassroomRecordById = async (
 	id: string,
 	options?: RecordListOptions
@@ -240,6 +234,15 @@ export const getClassroomRecordByName = async (
 // =============================
 // === Deck Record Functions ===
 // =============================
+
+export const getAllDeckRecords = async (options?: RecordListOptions): Promise<DeckPB[]> => {
+	options = {
+		requestKey: `get-all-decks`,
+		...options
+	};
+	const result = await pbGetList<DeckPB>(COLLECTION_NAMES.Decks, options);
+	return result ? result.items : [];
+};
 
 export const getDeckRecordByName = async (
 	name: string,
@@ -268,61 +271,56 @@ export const getDeckRecordById = async (
 // === Class Presentation Record Functions ===
 // ===========================================
 
-export const resolveClassPresentationRecord = async (
+export const getPresentationRecords = async (
 	classroomId: string,
-	deckId: string,
-	isoString: string,
-	options?: RecordOptions
-): Promise<ClassPresentationPB> =>
-	(await getClassPresentationRecord(classroomId, deckId, isoString, options)) ??
-	(await createClassPresentationRecord(classroomId, deckId, isoString, options));
-
-const getClassPresentationRecord = async (
-	classroomId: string,
-	deckId: string,
-	isoString: string,
-	options?: RecordOptions
-): Promise<ClassPresentationPB | null> => {
-	const filter: string = `classroom="${classroomId}" && deck="${deckId}" && date="${isoString}"`;
+	options?: RecordListOptions
+): Promise<PresentationPB[]> => {
 	options = {
-		requestKey: `get-presentation-${classroomId}-${deckId}-${isoString}`,
-		...options
+		sort: '-updated',
+		requestKey: `get-presentations-${classroomId}`,
+		...options,
+		filter: `classroom = "${classroomId}"`
 	};
-	return await pbGetFirst<ClassPresentationPB>(COLLECTION_NAMES.Presentations, filter, options);
+	return await pbGetFullList<PresentationPB>(COLLECTION_NAMES.Presentations, options);
 };
 
-const createClassPresentationRecord = async (
+export const getPresentationRecordById = async (
+	id: string,
+	options?: RecordOptions
+): Promise<PresentationPB | null> => {
+	options = {
+		requestKey: `get-presentation-${id}`,
+		...options
+	};
+	return await pbGetOne<PresentationPB>(COLLECTION_NAMES.Presentations, id, options);
+};
+
+const createPresentationRecord = async (
 	classroomId: string,
 	deckId: string,
-	isoString: string,
 	options?: RecordOptions
-): Promise<ClassPresentationPB> => {
-	const partial: Partial<ClassPresentationPB> = {
-		date: isoString,
+): Promise<PresentationPB> => {
+	const partial: Partial<PresentationPB> = {
 		classroom: classroomId,
 		deck: deckId
 	};
 	options = {
-		requestKey: `create-presentation-${classroomId}-${deckId}-${isoString}`,
+		requestKey: `create-presentation-${classroomId}-${deckId}`,
 		...options
 	};
-	return await pbCreateRecord<ClassPresentationPB>(
-		COLLECTION_NAMES.Presentations,
-		partial,
-		options
-	);
+	return await pbCreateRecord<PresentationPB>(COLLECTION_NAMES.Presentations, partial, options);
 };
 
-export const updateClassPresentationRecord = async (
-	data: Partial<ClassPresentationPB>,
+export const updatePresentationRecord = async (
+	data: Partial<PresentationPB>,
 	options?: RecordOptions
-): Promise<ClassPresentationPB> => {
+): Promise<PresentationPB> => {
 	options = {
 		requestKey: `update-presentation-${data.id}`,
 		...options
 	};
 	if (!data.id) throw new Error('Cannot update class presentation record without an ID');
-	return await pbUpdateRecord<ClassPresentationPB>(
+	return await pbUpdateRecord<PresentationPB>(
 		COLLECTION_NAMES.Presentations,
 		data.id,
 		data,
@@ -351,30 +349,39 @@ export const updateClassPresentationRecord = async (
 // === Slide Record Functions ===
 // ==============================
 
+export const getAllSlideRecords = async (options?: RecordListOptions): Promise<SlidePB[]> => {
+	options = {
+		requestKey: `get-all-slides`,
+		...options
+	};
+	const result = await pbGetList<SlidePB>(COLLECTION_NAMES.Slides, options);
+	return result ? result.items : [];
+};
+
 export const getSlideRecordsByClassroom = async (
 	classroomId: string,
 	options?: RecordListOptions
-): Promise<DeckSlidePB[]> => {
+): Promise<SlidePB[]> => {
 	options = {
 		sort: 'order',
 		requestKey: `slides-by-classroom-${classroomId}`,
 		...options,
 		filter: `classroom = "${classroomId}"`
 	};
-	return await pbGetFullList<DeckSlidePB>(COLLECTION_NAMES.Slides, options);
+	return await pbGetFullList<SlidePB>(COLLECTION_NAMES.Slides, options);
 };
 
 export const getSlideRecordsOrdered = async (
 	slideIds: string[],
 	options?: RecordListOptions
-): Promise<DeckSlidePB[]> => {
+): Promise<SlidePB[]> => {
 	if (slideIds.length === 0) return [];
 	options = {
 		requestKey: `slides-ordered-${slideIds.join(',')}`,
 		...options,
 		filter: `"${slideIds}" ~ id`
 	};
-	const slides = await pbGetFullList<DeckSlidePB>(COLLECTION_NAMES.Slides, options);
+	const slides = await pbGetFullList<SlidePB>(COLLECTION_NAMES.Slides, options);
 	return (
 		slideIds
 			.map((id) => slides.find((slide) => slide.id === id))
@@ -388,152 +395,139 @@ export const getSlideRecordsOrdered = async (
 // === People Record Functions ===
 // ===============================
 
-const getPeopleRecordsByClassroom = async <T extends PersonBasePB>(
-	collectionName: string,
+export const getAllPeopleRecords = async (options?: RecordListOptions): Promise<PersonPB[]> => {
+	options = {
+		sort: 'name',
+		...options
+	};
+	const result = await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
+	return result ?? [];
+};
+
+export const getPeopleRecordsByClassroom = async <PersonPB>(
 	classroomId: string,
 	options?: RecordListOptions
-): Promise<T[]> => {
+): Promise<PersonPB[]> => {
 	options = {
+		sort: 'name',
 		...options,
-		filter: `classroom = "${classroomId}"`
+		filter: `classrooms ~ "${classroomId}" || guestrooms ~ "${classroomId}"`
 	};
-	return await pbGetFullList<T>(collectionName, options);
+	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
+};
+
+export const getRosterRecordsByClassroom = async (
+	classroomId: string,
+	options?: RecordListOptions
+): Promise<PersonPB[]> => {
+	options = {
+		sort: 'name',
+		...options,
+		filter: `classrooms ~ "${classroomId}"`
+	};
+	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
 };
 
 export const getGuestRecordsByClassroom = async (
 	classroomId: string,
 	options?: RecordListOptions
-): Promise<GuestPB[]> => {
+): Promise<PersonPB[]> => {
 	options = {
-		requestKey: `guests-by-classroom-${classroomId}`,
 		sort: 'name',
-		...options
+		...options,
+		filter: `guestrooms ~ "${classroomId}"`
 	};
-	return await getPeopleRecordsByClassroom<GuestPB>(COLLECTION_NAMES.Guests, classroomId, options);
-};
-
-export const getStudentRecordsByClassroom = async (
-	classroomId: string,
-	options?: RecordListOptions
-): Promise<StudentPB[]> => {
-	options = {
-		requestKey: `students-by-classroom-${classroomId}`,
-		sort: 'name',
-		...options
-	};
-	return await getPeopleRecordsByClassroom<StudentPB>(
-		COLLECTION_NAMES.Students,
-		classroomId,
-		options
-	);
-};
-
-export const getTeacherRecordsByClassroom = async (
-	classroomId: string,
-	options?: RecordListOptions
-): Promise<TeacherPB[]> => {
-	options = {
-		requestKey: `teachers-by-classroom-${classroomId}`,
-		sort: 'name',
-		...options
-	};
-	return await getPeopleRecordsByClassroom<TeacherPB>(
-		COLLECTION_NAMES.Teachers,
-		classroomId,
-		options
-	);
+	return await pbGetFullList<PersonPB>(COLLECTION_NAMES.People, options);
 };
 
 // =================================
 // === Activity Record Functions ===
 // =================================
 
-const activityCollectionNames = {
-	classrooms: COLLECTION_NAMES.ClassActivities,
-	students: COLLECTION_NAMES.StudentActivities,
-	teachers: COLLECTION_NAMES.TeacherActivities,
-	guests: COLLECTION_NAMES.GuestActivities
-} as const;
-const getActivityCollectionName = (collectionName: keyof typeof activityCollectionNames) => {
-	return activityCollectionNames[collectionName];
-};
-const personNames = {
-	students: 'student',
-	teachers: 'teacher',
-	guests: 'guest',
-	classrooms: 'classroom'
-};
-const getPersonName = (collectionName: keyof typeof personNames) => {
-	return personNames[collectionName];
-};
-
-export const resolveIndividualPresentationActivityRecords = async <T extends ActivityBasePB>(
+export const getExistingPersonActivityRecords = async (
+	personId: string,
 	presentationId: string,
-	slideIds: string[],
-	personOrClassroom: ClassroomPB | StudentPB | TeacherPB | GuestPB,
 	options?: RecordListOptions
-): Promise<T[]> => {
-	let activityRecords = await getExistingPresentationActivityRecords<T>(
-		presentationId,
-		slideIds,
-		personOrClassroom,
-		options
-	);
-	const promises: (T | Promise<T>)[] = activityRecords.map((r, i) =>
-		r ? r : createActivityRecord<T>(presentationId, slideIds[i], personOrClassroom, options)
-	);
-	return await Promise.all(promises);
-};
-
-const getExistingPresentationActivityRecords = async <T extends ActivityBasePB>(
-	presentationId: string,
-	slideIds: string[],
-	personOrClassroom: ClassroomPB | StudentPB | TeacherPB | GuestPB,
-	options?: RecordListOptions
-): Promise<(T | null)[]> => {
-	const collectionName = getActivityCollectionName(personOrClassroom.collectionName);
-	const personName = getPersonName(personOrClassroom.collectionName);
-	const slideIdsString = slideIds.map((id) => `slide ?= "${id}"`).join(' || ');
+): Promise<ActivityPersonPB[]> => {
+	const filter = `"${presentationId}" = presentation && person = "${personId}"`;
 	options = {
-		requestKey: `existing-${personOrClassroom.id}-${presentationId}`,
+		requestKey: `existing-person-activity-${personId}-${presentationId}`,
 		...options,
-		filter: `"${presentationId}" = presentation && (${slideIdsString})`
+		filter: filter
 	};
-	if (personName !== 'classroom') {
-		options.filter += ` && ${personName} = "${personOrClassroom.id}"`;
-	}
-	const existingRecords = await pbGetFullList<T>(collectionName, options);
-	const slideRecords = slideIds.map((slideId) => {
-		return existingRecords.find((record) => record.slide === slideId) || null;
-	});
-	return slideRecords;
+	return await pbGetFullList<ActivityPersonPB>(COLLECTION_NAMES.PeopleActivity, options);
 };
 
-export const createActivityRecord = async <T extends ActivityBasePB>(
+export const resolvePersonActivityRecord = async (
+	personId: string,
 	presentationId: string,
 	slideId: string,
-	personOrClassroom: ClassroomPB | StudentPB | TeacherPB | GuestPB,
-	data?: Record<string, any>,
-	options?: RecordOptions
-): Promise<T> => {
-	const collectionName = activityCollectionNames[personOrClassroom.collectionName];
-	const personName = getPersonName(personOrClassroom.collectionName);
-	if (!collectionName || !personName) {
-		throw new Error(
-			`Invalid collection name: ${personOrClassroom.collectionName} or person name: ${personName}`
-		);
-	}
-	const newRecord = {
-		presentation: presentationId,
-		slide: slideId,
-		data: data
-	} as Partial<T>;
-	(newRecord as any)[personNames[personOrClassroom.collectionName]] = personOrClassroom.id;
+	options?: RecordListOptions
+): Promise<void> => {
+	const filter = `"${presentationId}" = presentation && slide = "${slideId}" && person = "${personId}"`;
 	options = {
-		requestKey: `create-${collectionName}-${presentationId}-${slideId}-${personOrClassroom.id}`,
+		requestKey: `existing-person-activity-${personId}-${presentationId}-${slideId}`,
+		...options,
+		filter: filter
+	};
+	let record = await pbGetFirst<ActivityPersonPB>(COLLECTION_NAMES.PeopleActivity, filter, options);
+	if (!record) {
+		const newRecord = {
+			presentation: presentationId,
+			slide: slideId,
+			person: personId
+		} as Partial<ActivityPersonPB>;
+		options = {
+			requestKey: `create-person-activity-${personId}-${presentationId}-${slideId}`,
+			...options
+		};
+		await pbCreateRecord<ActivityPersonPB>(COLLECTION_NAMES.PeopleActivity, newRecord, options);
+	}
+};
+
+export const getExistingPresentationActivityRecords = async (
+	presentationId: string,
+	options?: RecordListOptions
+): Promise<ActivityPresentation[]> => {
+	const filter = `presentation = "${presentationId}"`;
+	options = {
+		requestKey: `existing-presentation-activities-${presentationId}`,
+		...options,
+		filter: filter
+	};
+	return await pbGetFullList<ActivityPresentation>(COLLECTION_NAMES.PresentationActivity, options);
+};
+
+export const resolvePresentationActivityRecord = async (
+	presentationId: string,
+	slideId: string,
+	options?: RecordListOptions
+): Promise<void> => {
+	const filter = `"${presentationId}" = presentation && slide = "${slideId}" `;
+	options = {
+		requestKey: `existing-presentation-activity-${presentationId}-${slideId}`,
 		...options
 	};
-	return await pbCreateRecord<T>(collectionName, newRecord, options);
+	let record = await pbGetFirst<ActivityPresentation>(
+		COLLECTION_NAMES.PresentationActivity,
+		filter,
+		options
+	);
+	if (!record) {
+		const newRecord = {
+			presentation: presentationId,
+			slide: slideId
+		} as Partial<ActivityPresentation>;
+		options = {
+			requestKey: `create-presentation-activity-${presentationId}-${slideId}`,
+			...options
+		};
+		await pbCreateRecord<ActivityPresentation>(
+			COLLECTION_NAMES.PresentationActivity,
+			newRecord,
+			options
+		);
+	}
 };
 
 export const subscribeToActivityRecord = async <T extends ActivityBasePB>(
@@ -553,45 +547,22 @@ export const subscribeToActivityRecord = async <T extends ActivityBasePB>(
 // === Class Icon Record Functions ===
 // ===================================
 
-export const getAllClassIcons = async (
+export const getAllIcons = async (
 	classroomId: string,
 	options?: RecordListOptions
-): Promise<ClassIconPB[]> => {
+): Promise<IconPB[]> => {
 	options = {
 		sort: 'name',
-		...options,
-		filter: `classroom = "${classroomId}"`
+		...options
 	};
-	return await pbGetFullList<ClassIconPB>(COLLECTION_NAMES.Icons, options);
+	return await pbGetFullList<IconPB>(COLLECTION_NAMES.Icons, options);
 };
 
-export const getGuestClassIconRecordMap = async (
-	classroomId: string
-): Promise<Map<string, ClassIconPB>> => {
-	const guestAvatarMap = new Map<string, ClassIconPB>();
-	try {
-		const guestAvatars = (await pb.collection('icons').getFullList({
-			filter: `for_guests = true && classroom = "${classroomId}"`,
-			sort: 'name'
-		})) as ClassIconPB[];
-		guestAvatars.forEach((avatar) => {
-			guestAvatarMap.set(avatar.id, avatar);
-		});
-		return guestAvatarMap;
-	} catch (error) {
-		console.error(error);
-		return guestAvatarMap;
-	}
-};
-
-export const getIconRecord = async (
-	id: string,
-	requestKey?: string
-): Promise<ClassIconPB | null> => {
+export const getIconRecord = async (id: string, requestKey?: string): Promise<IconPB | null> => {
 	try {
 		const iconRecord = (await pb
 			.collection('icons')
-			.getOne(id, { requestKey: requestKey })) as ClassIconPB;
+			.getOne(id, { requestKey: requestKey })) as IconPB;
 		return iconRecord;
 	} catch (error) {
 		console.error(`Error fetching icon record with ID ${id}:`, error);

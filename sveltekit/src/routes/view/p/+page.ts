@@ -5,23 +5,23 @@ import { getClassSlideComponents } from '$lib/slides';
 import type { SlideComponentProps } from '$lib/slides';
 import {
 	Classroom,
-	ClassroomActivity,
+	PresentationActivity,
 	GuestActivity,
 	Presentation,
 	Slide,
 	StudentActivity,
 	TeacherActivity,
-	SchoolBuilder
+	ClassroomBuilder
 } from '$lib/pb/objects';
 import { getCurrentISOString } from '$lib';
 
 export const load = (async ({ params, url }) => {
-	const classroom: Classroom = await SchoolBuilder.getClassroom('Caseys Class');
+	const classroom: Classroom = await ClassroomBuilder.getClassroom('Caseys Class');
 	const [deck, teachers, students, guests] = await Promise.all([
-		SchoolBuilder.getDeck('Morning Meeting'),
-		SchoolBuilder.getClassTeachers(classroom.id),
-		SchoolBuilder.getClassStudents(classroom.id),
-		SchoolBuilder.getClassGuests(classroom.id)
+		ClassroomBuilder.getDeck('Morning Meeting'),
+		ClassroomBuilder.getClassTeachers(classroom.id),
+		ClassroomBuilder.getClassStudents(classroom.id),
+		ClassroomBuilder.getClassGuests(classroom.id)
 	]);
 
 	const todayISO = getCurrentISOString();
@@ -34,7 +34,7 @@ export const load = (async ({ params, url }) => {
 	const classroomActivityPromises = deck.resolveIndividualActivityRecords(
 		presentation.id,
 		classroom.record
-	) as Promise<ClassroomActivity[]>;
+	) as Promise<PresentationActivity[]>;
 
 	const guestActivityPromises: Array<Promise<GuestActivity[]>> = [];
 	guests.forEach(async (guest) => {
@@ -62,7 +62,7 @@ export const load = (async ({ params, url }) => {
 		guestActivityArrays,
 		studentActivityArrays,
 		teacherActivityArrays
-	]: [ClassroomActivity[], GuestActivity[][], StudentActivity[][], TeacherActivity[][]] =
+	]: [PresentationActivity[], GuestActivity[][], StudentActivity[][], TeacherActivity[][]] =
 		await Promise.all([
 			classroomActivityPromises,
 			await Promise.all(guestActivityPromises),

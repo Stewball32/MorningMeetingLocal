@@ -3,10 +3,9 @@
 @plugin '@tailwindcss/typography';
 
 @import '@skeletonlabs/skeleton';
-@import '@skeletonlabs/skeleton/optional/presets';
 @import '@skeletonlabs/skeleton/themes/cerberus';
 
-@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@import '@skeletonlabs/skeleton-svelte';
 
 /* fonts */
 @import '@fontsource/abeezee';
@@ -28,13 +27,6 @@
 	--text-12xl: 14rem;
 	--text-12xl--line-height: 1.2;
 }
-/*
-html,
-body {
-	@apply bg-gradient-to-br from-blue-400 to-blue-600;
-	transform: translateZ(0);
-}
-*/
 
 @layer {
 	.slide-flex-col {
@@ -42,29 +34,186 @@ body {
 	}
 }
 
-h1 {
-	@apply h1 text-12xl;
-}
-h2 {
-	@apply h2 text-11xl;
-}
-h3 {
-	@apply h3 text-10xl;
-}
-h4 {
-	@apply h4 text-9xl;
-}
-h5 {
-	@apply h5 text-8xl;
-}
-h6 {
-	@apply h6 text-7xl;
+.h-base {
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+	letter-spacing: var(--heading-letter-spacing) /* inherit */;
+	&:where(.dark, .dark *) {
+		color: var(--heading-font-color-dark) /* inherit */;
+	}
 }
 
+h1 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-4xl);
+	line-height: var(--text-4xl--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-5xl);
+		line-height: var(--text-5xl--line-height);
+	}
+}
+
+h2 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-3xl);
+	line-height: var(--text-3xl--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-4xl);
+		line-height: var(--text-4xl--line-height);
+	}
+}
+
+h3 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-2xl);
+	line-height: var(--text-2xl--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-3xl);
+		line-height: var(--text-3xl--line-height);
+	}
+}
+h4 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-xl);
+	line-height: var(--text-xl--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-2xl);
+		line-height: var(--text-2xl--line-height);
+	}
+}
+h5 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-lg);
+	line-height: var(--text-lg--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-xl);
+		line-height: var(--text-xl--line-height);
+	}
+}
+h6 {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-base);
+	line-height: var(--text-base--line-height);
+	@media (width >= 48rem /* 768px */) {
+		font-size: var(--text-lg);
+		line-height: var(--text-lg--line-height);
+	}
+}
 p {
-	@apply text-4xl;
 }
 a {
+}
+
+h1-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-12xl);
+	line-height: var(--text-12xl--line-height);
+}
+
+h2-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-11xl);
+	line-height: var(--text-11xl--line-height);
+}
+h3-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-10xl);
+	line-height: var(--text-10xl--line-height);
+}
+h4-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-9xl);
+	line-height: var(--text-9xl--line-height);
+}
+h5-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-8xl);
+	line-height: var(--text-8xl--line-height);
+}
+h6-slide {
+	/* =============Base Values================ */
+	color: var(--heading-font-color) /* inherit */;
+	font-family: var(--heading-font-family) /* inherit */;
+	font-weight: var(--heading-font-weight) /* inherit */;
+	font-style: var(--heading-font-style) /* inherit */;
+
+	/* =============Text Scaling================ */
+	font-size: var(--text-7xl);
+	line-height: var(--text-7xl--line-height);
+}
+
+p-slide {
+	@apply text-4xl;
+}
+a-slide {
 	@apply text-4xl;
 }
 
