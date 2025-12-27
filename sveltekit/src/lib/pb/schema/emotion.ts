@@ -6,7 +6,7 @@ export interface EmotionPB extends RecordModel {
 	name: string;
 	image: string; // ImagePB.id
 	priority: number;
-	tags:
+	tags: (
 		| 'positive'
 		| 'neutral'
 		| 'negative'
@@ -15,7 +15,8 @@ export interface EmotionPB extends RecordModel {
 		| 'severe'
 		| 'health'
 		| 'simple'
-		| 'complex';
+		| 'complex'
+	)[];
 }
 
 export interface EmotionOverridePB extends RecordModel {
