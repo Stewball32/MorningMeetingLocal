@@ -1,21 +1,23 @@
 import type { RecordModel } from 'pocketbase';
 import { COLLECTION_NAMES } from '../constants';
 
+export type EmotionTag =
+	| 'positive'
+	| 'neutral'
+	| 'negative'
+	| 'mild'
+	| 'moderate'
+	| 'severe'
+	| 'health'
+	| 'simple'
+	| 'complex';
+
 export interface EmotionPB extends RecordModel {
 	collectionName: typeof COLLECTION_NAMES.Emotions;
 	name: string;
 	image: string; // ImagePB.id
 	priority: number;
-	tags:
-		| 'positive'
-		| 'neutral'
-		| 'negative'
-		| 'mild'
-		| 'moderate'
-		| 'severe'
-		| 'health'
-		| 'simple'
-		| 'complex';
+	tags: EmotionTag[];
 }
 
 export interface EmotionOverridePB extends RecordModel {
