@@ -4,9 +4,16 @@
 	import { ImageAsset } from '$lib/pb';
 	import { COLLECTION_NAMES } from '$lib/pb/constants';
 	import { pbCreateRecord, pbUpdateRecord } from '$lib/pb/core';
-	import { PlusIcon, RefreshCcwIcon, SaveIcon, SearchIcon, Trash2Icon } from '@lucide/svelte';
-	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import { ShieldQuestionIcon, CalendarIcon, ContactRoundIcon, DramaIcon, PlusIcon, RefreshCcwIcon, SaveIcon, SearchIcon, Trash2Icon } from '@lucide/svelte';
+	import { FileUpload, Switch } from '@skeletonlabs/skeleton-svelte';
 	import { toaster } from '$lib/toaster';
+
+  const tagOptions: TagOption[] = ['guest', 'calendar', 'emotion'];
+  const TagIcons = {
+    emotion: DramaIcon,
+    calendar: CalendarIcon,
+    guest: ContactRoundIcon
+  }
 
 	type TagOption = ImagePB['tags'][number];
 	type ImageForm = {
@@ -23,12 +30,13 @@
 	let loadError = $state(data.loadError ?? '');
 	let imageAssets = $state<ImageAsset[]>(data.imageAssets ?? []);
 	let searchTerm = $state('');
+	let activeTagFilters = $state<Set<TagOption>>(new Set());
 	let activeImageId = $state<string | null>(null);
 	let activeImage = $state<ImageAsset | null>(null);
 	let imageForm = $state<ImageForm>(createEmptyForm());
 	let imagePreview = $state('');
 
-	const tagOptions: TagOption[] = ['guest', 'calendar', 'emotion'];
+
 
 	function createEmptyForm(): ImageForm {
 		return {
@@ -51,6 +59,14 @@
 
 	const visibleImages = $derived.by(() => {
 		let next = imageAssets;
+		if (activeTagFilters.size) {
+			next = next.filter((image) => {
+				for (const tag of activeTagFilters) {
+					if (!image.tags.includes(tag)) return false;
+				}
+				return true;
+			});
+		}
 		if (searchTerm.trim()) {
 			const q = searchTerm.trim().toLowerCase();
 			next = next.filter(
@@ -119,14 +135,18 @@
 		setImageFile(files?.[0] ?? null);
 	};
 
-	const toggleTag = (tag: TagOption) => {
+	const setTagChecked = (tag: TagOption, checked: boolean) => {
 		const next = new Set(imageForm.tags);
-		if (next.has(tag)) {
-			next.delete(tag);
-		} else {
-			next.add(tag);
-		}
+		if (checked) next.add(tag);
+		else next.delete(tag);
 		imageForm = { ...imageForm, tags: Array.from(next) };
+	};
+
+	const toggleTagFilter = (tag: TagOption) => {
+		const next = new Set(activeTagFilters);
+		if (next.has(tag)) next.delete(tag);
+		else next.add(tag);
+		activeTagFilters = next;
 	};
 
 	const upsertImage = (asset: ImageAsset) => {
@@ -152,8 +172,8 @@
 					name: trimmedName,
 					label: imageForm.label.trim() || undefined,
 					tags: imageForm.tags,
-					image: imageForm.imageFile
-				});
+					image: imageForm.imageFile || undefined
+				} as Partial<ImagePB>);
 				upsertImage(new ImageAsset(record));
 				toaster.success({ title: `Image "${trimmedName}" created.` });
 				return;
@@ -166,8 +186,8 @@
 					name: trimmedName,
 					label: imageForm.label.trim(),
 					tags: imageForm.tags,
-					...(imageForm.imageFile ? { image: imageForm.imageFile } : {})
-				}
+					...(imageForm.imageFile ? { image: imageForm.imageFile } : {image: undefined})
+				} as Partial<ImagePB>
 			);
 			activeImage.loadNewRecord(updatedRecord);
 			upsertImage(activeImage);
@@ -244,6 +264,25 @@
 							New
 						</button>
 					</div>
+					<div class="flex flex-wrap items-center gap-2">
+						{#each tagOptions as tag}
+							{@const TagIcon = TagIcons[tag] ?? ShieldQuestionIcon}
+							<button
+								type="button"
+								class={`btn rounded-full p-2 ${
+									activeTagFilters.has(tag)
+										? 'preset-filled-primary-500'
+										: 'preset-tonal border border-surface-200-800'
+								}`}
+								title={`Toggle tag: ${tag}`}
+								aria-pressed={activeTagFilters.has(tag)}
+								aria-label={`Toggle tag: ${tag}`}
+								onclick={() => toggleTagFilter(tag)}
+							>
+								<TagIcon class="size-4" />
+							</button>
+						{/each}
+					</div>
 
 					<div class="flex flex-col gap-2">
 						{#if visibleImages.length === 0}
@@ -252,31 +291,39 @@
 							{#each visibleImages as image}
 								<button
 									type="button"
-									class={`group flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-										image.id === activeImageId
-											? 'border-primary-500 bg-primary-50-950/40'
-											: 'border-surface-200-800 bg-surface-50-950/60 hover:border-primary-400'
-									}`}
+                  class={`group rounded-xl border p-1 text-left transition ${
+                      image.id === activeImageId
+                        ? 'border-primary-500 bg-primary-50-950/40'
+                        : 'border-surface-200-800 bg-surface-50-950/60 hover:border-primary-400'
+                    }`}
 									onclick={() => selectImage(image.id)}
 								>
-									<div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-surface-200-800 bg-surface-100-900">
-										{#if image.imagePath}
-											<img src={image.imagePath} alt={image.label} class="h-full w-full object-contain" />
-										{:else}
-											<span class="text-xs text-surface-500-400">No image</span>
-										{/if}
-									</div>
-									<div class="min-w-0 flex-1">
-										<p class="truncate text-sm font-semibold">{image.name}</p>
-										<p class="truncate text-xs text-surface-700-300">{image.label}</p>
-										<div class="mt-1 flex flex-wrap gap-1">
-											{#each image.tags as tag}
-												<span class="rounded-full bg-surface-200-800 px-2 py-0.5 text-[10px] uppercase tracking-wide">
-													{tag}
-												</span>
-											{/each}
-										</div>
-									</div>
+                  <div
+                    class={`group flex items-center gap-3 p-1 text-left transition`}>
+                    <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-surface-200-800 bg-surface-100-900">
+                      {#if image.imagePath}
+                        <img src={image.imagePath} alt={image.label} class="h-full w-full object-contain" />
+                      {:else}
+                        <span class="text-xs text-surface-500-400">No image</span>
+                      {/if}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold">{image.label || image.name}</p>
+                      <div class="mt-1 flex flex-wrap gap-1">
+                        {#each image.tags as tag}
+                          {@const Icon = TagIcons[tag] ?? ShieldQuestionIcon}
+                          <span
+                            class="flex items-center justify-center px-1 py-0.5 tracking-wide"
+                            title={tag}
+                            aria-label={tag}
+                          >
+                            <Icon class="size-4" />
+                          </span>
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
+                  <p class="truncate italic text-xs text-surface-700-300">{image.label ? image.name : ""}</p>
 								</button>
 							{/each}
 						{/if}
@@ -385,15 +432,22 @@
 									<span class="text-sm font-semibold">Tags</span>
 									<div class="flex flex-wrap gap-2">
 										{#each tagOptions as tag}
-											<label class="flex items-center gap-2 rounded-full border border-surface-200-800 bg-surface-50-950 px-3 py-1 text-xs uppercase tracking-wide">
-												<input
-													type="checkbox"
-													class="checkbox"
-													checked={imageForm.tags.includes(tag)}
-													onchange={() => toggleTag(tag)}
-												/>
-												<span>{tag}</span>
-											</label>
+											{@const TagIcon = TagIcons[tag] ?? ShieldQuestionIcon}
+											<Switch
+												class="flex items-center justify-between gap-3 rounded-full border border-surface-200-800 bg-surface-50-950 px-3 py-1 text-xs uppercase tracking-wide"
+												checked={imageForm.tags.includes(tag)}
+												onCheckedChange={({ checked }) => setTagChecked(tag, checked)}
+											>
+												<Switch.Label class="flex items-center gap-2">
+													<span>{tag}</span>
+												</Switch.Label>
+												<Switch.Control class="preset-tonal data-[state=checked]:preset-filled-primary-500">
+													<Switch.Thumb>
+														<TagIcon class="size-3" />
+													</Switch.Thumb>
+												</Switch.Control>
+												<Switch.HiddenInput />
+											</Switch>
 										{/each}
 									</div>
 								</div>
