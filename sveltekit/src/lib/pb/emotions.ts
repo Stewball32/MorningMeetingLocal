@@ -1,7 +1,7 @@
 import type { RecordListOptions, RecordOptions } from 'pocketbase';
 import { BaseObject } from './base';
 import { COLLECTION_NAMES } from './constants';
-import { pbGetByIds, pbGetFullList, pbGetOne } from './core';
+import { pbCreateRecord, pbGetByIds, pbGetFullList, pbGetOne } from './core';
 import { getImageRecord, ImageAsset } from './images';
 import type { EmotionOverridePB, EmotionPB } from './schema';
 
@@ -36,6 +36,12 @@ export const getEmotionRecordsByIds = async (
 		sort: 'priority',
 		...options
 	});
+};
+
+export const createEmotionRecord = async (data: Partial<EmotionPB>): Promise<EmotionPB> => {
+	const newRecord = await pbCreateRecord<EmotionPB>(COLLECTION_NAMES.Emotions, data);
+	if (!newRecord) throw new Error('Failed to create Emotion record');
+	return newRecord;
 };
 
 // ========================================
