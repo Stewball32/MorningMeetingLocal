@@ -1,4 +1,4 @@
-import type { ClassroomPB, DeckPB, PersonPB, SlidePB } from './schema';
+import type { ClassroomPB, DeckPB, EmotionPB, PersonPB, SlidePB } from './schema';
 import {
 	Classroom,
 	createClassroomRecord,
@@ -17,7 +17,7 @@ import {
 import { Deck, getAllDeckRecords, getDeckRecordById, getDeckRecordByName } from './decks';
 import { getAllSlideRecords, getSlideRecordsOrdered, Slide } from './slides';
 import { getAllImageRecords, ImageAsset } from './images';
-import { getAllEmotionRecords, Emotion } from './emotions';
+import { createEmotionRecord, getAllEmotionRecords, Emotion } from './emotions';
 
 export class SchoolBuilder {
 	static async getAllClassrooms(): Promise<Classroom[]> {
@@ -50,6 +50,10 @@ export class SchoolBuilder {
 
 	static async createClassroom(data: Partial<ClassroomPB>): Promise<Classroom> {
 		return new Classroom(await createClassroomRecord(data));
+	}
+
+	static async createEmotion(data: Partial<EmotionPB>): Promise<Emotion> {
+		return new Emotion(await createEmotionRecord(data));
 	}
 }
 
